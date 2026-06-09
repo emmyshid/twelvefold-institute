@@ -1,0 +1,73 @@
+import { pgTable, uuid, text, timestamp, jsonb } from "drizzle-orm/pg-core";
+
+// ════════════════════════════════════════════════════════════════
+// Postgres schema — Twelvefold Institute (Phase 1)
+//
+// This is the B1 migration target. Today the apps keep state in the
+// browser (localStorage / window.storage). On the public web that
+// cannot persist across devices or survive a cleared cache, so each
+// key becomes a server-side table keyed to the authenticated user.
+//
+//   localStorage key            →  table
+//   ─────────────────────────────────────────────
+//   pos10-master-history        →  readings (clerk_user_id set)
+//   pos10-clients               →  clients          (Phase 2)
+//   pos10-client-${code}        →  client_sessions  (Phase 2)
+//   pos10-role                  →  profiles.role
+//   plc-progress / plc-*        →  enrollments + progress (Phase 2)
+// ════════════════════════════════════════════════════════════════
+
+// One profile row per Clerk user. Identity lives in Clerk; this holds
+// app-specific fields (role = member | practitioner | admin).
+export const profiles = pgTable("profiles", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clerkUserId: text("clerk_user_id").notNull().unique(),
+  email: text("email"),
+  displayName: text("display_name"),
+  role: text("role").notNull().default("member"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Replaces pos10-master-history. clerk_user_id is nullable so anonymous
+// free readings from the homepage can still be recorded (rate-limited);
+// signed-in readings are tied to the user and show up in their history.
+export const readings = pgTable("readings", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clerkUserId: text("clerk_user_id"),
+  input: text("input").notNull(),
+  patternName: text("pattern_name"),
+  phase: text("phase"),
+  microState: text("micro_state"),
+  curriculum: text("curriculum"),
+  activeLesson: text("active_lesson"),
+  recommendedParticipation: text("recommended_participation"),
+  raw: jsonb("raw"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Certification applications (the sales page form posts here).
+export const certApplications = pgTable("cert_applications", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  motivation: text("motivation"),
+  status: text("status").notNull().default("received"), // received | reviewing | admitted | declined
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Membership / billing state. Tier stays "free" until Stripe is wired
+// in Phase 2; the Stripe columns are here so that work is additive.
+export const memberships = pgTable("memberships", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clerkUserId: text("clerk_user_id").notNull(),
+  tier: text("tier").notNull().default("free"), // free | community
+  status: text("status").notNull().default("active"),
+  stripeCustomerId: text("stripe_customer_id"),
+  stripeSubscriptionId: text("stripe_subscription_id"),
+  currentPeriodEnd: timestamp("current_period_end"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type Reading = typeof readings.$inferSelect;
+export type NewReading = typeof readings.$inferInsert;
+export type CertApplication = typeof certApplications.$inferSelect;
