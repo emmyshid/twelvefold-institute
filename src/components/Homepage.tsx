@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useMemo } from "react";
 import type { CSSProperties, ReactNode } from "react";
+import { SignedIn, SignedOut, UserButton } from "@clerk/nextjs";
 
 const T = {
   bg: "#06060F",
@@ -255,6 +256,18 @@ export default function Homepage() {
               })}
             </div>
             <Btn variant="ghost" href="#try-it" style={{ padding: "10px 18px" }}>Get a reading</Btn>
+            <SignedOut>
+              <Btn variant="ghost" href="/sign-in" style={{ padding: "10px 18px" }}>Sign in</Btn>
+            </SignedOut>
+            <SignedIn>
+              <UserButton
+                afterSignOutUrl="/"
+                appearance={{
+                  variables: { colorPrimary: "#A78BFA" },
+                  elements: { avatarBox: { width: 36, height: 36, border: `1px solid ${T.border}` } },
+                }}
+              />
+            </SignedIn>
             <button aria-label="Menu" className="pi-menu-btn" onClick={() => setMenuOpen((o) => !o)}>
               {menuOpen ? "\u2715" : "\u2630"}
             </button>
