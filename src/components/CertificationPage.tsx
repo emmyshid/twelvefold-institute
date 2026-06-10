@@ -70,15 +70,25 @@ function CertSeal() {
   );
 }
 
-function Btn({ children, variant = "primary", onClick, style }: { children: ReactNode; variant?: Variant; onClick?: () => void; style?: CSSProperties }) {
+function Btn({ children, variant = "primary", onClick, href, style }: { children: ReactNode; variant?: Variant; onClick?: () => void; href?: string; style?: CSSProperties }) {
   const variants: Record<Variant, { background: string; color: string; border: string; glow: string }> = {
     primary: { background: T.grad, color: "#fff", border: "none", glow: "rgba(124,58,237,0.4)" },
     gold: { background: T.gradGold, color: "#1a1206", border: "none", glow: "rgba(251,191,36,0.35)" },
     ghost: { background: "transparent", color: T.text, border: `1px solid ${T.border}`, glow: "rgba(167,139,250,0.25)" },
   };
   const v = variants[variant];
+  const handleClick = () => {
+    if (onClick) return onClick();
+    if (!href) return;
+    if (href.startsWith("#")) {
+      const el = document.getElementById(href.slice(1));
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.location.href = href;
+    }
+  };
   return (
-    <button onClick={onClick} style={{ padding: "14px 30px", borderRadius: "999px", fontFamily: T.fontMono, fontSize: "12.5px", letterSpacing: "0.8px", cursor: "pointer", background: v.background, color: v.color, border: v.border, ...style }}>
+    <button onClick={handleClick} style={{ padding: "14px 30px", borderRadius: "999px", fontFamily: T.fontMono, fontSize: "12.5px", letterSpacing: "0.8px", cursor: "pointer", background: v.background, color: v.color, border: v.border, ...style }}>
       {children}
     </button>
   );
@@ -167,11 +177,11 @@ export default function CertificationPage() {
       <Starfield />
 
       <div style={{ position: "relative", zIndex: 3 }}>
-        <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "22px clamp(20px, 5vw, 64px)", gap: "16px" }}>
-          <div style={{ fontFamily: T.fontMono, fontSize: "15px", letterSpacing: "1px", fontWeight: 700 }}>
+        <nav style={{ position: "sticky", top: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px clamp(20px, 5vw, 64px)", gap: "16px", background: "rgba(6,6,15,0.78)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", borderBottom: `1px solid ${T.border}` }}>
+          <a href="/" style={{ textDecoration: "none", fontFamily: T.fontMono, fontSize: "15px", letterSpacing: "1px", fontWeight: 700 }}>
             <span style={{ color: T.text }}>Twelvefold</span> <span style={{ color: T.accent }}>Institute</span>
-          </div>
-          <Btn variant="ghost" style={{ padding: "10px 20px" }}>← Back to home</Btn>
+          </a>
+          <Btn variant="ghost" href="/" style={{ padding: "10px 18px" }}>← Back to home</Btn>
         </nav>
 
         <header style={{ padding: "clamp(40px, 7vw, 80px) clamp(20px, 5vw, 64px) clamp(24px, 4vw, 40px)", maxWidth: 920, margin: "0 auto", textAlign: "center" }}>

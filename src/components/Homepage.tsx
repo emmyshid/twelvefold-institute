@@ -185,6 +185,7 @@ function TryReading() {
 }
 
 export default function Homepage() {
+  const [menuOpen, setMenuOpen] = useState(false);
   const navLinks: [string, string][] = [
     ["Pattern Literacy", "#shift"],
     ["Read", "#try-it"],
@@ -217,20 +218,30 @@ export default function Homepage() {
         .pi-card { transition: transform 0.35s ${T.ease}, border-color 0.35s ${T.ease}, box-shadow 0.35s ${T.ease}; }
         .pi-card:hover { transform: translateY(-4px); border-color: rgba(167,139,250,0.35); box-shadow: 0 16px 44px rgba(0,0,0,0.45); }
         .pi-nav-links { display: flex; gap: 28px; align-items: center; }
-        @media (max-width: 820px) { .pi-nav-links { display: none; } }
+        .pi-menu-btn { display: none; background: transparent; border: 1px solid ${T.border}; border-radius: 10px; width: 42px; height: 42px; color: ${T.text}; font-size: 18px; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; }
+        .pi-shift-row { display: grid; grid-template-columns: 1fr auto 1fr; align-items: stretch; gap: 14px; }
+        .pi-shift-arrow { font-family: ${T.fontMono}; font-size: 18px; color: ${T.accent}; display: flex; align-items: center; justify-content: center; }
+        @media (max-width: 820px) {
+          .pi-nav-links { display: none; }
+          .pi-menu-btn { display: inline-flex; }
+        }
+        @media (max-width: 640px) {
+          .pi-shift-row { grid-template-columns: 1fr; gap: 8px; }
+          .pi-shift-arrow { transform: rotate(90deg); padding: 2px 0; }
+        }
+        button:focus-visible, textarea:focus-visible, a:focus-visible { outline: 2px solid #A78BFA; outline-offset: 3px; }
       `}</style>
 
       <Starfield />
 
       <div style={{ position: "relative", zIndex: 3 }}>
-        <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "22px clamp(20px, 5vw, 64px)", gap: "16px" }}>
+        <nav style={{ position: "sticky", top: 0, zIndex: 40, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px clamp(20px, 5vw, 64px)", gap: "16px", background: "rgba(6,6,15,0.78)", backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)", borderBottom: `1px solid ${T.border}` }}>
           <div style={{ fontFamily: T.fontMono, fontSize: "15px", letterSpacing: "1px", fontWeight: 700 }}>
             <span style={{ color: T.text }}>Twelvefold</span> <span style={{ color: T.accent }}>Institute</span>
           </div>
-          <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
+          <div style={{ display: "flex", gap: "14px", alignItems: "center" }}>
             <div className="pi-nav-links">
               {navLinks.map(([label, href]) => {
-                const isRoute = href.startsWith("/");
                 const handle = (e: React.MouseEvent<HTMLAnchorElement>) => {
                   if (href.startsWith("#")) {
                     e.preventDefault();
@@ -243,8 +254,28 @@ export default function Homepage() {
                   onMouseLeave={(e) => (e.currentTarget.style.color = T.textDim)}>{label}</a>;
               })}
             </div>
-            <Btn variant="ghost" href="#try-it" style={{ padding: "10px 20px" }}>Get a reading</Btn>
+            <Btn variant="ghost" href="#try-it" style={{ padding: "10px 18px" }}>Get a reading</Btn>
+            <button aria-label="Menu" className="pi-menu-btn" onClick={() => setMenuOpen((o) => !o)}>
+              {menuOpen ? "\u2715" : "\u2630"}
+            </button>
           </div>
+          {menuOpen && (
+            <div style={{ position: "absolute", top: "100%", left: 0, right: 0, margin: "8px clamp(20px,5vw,64px) 0", background: "rgba(12,12,24,0.96)", backdropFilter: "blur(22px)", WebkitBackdropFilter: "blur(22px)", border: `1px solid ${T.border}`, borderRadius: T.radius, padding: 12, display: "flex", flexDirection: "column", gap: 2, boxShadow: "0 16px 44px rgba(0,0,0,0.5)" }}>
+              {navLinks.map(([label, href]) => {
+                const handle = (e: React.MouseEvent<HTMLAnchorElement>) => {
+                  setMenuOpen(false);
+                  if (href.startsWith("#")) {
+                    e.preventDefault();
+                    setTimeout(() => {
+                      const el = document.getElementById(href.slice(1));
+                      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }, 50);
+                  }
+                };
+                return <a key={label} href={href} onClick={handle} style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.textDim, textDecoration: "none", letterSpacing: "0.5px", padding: "13px 14px", borderRadius: T.radiusSm }}>{label}</a>;
+              })}
+            </div>
+          )}
         </nav>
 
         <header style={{ padding: "clamp(36px, 7vw, 80px) clamp(20px, 5vw, 64px) clamp(20px, 5vw, 40px)", maxWidth: 980, margin: "0 auto", textAlign: "center" }}>
@@ -271,12 +302,12 @@ export default function Homepage() {
           <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
             {shift.map(([from, to], i) => (
               <Reveal key={i} delay={i * 0.07}>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", alignItems: "center", gap: "14px" }}>
+                <div className="pi-shift-row">
                   <div style={{ padding: "18px 22px", background: "rgba(255,255,255,0.02)", borderRadius: T.radiusSm, border: `1px solid ${T.border}` }}>
                     <div style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "2px", color: T.textMuted, marginBottom: "8px" }}>FROM</div>
                     <div style={{ fontFamily: T.font, fontSize: "17px", color: T.textDim }}>{from}</div>
                   </div>
-                  <div style={{ fontFamily: T.fontMono, fontSize: "18px", color: T.accent }}>→</div>
+                  <div className="pi-shift-arrow">→</div>
                   <div style={{ padding: "18px 22px", background: "rgba(167,139,250,0.06)", borderRadius: T.radiusSm, border: "1px solid rgba(167,139,250,0.2)" }}>
                     <div style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "2px", color: T.accent, marginBottom: "8px" }}>TO</div>
                     <div style={{ fontFamily: T.font, fontSize: "17px", color: T.text }}>{to}</div>
