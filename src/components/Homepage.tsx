@@ -99,15 +99,25 @@ function PhaseRing() {
   );
 }
 
-function Btn({ children, variant = "primary", onClick, style }: { children: ReactNode; variant?: Variant; onClick?: () => void; style?: CSSProperties }) {
+function Btn({ children, variant = "primary", onClick, href, style }: { children: ReactNode; variant?: Variant; onClick?: () => void; href?: string; style?: CSSProperties }) {
   const variants: Record<Variant, { background: string; color: string; border: string; glow: string }> = {
     primary: { background: T.grad, color: "#fff", border: "none", glow: "rgba(124,58,237,0.4)" },
     gold: { background: T.gradGold, color: "#1a1206", border: "none", glow: "rgba(251,191,36,0.35)" },
     ghost: { background: "transparent", color: T.text, border: `1px solid ${T.border}`, glow: "rgba(167,139,250,0.25)" },
   };
   const v = variants[variant];
+  const handleClick = () => {
+    if (onClick) return onClick();
+    if (!href) return;
+    if (href.startsWith("#")) {
+      const el = document.getElementById(href.slice(1));
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    } else {
+      window.location.href = href;
+    }
+  };
   return (
-    <button onClick={onClick} style={{ padding: "14px 30px", borderRadius: "999px", fontFamily: T.fontMono, fontSize: "12.5px", letterSpacing: "0.8px", cursor: "pointer", transition: `transform 0.3s ${T.ease}, box-shadow 0.3s ${T.ease}`, background: v.background, color: v.color, border: v.border, ...style }}
+    <button onClick={handleClick} style={{ padding: "14px 30px", borderRadius: "999px", fontFamily: T.fontMono, fontSize: "12.5px", letterSpacing: "0.8px", cursor: "pointer", transition: `transform 0.3s ${T.ease}, box-shadow 0.3s ${T.ease}`, background: v.background, color: v.color, border: v.border, ...style }}
       onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = `0 10px 30px ${v.glow}`; }}
       onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "none"; }}>
       {children}
@@ -175,12 +185,18 @@ function TryReading() {
 }
 
 export default function Homepage() {
-  const navLinks = ["Pattern Literacy", "Read", "Book", "Certification", "Institutions"];
-  const doors: { eyebrow: string; title: string; body: string; cta: string; variant: Variant; feature?: boolean }[] = [
-    { eyebrow: "Start here", title: "Get a reading", body: "Describe what keeps happening. PatternOS reads the phase you are in and what it is asking of you.", cta: "Read my pattern", variant: "gold" },
-    { eyebrow: "The book", title: "Pattern Literacy", body: "What's actually running your life — and how to read it. Read the opening chapter free.", cta: "Read a sample", variant: "ghost" },
-    { eyebrow: "Become a practitioner", title: "Certification", body: "A 200-hour program to read patterns for others with rigor. Small cohorts, $6,500.", cta: "See the program", variant: "primary", feature: true },
-    { eyebrow: "For organizations", title: "Bring it to your institution", body: "Org diagnostics and licensing for schools, healthcare, and teams. Book a consult.", cta: "Start a conversation", variant: "ghost" },
+  const navLinks: [string, string][] = [
+    ["Pattern Literacy", "#shift"],
+    ["Read", "#try-it"],
+    ["Book", "#book-soon"],
+    ["Certification", "/certification"],
+    ["Institutions", "#institutions-soon"],
+  ];
+  const doors: { eyebrow: string; title: string; body: string; cta: string; href: string; variant: Variant; feature?: boolean }[] = [
+    { eyebrow: "Start here", title: "Get a reading", body: "Describe what keeps happening. PatternOS reads the phase you are in and what it is asking of you.", cta: "Read my pattern", href: "#try-it", variant: "gold" },
+    { eyebrow: "The book", title: "Pattern Literacy", body: "What's actually running your life — and how to read it. Read the opening chapter free.", cta: "Read a sample", href: "#book-soon", variant: "ghost" },
+    { eyebrow: "Become a practitioner", title: "Certification", body: "A 200-hour program to read patterns for others with rigor. Small cohorts, $6,500.", cta: "See the program", href: "/certification", variant: "primary", feature: true },
+    { eyebrow: "For organizations", title: "Bring it to your institution", body: "Org diagnostics and licensing for schools, healthcare, and teams. Book a consult.", cta: "Start a conversation", href: "#institutions-soon", variant: "ghost" },
   ];
   const shift: [string, string][] = [
     ["\u201CWhy does this keep happening to me?\u201D", "\u201CWhat is this pattern teaching me?\u201D"],
@@ -213,9 +229,21 @@ export default function Homepage() {
           </div>
           <div style={{ display: "flex", gap: "20px", alignItems: "center" }}>
             <div className="pi-nav-links">
-              {navLinks.map((l) => <a key={l} href="#" style={{ fontFamily: T.fontMono, fontSize: "12px", color: T.textDim, textDecoration: "none", letterSpacing: "0.5px" }}>{l}</a>)}
+              {navLinks.map(([label, href]) => {
+                const isRoute = href.startsWith("/");
+                const handle = (e: React.MouseEvent<HTMLAnchorElement>) => {
+                  if (href.startsWith("#")) {
+                    e.preventDefault();
+                    const el = document.getElementById(href.slice(1));
+                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }
+                };
+                return <a key={label} href={href} onClick={handle} style={{ fontFamily: T.fontMono, fontSize: "12px", color: T.textDim, textDecoration: "none", letterSpacing: "0.5px", cursor: "pointer" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = T.text)}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = T.textDim)}>{label}</a>;
+              })}
             </div>
-            <Btn variant="ghost" style={{ padding: "10px 20px" }}>Get a reading</Btn>
+            <Btn variant="ghost" href="#try-it" style={{ padding: "10px 20px" }}>Get a reading</Btn>
           </div>
         </nav>
 
@@ -228,14 +256,14 @@ export default function Homepage() {
           <Reveal delay={0.12}>
             <p style={{ fontFamily: T.font, fontSize: "clamp(17px, 2.4vw, 19px)", color: T.textDim, maxWidth: 580, margin: "24px auto 0", lineHeight: 1.65 }}>The same situations keep returning — in work, in love, in who you become under pressure. They are not random, and they are not failure. They are curriculum. We teach you to read it.</p>
             <div style={{ display: "flex", gap: "14px", justifyContent: "center", marginTop: "34px", flexWrap: "wrap" }}>
-              <Btn variant="gold">Get your first reading</Btn>
-              <Btn variant="ghost">Read the book</Btn>
+              <Btn variant="gold" href="#try-it">Get your first reading</Btn>
+              <Btn variant="ghost" href="/certification">See the certification</Btn>
             </div>
           </Reveal>
           <Reveal delay={0.2} style={{ marginTop: "clamp(40px, 7vw, 70px)" }}><PhaseRing /></Reveal>
         </header>
 
-        <section style={{ padding: "clamp(50px, 8vw, 100px) clamp(20px, 5vw, 64px)", maxWidth: 980, margin: "0 auto" }}>
+        <section id="shift" style={{ padding: "clamp(50px, 8vw, 100px) clamp(20px, 5vw, 64px)", maxWidth: 980, margin: "0 auto" }}>
           <Reveal><div style={{ textAlign: "center", marginBottom: "48px" }}>
             <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>The shift</Eyebrow></div>
             <h2 style={{ fontFamily: T.font, fontSize: "clamp(30px, 4.5vw, 44px)", fontWeight: 600, letterSpacing: "-0.5px" }}>From victim to student.</h2>
@@ -272,7 +300,7 @@ export default function Homepage() {
           </Reveal>
         </section>
 
-        <section style={{ padding: "clamp(40px, 7vw, 80px) clamp(20px, 5vw, 64px)" }}>
+        <section id="try-it" style={{ padding: "clamp(40px, 7vw, 80px) clamp(20px, 5vw, 64px)" }}>
           <Reveal>
             <div style={{ textAlign: "center", marginBottom: "38px" }}>
               <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>Try it now</Eyebrow></div>
@@ -294,7 +322,7 @@ export default function Homepage() {
                   <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "2px", color: d.feature ? T.gold : T.accent, textTransform: "uppercase", marginBottom: "14px" }}>{d.eyebrow}</div>
                   <h3 style={{ fontFamily: T.font, fontSize: "25px", fontWeight: 600, marginBottom: "11px" }}>{d.title}</h3>
                   <p style={{ fontFamily: T.font, fontSize: "16px", color: T.textDim, lineHeight: 1.6, flex: 1, marginBottom: "22px" }}>{d.body}</p>
-                  <Btn variant={d.variant}>{d.cta}</Btn>
+                  <Btn variant={d.variant} href={d.href}>{d.cta}</Btn>
                 </div>
               </Reveal>
             ))}
@@ -312,7 +340,18 @@ export default function Homepage() {
         <footer style={{ borderTop: `1px solid ${T.border}`, padding: "40px clamp(20px, 5vw, 64px)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "18px" }}>
           <div style={{ fontFamily: T.fontMono, fontSize: "13px", letterSpacing: "1px" }}><span style={{ color: T.text }}>Twelvefold</span> <span style={{ color: T.accent }}>Institute</span></div>
           <div style={{ display: "flex", gap: "22px", flexWrap: "wrap" }}>
-            {["Pattern Literacy", "PatternOS", "Certification", "Research", "About"].map((l) => <a key={l} href="#" style={{ fontFamily: T.fontMono, fontSize: "12px", color: T.textMuted, textDecoration: "none" }}>{l}</a>)}
+            {([["Pattern Literacy", "#shift"], ["PatternOS", "#try-it"], ["Certification", "/certification"], ["Research", "#research-soon"], ["About", "#about-soon"]] as [string, string][]).map(([label, href]) => {
+              const handle = (e: React.MouseEvent<HTMLAnchorElement>) => {
+                if (href.startsWith("#")) {
+                  e.preventDefault();
+                  const el = document.getElementById(href.slice(1));
+                  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                }
+              };
+              return <a key={label} href={href} onClick={handle} style={{ fontFamily: T.fontMono, fontSize: "12px", color: T.textMuted, textDecoration: "none", cursor: "pointer" }}
+                onMouseEnter={(e) => (e.currentTarget.style.color = T.textDim)}
+                onMouseLeave={(e) => (e.currentTarget.style.color = T.textMuted)}>{label}</a>;
+            })}
           </div>
         </footer>
       </div>
