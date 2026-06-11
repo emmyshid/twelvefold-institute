@@ -188,17 +188,17 @@ function TryReading() {
 export default function Homepage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navLinks: [string, string][] = [
-    ["Pattern Literacy", "#shift"],
+    ["Pattern Literacy", "/pattern-literacy"],
     ["Read", "#try-it"],
     ["Book", "#book-soon"],
     ["Certification", "/certification"],
-    ["Institutions", "#institutions-soon"],
+    ["Institutions", "/institutions"],
   ];
-  const doors: { eyebrow: string; title: string; body: string; cta: string; href: string; variant: Variant; feature?: boolean }[] = [
-    { eyebrow: "Start here", title: "Get a reading", body: "Describe what keeps happening. PatternOS reads the phase you are in and what it is asking of you.", cta: "Read my pattern", href: "#try-it", variant: "gold" },
-    { eyebrow: "The book", title: "Pattern Literacy", body: "What's actually running your life — and how to read it. Read the opening chapter free.", cta: "Read a sample", href: "#book-soon", variant: "ghost" },
-    { eyebrow: "Become a practitioner", title: "Certification", body: "Become a Twelvefold-certified practitioner. 200 hours, small cohorts, $6,500.", cta: "See the program", href: "/certification", variant: "primary", feature: true },
-    { eyebrow: "For organizations", title: "License the Twelvefold framework", body: "Organizational diagnostics and licensing for schools, healthcare, and teams. Book a consult.", cta: "Start a conversation", href: "#institutions-soon", variant: "ghost" },
+  const doors = [
+    { eyebrow: "Start here", title: "Get a reading", body: "Describe what keeps happening. PatternOS reads the phase you are in and what it is asking of you.", cta: "Read my pattern", href: "#try-it", variant: "gold" as Variant },
+    { eyebrow: "The book", title: "Pattern Literacy", body: "What's actually running your life — and how to read it. Read the opening chapter free.", cta: "Read a sample", href: "#book-soon", variant: "ghost" as Variant },
+    { eyebrow: "Become a practitioner", title: "Certification", body: "Become a Twelvefold-certified practitioner. 200 hours, small cohorts, $6,500.", cta: "See the program", href: "/certification", variant: "primary" as Variant, feature: true },
+    { eyebrow: "For organizations", title: "License the Twelvefold framework", body: "Organizational diagnostics and licensing for schools, healthcare, and teams. Book a consult.", cta: "Start a conversation", href: "/institutions", variant: "ghost" as Variant },
   ];
   const shift: [string, string][] = [
     ["\u201CWhy does this keep happening to me?\u201D", "\u201CWhat is this pattern teaching me?\u201D"],
@@ -392,7 +392,7 @@ export default function Homepage() {
         <footer style={{ borderTop: `1px solid ${T.border}`, padding: "40px clamp(20px, 5vw, 64px)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "18px" }}>
           <div style={{ fontFamily: T.fontMono, fontSize: "13px", letterSpacing: "1px" }}><span style={{ color: T.text }}>Twelvefold</span> <span style={{ color: T.accent }}>Institute</span></div>
           <div style={{ display: "flex", gap: "22px", flexWrap: "wrap" }}>
-            {([["Pattern Literacy", "#shift"], ["PatternOS", "#try-it"], ["Certification", "/certification"], ["Research", "#research-soon"], ["About", "#about-soon"]] as [string, string][]).map(([label, href]) => {
+            {([["Pattern Literacy", "/pattern-literacy"], ["PatternOS", "#try-it"], ["Certification", "/certification"], ["Institutions", "/institutions"], ["About", "/about"]] as [string, string][]).map(([label, href]) => {
               const handle = (e: React.MouseEvent<HTMLAnchorElement>) => {
                 if (href.startsWith("#")) {
                   e.preventDefault();

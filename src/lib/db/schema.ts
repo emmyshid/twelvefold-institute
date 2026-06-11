@@ -68,6 +68,22 @@ export const memberships = pgTable("memberships", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Institutional consult requests (the /institutions page form posts here).
+// High-value leads — every row should generate a personal follow-up within
+// five business days.
+export const consultRequests = pgTable("consult_requests", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull(),
+  organization: text("organization").notNull(),
+  role: text("role"),
+  scope: text("scope"), // diagnostic | licensing | partnership | exploring
+  message: text("message"),
+  status: text("status").notNull().default("received"), // received | qualified | scheduled | closed
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 export type Reading = typeof readings.$inferSelect;
 export type NewReading = typeof readings.$inferInsert;
 export type CertApplication = typeof certApplications.$inferSelect;
+export type ConsultRequest = typeof consultRequests.$inferSelect;
