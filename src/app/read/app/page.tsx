@@ -86,16 +86,16 @@ function Btn({
   onClick,
   href,
   disabled,
-  style,
   className,
+  style,
 }: {
   children: ReactNode;
   variant?: "primary" | "gold" | "ghost";
   onClick?: () => void;
   href?: string;
   disabled?: boolean;
-  style?: CSSProperties;
   className?: string;
+  style?: CSSProperties;
 }) {
   const variants = {
     primary: { background: T.grad, color: "#fff", border: "none" },
@@ -533,7 +533,7 @@ export default function PatternOSApp() {
             <span style={{ color: T.gold, fontFamily: T.font, fontStyle: "italic", fontSize: "16px" }}>PatternOS</span>
           </a>
           <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-            <Btn variant="ghost" className="pos-history-btn" onClick={() => setMobileHistoryOpen((o) => !o)} style={{ padding: "9px 14px", fontSize: "11px" } as CSSProperties}>
+            <Btn variant="ghost" className="pos-history-btn" onClick={() => setMobileHistoryOpen((o) => !o)} style={{ padding: "9px 14px", fontSize: "11px" }}>
               {mobileHistoryOpen ? "Close" : "History"}
             </Btn>
             <Btn variant="ghost" onClick={newReading} style={{ padding: "9px 18px", fontSize: "11px" }}>
