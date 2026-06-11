@@ -30,6 +30,7 @@ export async function GET() {
         curriculum: readings.curriculum,
         activeLesson: readings.activeLesson,
         recommendedParticipation: readings.recommendedParticipation,
+        raw: readings.raw,
         createdAt: readings.createdAt,
       })
       .from(readings)

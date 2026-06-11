@@ -38,13 +38,36 @@ const T = {
   ease: "cubic-bezier(0.22, 1, 0.36, 1)",
 };
 
-interface PatternReading {
+interface PatternSummary {
   pattern_name?: string;
   phase?: string;
   micro_state?: string;
   likely_curriculum?: string;
   active_lesson?: string;
   recommended_participation?: string;
+}
+
+interface TechnicalReading {
+  phase_nature?: string;
+  micro_state_work?: string;
+  what_to_do?: string;
+  what_to_avoid?: string;
+  the_unseen?: string;
+}
+
+interface SixTraditions {
+  ifa?: string;
+  kabbalah?: string;
+  i_ching?: string;
+  scripture?: string;
+  buddhism?: string;
+  hermetic?: string;
+}
+
+interface FullReading {
+  summary: PatternSummary;
+  technical?: TechnicalReading;
+  traditions?: SixTraditions;
 }
 
 interface HistoryItem {
@@ -56,6 +79,7 @@ interface HistoryItem {
   curriculum: string | null;
   activeLesson: string | null;
   recommendedParticipation: string | null;
+  raw: unknown;
   createdAt: string;
 }
 
@@ -133,12 +157,20 @@ function Btn({
   );
 }
 
-// ─── Reading display (tiered reveal) ─────────────────────────
-function ReadingDisplay({ reading }: { reading: PatternReading }) {
+// ─── Reading display (3 layers: Summary, Technical, Traditions) ──────────
+function ReadingDisplay({ full }: { full: FullReading }) {
+  const { summary, technical, traditions } = full;
   const [visibleTiers, setVisibleTiers] = useState(0);
+  const [showTechnical, setShowTechnical] = useState(false);
+  const [openTradition, setOpenTradition] = useState<string | null>(null);
+
+  const hasTechnical = !!technical && !!technical.phase_nature;
+  const hasTraditions = !!traditions && !!traditions.ifa;
 
   useEffect(() => {
     setVisibleTiers(0);
+    setShowTechnical(false);
+    setOpenTradition(null);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setVisibleTiers(5);
       return;
@@ -148,7 +180,7 @@ function ReadingDisplay({ reading }: { reading: PatternReading }) {
       timers.push(setTimeout(() => setVisibleTiers((v) => Math.max(v, i)), i * 350));
     }
     return () => timers.forEach(clearTimeout);
-  }, [reading.pattern_name, reading.phase]);
+  }, [summary.pattern_name, summary.phase]);
 
   const tier = (idx: number, content: ReactNode) => (
     <div
@@ -188,8 +220,18 @@ function ReadingDisplay({ reading }: { reading: PatternReading }) {
       </div>
     ) : null;
 
+  const TRADITION_LABELS: Array<[keyof SixTraditions, string]> = [
+    ["ifa", "Ifá"],
+    ["kabbalah", "Kabbalah"],
+    ["i_ching", "I Ching"],
+    ["scripture", "Scripture"],
+    ["buddhism", "Buddhism"],
+    ["hermetic", "Hermetic"],
+  ];
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+      {/* LAYER 1: PATTERN SUMMARY */}
       {tier(
         1,
         <div style={{ textAlign: "center", paddingBottom: "8px" }}>
@@ -215,9 +257,9 @@ function ReadingDisplay({ reading }: { reading: PatternReading }) {
               letterSpacing: "-0.5px",
             }}
           >
-            {reading.pattern_name}
+            {summary.pattern_name}
           </div>
-          {(reading.phase || reading.micro_state) && (
+          {(summary.phase || summary.micro_state) && (
             <div
               style={{
                 fontFamily: T.fontMono,
@@ -228,15 +270,140 @@ function ReadingDisplay({ reading }: { reading: PatternReading }) {
                 textTransform: "uppercase",
               }}
             >
-              {reading.phase}
-              {reading.micro_state ? ` · ${reading.micro_state}` : ""}
+              {summary.phase}
+              {summary.micro_state ? ` · ${summary.micro_state}` : ""}
             </div>
           )}
         </div>
       )}
-      {tier(2, field("The curriculum", reading.likely_curriculum))}
-      {tier(3, field("The lesson active now", reading.active_lesson, T.gold))}
-      {tier(4, field("Recommended participation", reading.recommended_participation))}
+      {tier(2, field("The curriculum", summary.likely_curriculum))}
+      {tier(3, field("The lesson active now", summary.active_lesson, T.gold))}
+      {tier(4, field("Recommended participation", summary.recommended_participation))}
+
+      {/* LAYER 2: TECHNICAL READING (collapsible) */}
+      {hasTechnical && tier(
+        5,
+        <div style={{ marginTop: "10px" }}>
+          <button
+            onClick={() => setShowTechnical((s) => !s)}
+            style={{
+              width: "100%",
+              background: showTechnical ? "rgba(167,139,250,0.10)" : "rgba(255,255,255,0.03)",
+              border: `1px solid ${showTechnical ? "rgba(167,139,250,0.30)" : T.border}`,
+              borderRadius: T.radiusSm,
+              padding: "14px 18px",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: "12px",
+              fontFamily: T.fontMono,
+              fontSize: "11px",
+              letterSpacing: "1.5px",
+              color: showTechnical ? T.text : T.textDim,
+              textTransform: "uppercase",
+              transition: "all 0.25s " + T.ease,
+            }}
+          >
+            <span>{showTechnical ? "↓ Technical reading" : "→ Go deeper · Technical reading"}</span>
+            <span style={{ color: T.accent, fontSize: "10px" }}>{showTechnical ? "HIDE" : "EXPAND"}</span>
+          </button>
+
+          {showTechnical && technical && (
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "12px" }}>
+              {field("Phase nature", technical.phase_nature)}
+              {field("Micro-state work", technical.micro_state_work, T.gold)}
+              {field("What to do", technical.what_to_do)}
+              {field("What to avoid", technical.what_to_avoid, "#FF6B6B")}
+              {field("The unseen", technical.the_unseen)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* LAYER 3: SIX TRADITIONS */}
+      {hasTraditions && tier(
+        5,
+        <div style={{ marginTop: "6px" }}>
+          <div
+            style={{
+              fontFamily: T.fontMono,
+              fontSize: "10px",
+              letterSpacing: "2px",
+              color: T.accent,
+              textTransform: "uppercase",
+              marginBottom: "10px",
+              textAlign: "center",
+            }}
+          >
+            Six traditions on this pattern
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "8px" }}>
+            {TRADITION_LABELS.map(([key, label]) => {
+              const value = traditions?.[key];
+              if (!value) return null;
+              const isOpen = openTradition === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => setOpenTradition((o) => (o === key ? null : key))}
+                  style={{
+                    background: isOpen ? "rgba(251,191,36,0.08)" : "rgba(255,255,255,0.025)",
+                    border: `1px solid ${isOpen ? "rgba(251,191,36,0.30)" : T.border}`,
+                    borderRadius: T.radiusSm,
+                    padding: "12px 14px",
+                    cursor: "pointer",
+                    textAlign: "left",
+                    transition: "all 0.2s " + T.ease,
+                  }}
+                >
+                  <div
+                    style={{
+                      fontFamily: T.fontMono,
+                      fontSize: "10px",
+                      letterSpacing: "1.5px",
+                      color: isOpen ? T.gold : T.textDim,
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {label}
+                  </div>
+                  {isOpen && (
+                    <div
+                      style={{
+                        fontFamily: T.font,
+                        fontSize: "14px",
+                        color: T.text,
+                        lineHeight: 1.55,
+                        marginTop: "8px",
+                      }}
+                    >
+                      {value}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+          {!openTradition && (
+            <div
+              style={{
+                marginTop: "10px",
+                fontFamily: T.fontMono,
+                fontSize: "10px",
+                letterSpacing: "1px",
+                color: T.textMuted,
+                textAlign: "center",
+                fontStyle: "italic",
+              }}
+            >
+              Tap any tradition to see how it names this pattern state.
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Closing line */}
       {tier(
         5,
         <div
@@ -325,7 +492,7 @@ export default function PatternOSApp() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [reading, setReading] = useState<PatternReading | null>(null);
+  const [reading, setReading] = useState<FullReading | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null);
@@ -377,14 +544,18 @@ export default function PatternOSApp() {
       const res = await fetch("/api/reading", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ situation: input.trim() }),
+        body: JSON.stringify({ situation: input.trim(), depth: "full" }),
       });
       if (!res.ok) {
         const err = await res.json();
         throw new Error(err.error || "Reading service unavailable");
       }
       const data = await res.json();
-      setReading(data.summary);
+      setReading({
+        summary: data.summary,
+        technical: data.technical,
+        traditions: data.traditions,
+      });
       // Refresh history to include the new reading
       try {
         const hRes = await fetch("/api/readings");
@@ -404,14 +575,26 @@ export default function PatternOSApp() {
 
   function selectHistory(item: HistoryItem) {
     setActiveHistoryId(item.id);
-    setReading({
-      pattern_name: item.patternName ?? undefined,
-      phase: item.phase ?? undefined,
-      micro_state: item.microState ?? undefined,
-      likely_curriculum: item.curriculum ?? undefined,
-      active_lesson: item.activeLesson ?? undefined,
-      recommended_participation: item.recommendedParticipation ?? undefined,
-    });
+    // Prefer the full reading from raw if it exists; fall back to flat columns
+    const raw = item.raw as { summary?: PatternSummary; technical?: TechnicalReading; traditions?: SixTraditions } | null;
+    if (raw && raw.summary) {
+      setReading({
+        summary: raw.summary,
+        technical: raw.technical,
+        traditions: raw.traditions,
+      });
+    } else {
+      setReading({
+        summary: {
+          pattern_name: item.patternName ?? undefined,
+          phase: item.phase ?? undefined,
+          micro_state: item.microState ?? undefined,
+          likely_curriculum: item.curriculum ?? undefined,
+          active_lesson: item.activeLesson ?? undefined,
+          recommended_participation: item.recommendedParticipation ?? undefined,
+        },
+      });
+    }
     setInput(item.input);
     setMobileHistoryOpen(false);
     // Scroll reading into view on mobile
@@ -640,13 +823,13 @@ export default function PatternOSApp() {
                       </Btn>
                     ) : (
                       <Btn variant="gold" onClick={runReading} disabled={loading || !input.trim()}>
-                        {loading ? "Reading the pattern…" : "Read my pattern"}
+                        {loading ? "Reading the pattern in depth…" : "Read my pattern"}
                       </Btn>
                     )}
                     <span style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "1px", color: T.textMuted }}>
                       {activeHistoryId
                         ? "Read-only — start a new reading to compose"
-                        : "Reading saved to your history when complete"}
+                        : "Pattern Summary + Technical Reading + Six Traditions · saved to history"}
                     </span>
                   </div>
                   {error && (
@@ -679,7 +862,7 @@ export default function PatternOSApp() {
                       padding: "clamp(24px, 4vw, 36px)",
                     }}
                   >
-                    <ReadingDisplay reading={reading} />
+                    <ReadingDisplay full={reading} />
                   </div>
                 ) : !loading ? (
                   <div
