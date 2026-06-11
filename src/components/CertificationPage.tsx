@@ -104,6 +104,39 @@ export default function CertificationPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
+  const [reserving, setReserving] = useState(false);
+  const [reserveError, setReserveError] = useState<string | null>(null);
+  const [reserveEmail, setReserveEmail] = useState("");
+  const [showReserveForm, setShowReserveForm] = useState(false);
+
+  async function reserveSpot() {
+    if (!reserveEmail.trim() || !reserveEmail.includes("@")) {
+      setReserveError("A valid email is required.");
+      return;
+    }
+    setReserving(true);
+    setReserveError(null);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ product: "certification", email: reserveEmail.trim() }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Could not start checkout");
+      }
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Checkout URL missing");
+      }
+    } catch (e) {
+      setReserveError(e instanceof Error ? e.message : "Something went wrong");
+      setReserving(false);
+    }
+  }
 
   async function submitApp() {
     if (!form.name.trim() || !form.email.trim()) return;
@@ -255,6 +288,42 @@ export default function CertificationPage() {
             <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>Investment</Eyebrow></div>
             <div style={{ fontFamily: T.font, fontSize: "clamp(48px, 9vw, 78px)", fontWeight: 600, color: T.gold, letterSpacing: "-2px", marginBottom: "8px" }}>$6,500</div>
             <p style={{ fontFamily: T.font, fontSize: "18px", color: T.textDim, lineHeight: 1.6 }}>The full path to becoming Twelvefold-certified. Includes all 200 hours of instruction, cohort access, live sessions, supervised practicum, certification review, and lifetime access to materials and updates. Payment plans available on application.</p>
+
+            <div style={{ marginTop: "36px", padding: "28px clamp(20px, 4vw, 36px)", background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.2)", borderRadius: T.radius }}>
+              <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "2px", color: T.gold, textTransform: "uppercase", marginBottom: "10px" }}>Already decided?</div>
+              <div style={{ fontFamily: T.font, fontSize: "22px", fontWeight: 600, color: T.text, marginBottom: "8px" }}>Reserve your spot now.</div>
+              <p style={{ fontFamily: T.font, fontSize: "15px", color: T.textDim, lineHeight: 1.6, marginBottom: "20px" }}>Skip the queue. Pay tuition directly and we will send your cohort enrollment paperwork within five business days.</p>
+
+              {!showReserveForm ? (
+                <Btn variant="gold" onClick={() => setShowReserveForm(true)}>Reserve your spot — $6,500</Btn>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxWidth: 420, margin: "0 auto" }}>
+                  <input
+                    type="email"
+                    placeholder="Your email address"
+                    value={reserveEmail}
+                    onChange={(e) => setReserveEmail(e.target.value)}
+                    style={{
+                      width: "100%",
+                      boxSizing: "border-box",
+                      padding: "13px 15px",
+                      background: "rgba(255,255,255,0.05)",
+                      border: `1px solid ${T.border}`,
+                      borderRadius: T.radiusSm,
+                      color: T.text,
+                      fontFamily: T.font,
+                      fontSize: "16px",
+                      outline: "none",
+                    }}
+                  />
+                  {reserveError && (
+                    <div style={{ padding: "10px 14px", background: "rgba(255,107,107,0.08)", border: "1px solid rgba(255,107,107,0.25)", borderRadius: T.radiusSm, fontFamily: T.font, fontSize: "14px", color: "#FF9B9B" }}>{reserveError}</div>
+                  )}
+                  <Btn variant="gold" onClick={reserveSpot} style={{ width: "100%", opacity: reserving ? 0.6 : 1 }}>{reserving ? "Opening secure checkout…" : "Continue to secure checkout"}</Btn>
+                  <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "1px", color: T.textMuted, textAlign: "center", marginTop: "4px" }}>Powered by Stripe · 256-bit encryption · Refundable until cohort start</div>
+                </div>
+              )}
+            </div>
           </Reveal>
         </section>
 

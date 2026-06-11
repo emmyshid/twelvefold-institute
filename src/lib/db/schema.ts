@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, jsonb, integer } from "drizzle-orm/pg-core";
 
 // ════════════════════════════════════════════════════════════════
 // Postgres schema — Twelvefold Institute (Phase 1)
@@ -83,7 +83,32 @@ export const consultRequests = pgTable("consult_requests", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Stripe payments — every transaction (certification, future community,
+// future book sales) is recorded here. A row is created in "pending" state
+// when the checkout session is created, then updated by the webhook to
+// "succeeded" / "failed" / "refunded" based on what Stripe reports.
+//
+// Amount is stored in cents (Stripe convention). Divide by 100 for display.
+export const payments = pgTable("payments", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clerkUserId: text("clerk_user_id"), // nullable for anonymous checkouts
+  email: text("email").notNull(),
+  name: text("name"),
+  product: text("product").notNull(), // certification | community | book
+  amount: integer("amount").notNull(), // cents
+  currency: text("currency").notNull().default("usd"),
+  status: text("status").notNull().default("pending"), // pending | succeeded | failed | refunded
+  stripeSessionId: text("stripe_session_id"),
+  stripePaymentIntentId: text("stripe_payment_intent_id"),
+  stripeCustomerId: text("stripe_customer_id"),
+  metadata: jsonb("metadata"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  paidAt: timestamp("paid_at"),
+});
+
 export type Reading = typeof readings.$inferSelect;
 export type NewReading = typeof readings.$inferInsert;
 export type CertApplication = typeof certApplications.$inferSelect;
 export type ConsultRequest = typeof consultRequests.$inferSelect;
+export type Payment = typeof payments.$inferSelect;
+export type NewPayment = typeof payments.$inferInsert;
