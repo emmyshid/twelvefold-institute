@@ -87,6 +87,7 @@ function Btn({
   href,
   disabled,
   style,
+  className,
 }: {
   children: ReactNode;
   variant?: "primary" | "gold" | "ghost";
@@ -94,6 +95,7 @@ function Btn({
   href?: string;
   disabled?: boolean;
   style?: CSSProperties;
+  className?: string;
 }) {
   const variants = {
     primary: { background: T.grad, color: "#fff", border: "none" },
@@ -110,6 +112,7 @@ function Btn({
     <button
       onClick={handle}
       disabled={disabled}
+      className={className}
       style={{
         padding: "12px 26px",
         borderRadius: "999px",
