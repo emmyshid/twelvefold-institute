@@ -155,7 +155,7 @@ export default function CertificationPage() {
   ];
 
   const faq = [
-    ["Do I need to believe in astrology to take this?", "No. The 12 phases follow the solar year — twelve lunar cycles, the structure humanity has tracked for millennia. We use astronomical structure, not horoscope interpretation. You don't need to believe anything spiritual to read patterns. The framework rests on observable cycles."],
+    ["Do I need to believe in astrology to take this?", "No. Twelvefold names the structure: twelve phases of the solar year, twelve lunar cycles, the shape humanity has tracked for millennia. We use astronomical structure, not horoscope interpretation. You don't need to believe anything spiritual to read patterns. The framework rests on observable cycles."],
     ["Who is this for?", "Therapists, coaches, consultants, spiritual directors, and serious lay practitioners. Anyone who already does the work of helping others see clearly, and wants a structural framework that holds up across traditions."],
     ["What does the $6,500 cover?", "All 200 hours of instruction, cohort access, live sessions, supervised practicum, certification review, and lifetime access to the materials and updates. Payment plans available on application."],
     ["How rigorous is it?", "Very. You will write case reports, sit live readings, and demonstrate competency before certification. We are building practitioners, not certificate holders."],
@@ -190,7 +190,7 @@ export default function CertificationPage() {
             <h1 style={{ fontFamily: T.font, fontSize: "clamp(36px, 6.5vw, 64px)", lineHeight: 1.04, fontWeight: 600, letterSpacing: "-1px" }}>Learn to read patterns<br />for others.</h1>
           </Reveal>
           <Reveal delay={0.1}>
-            <p style={{ fontFamily: T.font, fontSize: "clamp(17px, 2.4vw, 20px)", color: T.textDim, maxWidth: 600, margin: "20px auto 0", lineHeight: 1.6 }}>A 200-hour cohort program. Rigorous, supervised, grounded in six wisdom traditions.</p>
+            <p style={{ fontFamily: T.font, fontSize: "clamp(17px, 2.4vw, 20px)", color: T.textDim, maxWidth: 620, margin: "20px auto 0", lineHeight: 1.6 }}>Become a <strong style={{ color: T.text }}>Twelvefold-certified practitioner</strong>. A 200-hour cohort program &mdash; rigorous, supervised, grounded in six wisdom traditions.</p>
             <div style={{ display: "flex", gap: "18px", justifyContent: "center", flexWrap: "wrap", marginTop: "28px", fontFamily: T.fontMono, fontSize: "12px", color: T.textDim }}>
               <span>200 hours</span>
               <span style={{ color: T.textMuted }}>·</span>
@@ -207,7 +207,7 @@ export default function CertificationPage() {
 
         <section style={{ padding: "clamp(40px, 7vw, 80px) clamp(20px, 5vw, 64px)", maxWidth: 980, margin: "0 auto" }}>
           <Reveal><div style={{ textAlign: "center", marginBottom: "40px" }}>
-            <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow color={T.accent}>What you will be able to do</Eyebrow></div>
+            <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow color={T.accent}>What a Twelvefold-certified practitioner can do</Eyebrow></div>
             <h2 style={{ fontFamily: T.font, fontSize: "clamp(28px, 4.5vw, 42px)", fontWeight: 600, letterSpacing: "-0.5px" }}>Six practitioner capabilities.</h2>
           </div></Reveal>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: "14px" }}>
@@ -224,7 +224,7 @@ export default function CertificationPage() {
 
         <section style={{ padding: "clamp(40px, 7vw, 80px) clamp(20px, 5vw, 64px)", maxWidth: 980, margin: "0 auto" }}>
           <Reveal><div style={{ textAlign: "center", marginBottom: "40px" }}>
-            <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow color={T.accent}>The curriculum</Eyebrow></div>
+            <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow color={T.accent}>The Twelvefold curriculum</Eyebrow></div>
             <h2 style={{ fontFamily: T.font, fontSize: "clamp(28px, 4.5vw, 42px)", fontWeight: 600, letterSpacing: "-0.5px" }}>Three phases. Two hundred hours.</h2>
           </div></Reveal>
           <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
@@ -254,7 +254,7 @@ export default function CertificationPage() {
           <Reveal>
             <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>Investment</Eyebrow></div>
             <div style={{ fontFamily: T.font, fontSize: "clamp(48px, 9vw, 78px)", fontWeight: 600, color: T.gold, letterSpacing: "-2px", marginBottom: "8px" }}>$6,500</div>
-            <p style={{ fontFamily: T.font, fontSize: "18px", color: T.textDim, lineHeight: 1.6 }}>Includes all 200 hours of instruction, cohort access, live sessions, supervised practicum, certification review, and lifetime access to materials and updates. Payment plans available on application.</p>
+            <p style={{ fontFamily: T.font, fontSize: "18px", color: T.textDim, lineHeight: 1.6 }}>The full path to becoming Twelvefold-certified. Includes all 200 hours of instruction, cohort access, live sessions, supervised practicum, certification review, and lifetime access to materials and updates. Payment plans available on application.</p>
           </Reveal>
         </section>
 
@@ -285,7 +285,7 @@ export default function CertificationPage() {
             <div style={{ background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: T.radius, padding: "clamp(28px, 5vw, 42px)" }}>
               <div style={{ textAlign: "center", marginBottom: "28px" }}>
                 <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>Apply</Eyebrow></div>
-                <h2 style={{ fontFamily: T.font, fontSize: "clamp(26px, 4vw, 36px)", fontWeight: 600, letterSpacing: "-0.5px" }}>Apply for the next cohort.</h2>
+                <h2 style={{ fontFamily: T.font, fontSize: "clamp(26px, 4vw, 36px)", fontWeight: 600, letterSpacing: "-0.5px" }}>Apply to become Twelvefold-certified.</h2>
                 <p style={{ fontFamily: T.font, fontSize: "15px", color: T.textDim, marginTop: "10px" }}>We respond to every application within 48 hours.</p>
               </div>
               {!submitted ? (

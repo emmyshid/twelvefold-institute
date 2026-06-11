@@ -197,8 +197,8 @@ export default function Homepage() {
   const doors: { eyebrow: string; title: string; body: string; cta: string; href: string; variant: Variant; feature?: boolean }[] = [
     { eyebrow: "Start here", title: "Get a reading", body: "Describe what keeps happening. PatternOS reads the phase you are in and what it is asking of you.", cta: "Read my pattern", href: "#try-it", variant: "gold" },
     { eyebrow: "The book", title: "Pattern Literacy", body: "What's actually running your life — and how to read it. Read the opening chapter free.", cta: "Read a sample", href: "#book-soon", variant: "ghost" },
-    { eyebrow: "Become a practitioner", title: "Certification", body: "A 200-hour program to read patterns for others with rigor. Small cohorts, $6,500.", cta: "See the program", href: "/certification", variant: "primary", feature: true },
-    { eyebrow: "For organizations", title: "Bring it to your institution", body: "Org diagnostics and licensing for schools, healthcare, and teams. Book a consult.", cta: "Start a conversation", href: "#institutions-soon", variant: "ghost" },
+    { eyebrow: "Become a practitioner", title: "Certification", body: "Become a Twelvefold-certified practitioner. 200 hours, small cohorts, $6,500.", cta: "See the program", href: "/certification", variant: "primary", feature: true },
+    { eyebrow: "For organizations", title: "License the Twelvefold framework", body: "Organizational diagnostics and licensing for schools, healthcare, and teams. Book a consult.", cta: "Start a conversation", href: "#institutions-soon", variant: "ghost" },
   ];
   const shift: [string, string][] = [
     ["\u201CWhy does this keep happening to me?\u201D", "\u201CWhat is this pattern teaching me?\u201D"],
@@ -305,6 +305,11 @@ export default function Homepage() {
             </div>
           </Reveal>
           <Reveal delay={0.2} style={{ marginTop: "clamp(40px, 7vw, 70px)" }}><PhaseRing /></Reveal>
+          <Reveal delay={0.3}>
+            <p style={{ fontFamily: T.fontMono, fontSize: "11px", letterSpacing: "2.5px", color: T.textMuted, textTransform: "uppercase", marginTop: "20px" }}>
+              Twelve phases &middot; Forty-eight states &middot; One framework
+            </p>
+          </Reveal>
         </header>
 
         <section id="shift" style={{ padding: "clamp(50px, 8vw, 100px) clamp(20px, 5vw, 64px)", maxWidth: 980, margin: "0 auto" }}>
@@ -334,8 +339,10 @@ export default function Homepage() {
         <section style={{ padding: "clamp(40px, 7vw, 80px) clamp(20px, 5vw, 64px)", maxWidth: 860, margin: "0 auto", textAlign: "center" }}>
           <Reveal>
             <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>Not belief. Structure.</Eyebrow></div>
-            <h2 style={{ fontFamily: T.font, fontSize: "clamp(27px, 4vw, 38px)", fontWeight: 600, lineHeight: 1.25, marginBottom: "22px", letterSpacing: "-0.5px" }}>The framework rests on observable fact, not faith.</h2>
-            <p style={{ fontFamily: T.font, fontSize: "clamp(17px, 2.4vw, 19px)", color: T.textDim, lineHeight: 1.7, maxWidth: 660, margin: "0 auto" }}>The <strong style={{ color: T.text }}>12 phases</strong> follow the solar year — twelve lunar cycles, the structure humanity has tracked for millennia. The <strong style={{ color: T.text }}>4 micro-states</strong> within each phase are our own contribution: how any cycle begins, builds, peaks, and integrates. Six wisdom traditions, working independently, named the same transformations. We translate, we do not invent.</p>
+            <h2 style={{ fontFamily: T.font, fontSize: "clamp(27px, 4vw, 38px)", fontWeight: 600, lineHeight: 1.25, marginBottom: "22px", letterSpacing: "-0.5px" }}>The framework is twelvefold.</h2>
+            <p style={{ fontFamily: T.font, fontSize: "clamp(17px, 2.4vw, 19px)", color: T.textDim, lineHeight: 1.7, maxWidth: 660, margin: "0 auto" }}>
+              <strong style={{ color: T.text }}>Twelve phases</strong> — one for each lunar cycle the solar year contains. Twelve chapters of curriculum, repeated across every life, every relationship, every project. Within each phase, <strong style={{ color: T.text }}>four micro-states</strong> — how any cycle begins, builds, peaks, and integrates. Six wisdom traditions, working independently, named the same transformations. This is the structure humanity has tracked since we first looked up. It is what the Institute is named for, and what it teaches you to read.
+            </p>
           </Reveal>
           <Reveal delay={0.1}>
             <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap", marginTop: "34px" }}>
@@ -377,6 +384,7 @@ export default function Homepage() {
           <Reveal>
             <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>The institute</Eyebrow></div>
             <p style={{ fontFamily: T.font, fontSize: "clamp(20px, 2.8vw, 27px)", lineHeight: 1.6, color: T.text }}>Independent by design. Funded by its own work, never sold, never venture-backed. We hold the source traditions with respect, build authority before audience, and refuse to promise what we cannot deliver.</p>
+            <p style={{ fontFamily: T.font, fontSize: "clamp(15px, 2vw, 17px)", color: T.textDim, marginTop: "20px", lineHeight: 1.7, maxWidth: 580, marginLeft: "auto", marginRight: "auto" }}>Twelvefold names the structure: twelve phases, forty-eight states, six traditions that independently recognized the same shape of transformation.</p>
             <p style={{ fontFamily: T.font, fontSize: "clamp(18px, 2.5vw, 22px)", color: T.accent, marginTop: "24px", fontStyle: "italic", lineHeight: 1.5 }}>Twelvefold Institute teaches pattern literacy — the ability to read the intelligent cycles governing human life and act with clarity, alignment, and purpose.</p>
           </Reveal>
         </section>
