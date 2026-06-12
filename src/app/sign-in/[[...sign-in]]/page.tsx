@@ -78,6 +78,11 @@ export default function SignInPage() {
         }}
       >
         <SignIn
+          path="/sign-in"
+          routing="path"
+          signUpUrl="/sign-up"
+          forceRedirectUrl="/"
+          fallbackRedirectUrl="/"
           appearance={{
             variables: {
               colorPrimary: "#A78BFA",
