@@ -547,6 +547,30 @@ export async function emailWelcomeNewUser(args: {
   });
 }
 
+// 8. Book launch subscriber confirmation — warm acknowledgement when
+//    someone joins the Pattern Literacy launch list at /book.
+export async function emailBookSubscribeConfirmation(args: {
+  email: string;
+}): Promise<boolean> {
+  const html = shell({
+    preheader: "You're on the Pattern Literacy launch list.",
+    body: `
+      <p style="font-size:24px;font-weight:600;margin:0 0 20px;letter-spacing:-0.3px;">You're on the list.</p>
+      <p style="margin:0 0 18px;">Thank you for your interest in <em>Pattern Literacy</em>. You're now on the launch list — we'll write to you when there's news: a publisher announcement, pre-order availability, a release date, or any meaningful milestone.</p>
+      <p style="margin:0 0 18px;">We won't write often. Your inbox is precious, and there's nothing to say until there is.</p>
+      <p style="margin:0 0 8px;font-family:'Courier New',monospace;font-size:11px;letter-spacing:1.5px;color:#7C3AED;text-transform:uppercase;">While you wait</p>
+      <p style="margin:0 0 18px;">The framework the book teaches is already practicable. Visit <a href="https://twelvefold.institute/read" style="color:#7C3AED;font-weight:600;">twelvefold.institute/read</a> and describe a situation that keeps repeating in your life — you'll get a three-layer reading drawn from the same framework as the book.</p>
+      <p style="margin:0;font-style:italic;color:#6b6b7a;">— The Twelvefold Institute</p>
+    `,
+  });
+  return send({
+    to: args.email,
+    subject: "You're on the Pattern Literacy launch list",
+    html,
+    replyTo: process.env.ADMIN_NOTIFICATION_EMAIL,
+  });
+}
+
 // ─── Helpers ─────────────────────────────────────────────────
 function escape(s: string): string {
   return String(s)

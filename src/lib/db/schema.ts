@@ -133,5 +133,20 @@ export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
 export type Client = typeof clients.$inferSelect;
 export type NewClient = typeof clients.$inferInsert;
+
 export type Profile = typeof profiles.$inferSelect;
 export type NewProfile = typeof profiles.$inferInsert;
+
+// Book launch interest list. People who sign up via /book to be notified
+// when Pattern Literacy publishes (or has news — pre-order, signing,
+// release date). Email is unique so the same person can subscribe twice
+// without creating duplicates.
+export const bookSubscribers = pgTable("book_subscribers", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: text("email").notNull().unique(),
+  motivation: text("motivation"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type BookSubscriber = typeof bookSubscribers.$inferSelect;
+export type NewBookSubscriber = typeof bookSubscribers.$inferInsert;
