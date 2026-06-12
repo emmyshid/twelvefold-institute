@@ -80,8 +80,20 @@ interface HistoryItem {
   activeLesson: string | null;
   recommendedParticipation: string | null;
   raw: unknown;
+  clientId?: string | null;
   createdAt: string;
 }
+
+interface ClientRecord {
+  id: string;
+  name: string;
+  email: string | null;
+  notes: string | null;
+  archived: boolean;
+  createdAt: string;
+}
+
+type Mode = "personal" | "practitioner";
 
 // ─── Atoms ───────────────────────────────────────────────────
 function Eyebrow({ children, color }: { children: ReactNode; color?: string }) {
@@ -498,6 +510,15 @@ export default function PatternOSApp() {
   const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null);
   const [mobileHistoryOpen, setMobileHistoryOpen] = useState(false);
 
+  // ─── Master mode state ──────────────────────────────────────
+  const [mode, setMode] = useState<Mode>("personal");
+  const [clientList, setClientList] = useState<ClientRecord[]>([]);
+  const [activeClient, setActiveClient] = useState<ClientRecord | null>(null);
+  const [showNewClientForm, setShowNewClientForm] = useState(false);
+  const [newClientName, setNewClientName] = useState("");
+  const [newClientEmail, setNewClientEmail] = useState("");
+  const [creatingClient, setCreatingClient] = useState(false);
+
   // Stars memoized so they don't re-randomize on every render
   const stars = useMemo(
     () =>
@@ -512,15 +533,29 @@ export default function PatternOSApp() {
     []
   );
 
-  // Load history on mount
+  // Reload history whenever mode or active client changes.
+  // - Personal mode: own readings (client_id IS NULL)
+  // - Practitioner mode, no client selected: empty (you must select a client)
+  // - Practitioner mode, client selected: that client's readings
   useEffect(() => {
     let cancelled = false;
     (async () => {
+      setHistoryLoading(true);
       try {
-        const res = await fetch("/api/readings");
-        if (!res.ok) {
-          throw new Error("Could not load history");
+        let url = "/api/readings";
+        if (mode === "practitioner") {
+          if (!activeClient) {
+            // No client selected yet — show nothing.
+            if (!cancelled) {
+              setHistory([]);
+              setHistoryLoading(false);
+            }
+            return;
+          }
+          url = `/api/readings?clientId=${encodeURIComponent(activeClient.id)}`;
         }
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Could not load history");
         const data = await res.json();
         if (!cancelled) setHistory(data.readings || []);
       } catch (e) {
@@ -532,10 +567,72 @@ export default function PatternOSApp() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [mode, activeClient]);
+
+  // Load client list when entering practitioner mode (cached afterwards)
+  useEffect(() => {
+    if (mode !== "practitioner") return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/clients");
+        if (!res.ok) throw new Error("Could not load clients");
+        const data = await res.json();
+        if (!cancelled) setClientList(data.clients || []);
+      } catch (e) {
+        if (!cancelled) console.error(e);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [mode]);
+
+  async function createClient() {
+    if (!newClientName.trim() || creatingClient) return;
+    setCreatingClient(true);
+    try {
+      const res = await fetch("/api/clients", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: newClientName.trim(),
+          email: newClientEmail.trim() || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Could not save client");
+      }
+      const data = await res.json();
+      setClientList((prev) => [data.client, ...prev]);
+      setActiveClient(data.client);
+      setNewClientName("");
+      setNewClientEmail("");
+      setShowNewClientForm(false);
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Could not save client");
+    } finally {
+      setCreatingClient(false);
+    }
+  }
+
+  function switchMode(next: Mode) {
+    if (next === mode) return;
+    setMode(next);
+    setActiveClient(null);
+    setReading(null);
+    setActiveHistoryId(null);
+    setInput("");
+    setError(null);
+  }
 
   async function runReading() {
     if (!input.trim() || loading) return;
+    if (mode === "practitioner" && !activeClient) {
+      setError("Select a client first.");
+      return;
+    }
     setLoading(true);
     setError(null);
     setReading(null);
@@ -544,7 +641,11 @@ export default function PatternOSApp() {
       const res = await fetch("/api/reading", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ situation: input.trim(), depth: "full" }),
+        body: JSON.stringify({
+          situation: input.trim(),
+          depth: "full",
+          clientId: mode === "practitioner" && activeClient ? activeClient.id : undefined,
+        }),
       });
       if (!res.ok) {
         const err = await res.json();
@@ -556,9 +657,13 @@ export default function PatternOSApp() {
         technical: data.technical,
         traditions: data.traditions,
       });
-      // Refresh history to include the new reading
+      // Refresh history (mode-aware effect handles the rest)
       try {
-        const hRes = await fetch("/api/readings");
+        const url =
+          mode === "practitioner" && activeClient
+            ? `/api/readings?clientId=${encodeURIComponent(activeClient.id)}`
+            : "/api/readings";
+        const hRes = await fetch(url);
         if (hRes.ok) {
           const hData = await hRes.json();
           setHistory(hData.readings || []);
@@ -716,8 +821,42 @@ export default function PatternOSApp() {
             <span style={{ color: T.gold, fontFamily: T.font, fontStyle: "italic", fontSize: "16px" }}>PatternOS</span>
           </a>
           <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            {/* Mode toggle */}
+            <div
+              className="pos-mode-toggle"
+              style={{
+                display: "inline-flex",
+                background: "rgba(255,255,255,0.04)",
+                border: `1px solid ${T.border}`,
+                borderRadius: "999px",
+                padding: "3px",
+                gap: "2px",
+              }}
+            >
+              {(["personal", "practitioner"] as Mode[]).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => switchMode(m)}
+                  style={{
+                    padding: "6px 14px",
+                    borderRadius: "999px",
+                    fontFamily: T.fontMono,
+                    fontSize: "10px",
+                    letterSpacing: "1px",
+                    textTransform: "uppercase",
+                    background: mode === m ? T.gradGold : "transparent",
+                    color: mode === m ? "#1a1206" : T.textDim,
+                    border: "none",
+                    cursor: "pointer",
+                    transition: "all 0.25s " + T.ease,
+                  }}
+                >
+                  {m === "personal" ? "Personal" : "Master"}
+                </button>
+              ))}
+            </div>
             <Btn variant="ghost" className="pos-history-btn" onClick={() => setMobileHistoryOpen((o) => !o)} style={{ padding: "9px 14px", fontSize: "11px" }}>
-              {mobileHistoryOpen ? "Close" : "History"}
+              {mobileHistoryOpen ? "Close" : mode === "practitioner" ? "Clients" : "History"}
             </Btn>
             <Btn variant="ghost" onClick={newReading} style={{ padding: "9px 18px", fontSize: "11px" }}>
               + New
@@ -746,14 +885,178 @@ export default function PatternOSApp() {
             }}
           >
             <div style={{ marginBottom: "16px" }}>
-              <Eyebrow>Your readings</Eyebrow>
+              <Eyebrow>{mode === "practitioner" ? "Your clients" : "Your readings"}</Eyebrow>
             </div>
 
-            {historyLoading ? (
-              <div style={{ fontFamily: T.fontMono, fontSize: "11px", color: T.textMuted, padding: "20px 0", textAlign: "center" }}>
-                Loading…
+            {mode === "practitioner" && (
+              <div style={{ marginBottom: "16px" }}>
+                {!showNewClientForm ? (
+                  <button
+                    onClick={() => setShowNewClientForm(true)}
+                    style={{
+                      width: "100%",
+                      padding: "10px 14px",
+                      background: T.gradGold,
+                      border: "none",
+                      borderRadius: T.radiusSm,
+                      color: "#1a1206",
+                      fontFamily: T.fontMono,
+                      fontSize: "11px",
+                      letterSpacing: "1px",
+                      cursor: "pointer",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    + New client
+                  </button>
+                ) : (
+                  <div
+                    style={{
+                      padding: "14px",
+                      background: "rgba(251,191,36,0.06)",
+                      border: "1px solid rgba(251,191,36,0.2)",
+                      borderRadius: T.radiusSm,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: "8px",
+                    }}
+                  >
+                    <input
+                      type="text"
+                      placeholder="Client name"
+                      value={newClientName}
+                      onChange={(e) => setNewClientName(e.target.value)}
+                      autoFocus
+                      style={{
+                        width: "100%",
+                        boxSizing: "border-box",
+                        padding: "8px 10px",
+                        background: "rgba(255,255,255,0.05)",
+                        border: `1px solid ${T.border}`,
+                        borderRadius: "6px",
+                        color: T.text,
+                        fontFamily: T.font,
+                        fontSize: "14px",
+                        outline: "none",
+                      }}
+                    />
+                    <input
+                      type="email"
+                      placeholder="Email (optional)"
+                      value={newClientEmail}
+                      onChange={(e) => setNewClientEmail(e.target.value)}
+                      style={{
+                        width: "100%",
+                        boxSizing: "border-box",
+                        padding: "8px 10px",
+                        background: "rgba(255,255,255,0.05)",
+                        border: `1px solid ${T.border}`,
+                        borderRadius: "6px",
+                        color: T.text,
+                        fontFamily: T.font,
+                        fontSize: "14px",
+                        outline: "none",
+                      }}
+                    />
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button
+                        onClick={createClient}
+                        disabled={!newClientName.trim() || creatingClient}
+                        style={{
+                          flex: 1,
+                          padding: "8px",
+                          background: T.gradGold,
+                          color: "#1a1206",
+                          border: "none",
+                          borderRadius: "6px",
+                          fontFamily: T.fontMono,
+                          fontSize: "10px",
+                          letterSpacing: "1px",
+                          cursor: !newClientName.trim() || creatingClient ? "not-allowed" : "pointer",
+                          opacity: !newClientName.trim() || creatingClient ? 0.5 : 1,
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        {creatingClient ? "Saving…" : "Save"}
+                      </button>
+                      <button
+                        onClick={() => {
+                          setShowNewClientForm(false);
+                          setNewClientName("");
+                          setNewClientEmail("");
+                        }}
+                        style={{
+                          padding: "8px 14px",
+                          background: "transparent",
+                          color: T.textDim,
+                          border: `1px solid ${T.border}`,
+                          borderRadius: "6px",
+                          fontFamily: T.fontMono,
+                          fontSize: "10px",
+                          letterSpacing: "1px",
+                          cursor: "pointer",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
-            ) : history.length === 0 ? (
+            )}
+
+            {/* Client list (practitioner mode) */}
+            {mode === "practitioner" && clientList.length > 0 && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "20px" }}>
+                {clientList.map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => {
+                      setActiveClient(c);
+                      setReading(null);
+                      setActiveHistoryId(null);
+                      setInput("");
+                      setMobileHistoryOpen(false);
+                    }}
+                    style={{
+                      textAlign: "left",
+                      padding: "10px 14px",
+                      background:
+                        activeClient?.id === c.id
+                          ? "rgba(251,191,36,0.10)"
+                          : "rgba(255,255,255,0.025)",
+                      border:
+                        activeClient?.id === c.id
+                          ? "1px solid rgba(251,191,36,0.35)"
+                          : `1px solid ${T.border}`,
+                      borderRadius: T.radiusSm,
+                      cursor: "pointer",
+                      transition: "all 0.2s " + T.ease,
+                      width: "100%",
+                    }}
+                  >
+                    <div
+                      style={{
+                        fontFamily: T.font,
+                        fontSize: "15px",
+                        color: activeClient?.id === c.id ? T.gold : T.text,
+                        fontWeight: 600,
+                      }}
+                    >
+                      {c.name}
+                    </div>
+                    {c.email && (
+                      <div style={{ fontFamily: T.fontMono, fontSize: "10px", color: T.textDim, marginTop: "2px" }}>
+                        {c.email}
+                      </div>
+                    )}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {mode === "practitioner" && clientList.length === 0 && !showNewClientForm && (
               <div
                 style={{
                   padding: "20px 18px",
@@ -761,21 +1064,66 @@ export default function PatternOSApp() {
                   border: `1px solid ${T.border}`,
                   borderRadius: T.radiusSm,
                   textAlign: "center",
+                  marginBottom: "16px",
                 }}
               >
-                <div style={{ fontFamily: T.font, fontSize: "15px", color: T.textDim, lineHeight: 1.5, marginBottom: "8px" }}>
-                  No readings yet.
+                <div style={{ fontFamily: T.font, fontSize: "15px", color: T.textDim, lineHeight: 1.5, marginBottom: "6px" }}>
+                  No clients yet.
                 </div>
                 <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "1px", color: T.textMuted }}>
-                  Your first one appears here.
+                  Add your first to begin.
                 </div>
               </div>
-            ) : (
-              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-                {history.map((item) => (
-                  <HistoryCard key={item.id} item={item} onClick={() => selectHistory(item)} active={item.id === activeHistoryId} />
-                ))}
+            )}
+
+            {/* Reading history under the selected client (practitioner mode) */}
+            {mode === "practitioner" && activeClient && (
+              <div style={{ marginBottom: "12px" }}>
+                <div
+                  style={{
+                    fontFamily: T.fontMono,
+                    fontSize: "9px",
+                    letterSpacing: "2px",
+                    color: T.accent,
+                    textTransform: "uppercase",
+                    marginBottom: "10px",
+                  }}
+                >
+                  Readings for {activeClient.name}
+                </div>
               </div>
+            )}
+
+            {/* History list — personal mode always shows; practitioner mode requires active client */}
+            {(mode === "personal" || (mode === "practitioner" && activeClient)) && (
+              historyLoading ? (
+                <div style={{ fontFamily: T.fontMono, fontSize: "11px", color: T.textMuted, padding: "20px 0", textAlign: "center" }}>
+                  Loading…
+                </div>
+              ) : history.length === 0 ? (
+                <div
+                  style={{
+                    padding: "20px 18px",
+                    background: "rgba(255,255,255,0.02)",
+                    border: `1px solid ${T.border}`,
+                    borderRadius: T.radiusSm,
+                    textAlign: "center",
+                  }}
+                >
+                  <div style={{ fontFamily: T.font, fontSize: "15px", color: T.textDim, lineHeight: 1.5, marginBottom: "8px" }}>
+                    No readings yet.
+                  </div>
+                  <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "1px", color: T.textMuted }}>
+                    {mode === "practitioner" ? "Compose one below." : "Your first one appears here."}
+                  </div>
+                </div>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {history.map((item) => (
+                    <HistoryCard key={item.id} item={item} onClick={() => selectHistory(item)} active={item.id === activeHistoryId} />
+                  ))}
+                </div>
+              )
             )}
           </aside>
 
@@ -785,7 +1133,15 @@ export default function PatternOSApp() {
               {/* Composer */}
               <section style={{ marginBottom: "36px" }}>
                 <div style={{ marginBottom: "14px" }}>
-                  <Eyebrow>{activeHistoryId ? "Viewing a past reading" : "What keeps happening?"}</Eyebrow>
+                  <Eyebrow>
+                    {activeHistoryId
+                      ? "Viewing a past reading"
+                      : mode === "practitioner"
+                        ? activeClient
+                          ? `Reading for ${activeClient.name}`
+                          : "Select a client first"
+                        : "What keeps happening?"}
+                  </Eyebrow>
                 </div>
                 <div
                   style={{
@@ -799,7 +1155,13 @@ export default function PatternOSApp() {
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     rows={4}
-                    placeholder="Describe the situation that keeps repeating — what you tried, what didn't work, what you can feel underneath it. The more specific, the deeper the reading."
+                    placeholder={
+                      mode === "practitioner"
+                        ? activeClient
+                          ? `What is ${activeClient.name} bringing? Describe what they said is repeating, in their voice or yours.`
+                          : "Select a client from the sidebar to begin a reading for them."
+                        : "Describe the situation that keeps repeating — what you tried, what didn't work, what you can feel underneath it. The more specific, the deeper the reading."
+                    }
                     readOnly={activeHistoryId !== null}
                     style={{
                       width: "100%",
@@ -822,7 +1184,7 @@ export default function PatternOSApp() {
                         + New reading
                       </Btn>
                     ) : (
-                      <Btn variant="gold" onClick={runReading} disabled={loading || !input.trim()}>
+                      <Btn variant="gold" onClick={runReading} disabled={loading || !input.trim() || (mode === "practitioner" && !activeClient)}>
                         {loading ? "Reading the pattern in depth…" : "Read my pattern"}
                       </Btn>
                     )}

@@ -36,6 +36,13 @@ export async function POST(req: NextRequest) {
   const depthInput = String((body as { depth?: unknown })?.depth ?? "summary");
   const depth: "summary" | "full" = depthInput === "full" ? "full" : "summary";
 
+  // Optional: practitioner tagging this reading to a specific client.
+  // The clientId is only honored if it's a UUID-shaped string AND the
+  // signed-in user owns that client (verified by the DB constraint —
+  // a wrong id will simply insert null since the column is nullable).
+  const clientIdRaw = (body as { clientId?: unknown })?.clientId;
+  const clientId = typeof clientIdRaw === "string" && clientIdRaw.length >= 32 ? clientIdRaw : null;
+
   // Rate limits differ by depth — full readings cost more, so cap them harder.
   const limit = userId ? (depth === "full" ? 20 : 60) : (depth === "full" ? 2 : 5);
   const rl = rateLimit(`reading:${depth}:${key}`, limit, 60_000);
@@ -53,12 +60,32 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "That's a bit long — keep it under 2000 characters." }, { status: 400 });
   }
 
+  // If clientId provided, verify the signed-in user actually owns it.
+  // Otherwise it would be possible to write a reading into someone
+  // else's client record by guessing IDs.
+  let verifiedClientId: string | null = null;
+  if (clientId && userId) {
+    try {
+      const { clients } = await import("@/lib/db/schema");
+      const { eq, and } = await import("drizzle-orm");
+      const rows = await db
+        .select({ id: clients.id })
+        .from(clients)
+        .where(and(eq(clients.id, clientId), eq(clients.practitionerUserId, userId)))
+        .limit(1);
+      if (rows.length === 1) verifiedClientId = clientId;
+    } catch {
+      // If ownership check fails, save as personal (clientId stays null)
+    }
+  }
+
   try {
     if (depth === "full") {
       const full = await readFullPattern(situation);
       if (userId) {
         await db.insert(readings).values({
           clerkUserId: userId,
+          clientId: verifiedClientId,
           input: situation,
           patternName: full.summary.pattern_name,
           phase: full.summary.phase,
@@ -66,7 +93,7 @@ export async function POST(req: NextRequest) {
           curriculum: full.summary.likely_curriculum,
           activeLesson: full.summary.active_lesson,
           recommendedParticipation: full.summary.recommended_participation,
-          raw: full, // full reading (summary + technical + traditions) stored here
+          raw: full,
         });
       }
       return NextResponse.json({
@@ -81,6 +108,7 @@ export async function POST(req: NextRequest) {
     if (userId) {
       await db.insert(readings).values({
         clerkUserId: userId,
+        clientId: verifiedClientId,
         input: situation,
         patternName: summary.pattern_name,
         phase: summary.phase,

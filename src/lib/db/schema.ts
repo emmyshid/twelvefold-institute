@@ -1,4 +1,4 @@
-import { pgTable, uuid, text, timestamp, jsonb, integer } from "drizzle-orm/pg-core";
+import { pgTable, uuid, text, timestamp, jsonb, integer, boolean } from "drizzle-orm/pg-core";
 
 // ════════════════════════════════════════════════════════════════
 // Postgres schema — Twelvefold Institute (Phase 1)
@@ -34,6 +34,9 @@ export const profiles = pgTable("profiles", {
 export const readings = pgTable("readings", {
   id: uuid("id").defaultRandom().primaryKey(),
   clerkUserId: text("clerk_user_id"),
+  // When non-null, this reading was created by a practitioner FOR this client.
+  // When null, it's a personal reading by clerkUserId for themselves.
+  clientId: uuid("client_id"),
   input: text("input").notNull(),
   patternName: text("pattern_name"),
   phase: text("phase"),
@@ -42,6 +45,19 @@ export const readings = pgTable("readings", {
   activeLesson: text("active_lesson"),
   recommendedParticipation: text("recommended_participation"),
   raw: jsonb("raw"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Practitioner-owned client records. Each row is one person the practitioner
+// reads patterns for. Lightweight — name and optional email/notes. Belongs
+// to a single practitioner (clerkUserId of the owner) and cannot be shared.
+export const clients = pgTable("clients", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  practitionerUserId: text("practitioner_user_id").notNull(),
+  name: text("name").notNull(),
+  email: text("email"),
+  notes: text("notes"),
+  archived: boolean("archived").notNull().default(false),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -112,3 +128,5 @@ export type CertApplication = typeof certApplications.$inferSelect;
 export type ConsultRequest = typeof consultRequests.$inferSelect;
 export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
+export type Client = typeof clients.$inferSelect;
+export type NewClient = typeof clients.$inferInsert;
