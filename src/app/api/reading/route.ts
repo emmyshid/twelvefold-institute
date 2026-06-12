@@ -90,20 +90,18 @@ export async function POST(req: NextRequest) {
           patternName: full.summary.pattern_name,
           phase: full.summary.phase,
           microState: full.summary.micro_state,
-          curriculum: full.summary.likely_curriculum,
-          activeLesson: full.summary.active_lesson,
-          recommendedParticipation: full.summary.recommended_participation,
-          raw: full,
+          // Legacy flat columns — populated for back-compat with old UI/email
+          // paths that read these. The full v10 layers live in raw below.
+          curriculum: full.teaching?.core_teaching ?? null,
+          activeLesson: full.teaching?.what_is_being_asked ?? null,
+          recommendedParticipation: full.participation?.recommended_participation ?? null,
+          raw: full, // FULL v10-shape reading lives here
         });
       }
-      return NextResponse.json({
-        summary: full.summary,
-        technical: full.technical,
-        traditions: full.traditions,
-      });
+      return NextResponse.json(full);
     }
 
-    // Default — Pattern Summary only.
+    // Default — Pattern Summary only (homepage demo path).
     const summary = await readPattern(situation);
     if (userId) {
       await db.insert(readings).values({

@@ -2,24 +2,28 @@ import "server-only";
 import Anthropic from "@anthropic-ai/sdk";
 
 // ════════════════════════════════════════════════════════════════
-// Server-only Anthropic access.
+// Server-only Anthropic access — v2 (v10 schema parity).
 //
-// SECURITY: the API key is read from the environment on the server and
-// never reaches the browser. Every AI feature in the app calls THIS
-// module via an API route — never `fetch("https://api.anthropic.com")`
-// from client code. That direct-from-browser call (fine in a local
-// Vite demo) would expose and drain the key in production.
-//
-// RELIABILITY: this preserves the hardened path from PatternOS —
-// status handling (the SDK throws on non-2xx), one retry, JSON salvage
-// from the first `{` to the last `}`, and real error surfacing rather
-// than silent parse failures.
+// CHANGE FROM v1: matches the depth and voice of the original
+// PatternOS v10 reading engine. The reading is now structured in
+// six layers — pattern summary, recognition, teaching, alignment,
+// participation, six traditions — and the voice is wisdom-language,
+// not therapeutic. The AI cites the user's own words back as evidence.
 // ════════════════════════════════════════════════════════════════
 
 const PHASES = [
-  "Sparking", "Building", "Learning", "Feeling",
-  "Expressing", "Refining", "Relating", "Transforming",
-  "Reaching", "Constructing", "Liberating", "Dissolving",
+  "Aries (Ignition)",
+  "Taurus (Foundation)",
+  "Gemini (Intelligence)",
+  "Cancer (Inner Root)",
+  "Leo (Authority)",
+  "Virgo (Correction)",
+  "Libra (Balance)",
+  "Scorpio (Transformation)",
+  "Sagittarius (Expansion)",
+  "Capricorn (Structure)",
+  "Aquarius (Liberation)",
+  "Pisces (Dissolution)",
 ];
 const MICRO_STATES = ["Initiation", "Expansion", "Contraction", "Integration"];
 
@@ -30,23 +34,52 @@ const client = new Anthropic({ apiKey });
 const MODEL = process.env.ANTHROPIC_MODEL ?? "claude-sonnet-4-6";
 
 // ─── Types ───────────────────────────────────────────────────
+// "Summary" — the felt layer. Always present in every reading.
 export type PatternSummary = {
   pattern_name: string;
   phase: string;
+  phase_number?: number;
+  phase_id?: string;
   micro_state: string;
-  likely_curriculum: string;
-  active_lesson: string;
+  state_code?: string;
+  archetype?: string;
+  life_area?: string;
+  // Legacy fields preserved for backward compatibility with older readings:
+  likely_curriculum?: string;
+  active_lesson?: string;
+  recommended_participation?: string;
+};
+
+// "Recognition" — what's happening, in wisdom voice, with evidence.
+export type Recognition = {
+  what_is_happening: string;
+  evidence_from_their_words: string[];
+};
+
+// "Teaching" — the soul-level diagnostic.
+export type Teaching = {
+  core_teaching: string;
+  what_is_being_asked: string;
+  tradition_wisdom: string;
+  existential_permission: string;
+};
+
+// "Alignment" — diagnostic of whether they're cooperating with the pattern.
+export type Alignment = {
+  status: "Aligned" | "Misaligned" | "Unclear" | "Testing";
+  reading: string;
+  signs_of_alignment: string;
+  signs_of_misalignment: string;
+};
+
+// "Participation" — concrete action layer.
+export type Participation = {
   recommended_participation: string;
-};
-
-export type TechnicalReading = {
-  phase_nature: string;
-  micro_state_work: string;
-  what_to_do: string;
   what_to_avoid: string;
-  the_unseen: string;
+  pattern_rule: string;
 };
 
+// "SixTraditions" — how each lineage names this pattern state.
 export type SixTraditions = {
   ifa: string;
   kabbalah: string;
@@ -56,13 +89,16 @@ export type SixTraditions = {
   hermetic: string;
 };
 
+// Full reading — everything assembled.
 export type FullPatternReading = {
   summary: PatternSummary;
-  technical: TechnicalReading;
+  recognition: Recognition;
+  teaching: Teaching;
+  alignment: Alignment;
+  participation: Participation;
   traditions: SixTraditions;
 };
 
-// A failure we can show the user without leaking internals.
 export class ReadingError extends Error {
   publicMessage: string;
   constructor(publicMessage: string, cause?: unknown) {
@@ -84,8 +120,10 @@ function salvageJson<T>(text: string): T {
 }
 
 // ─── Prompts ─────────────────────────────────────────────────
+
 function buildSummaryPrompt(situation: string): string {
-  return `You are the reading engine of Twelvefold Institute. A person describes a recurring situation. Read the pattern using the 12 phases (${PHASES.join(", ")}) and the 4 micro-states (${MICRO_STATES.join(", ")}). Patterns are CURRICULUM, not pathology. Be grounded and direct, never mystical. Use "recommended participation" framing for guidance.
+  // Used by the free homepage demo — fast, cheap, just the felt layer.
+  return `You are the reading engine of Twelvefold Institute. A person describes a recurring situation. Read the pattern using the 12 phases (${PHASES.join(", ")}) and the 4 micro-states (${MICRO_STATES.join(", ")}). Patterns are CURRICULUM, not pathology. Use wisdom language, not therapeutic language.
 
 Their situation: "${situation}"
 
@@ -94,49 +132,88 @@ Respond with ONLY a JSON object, no preamble or markdown fences:
 }
 
 function buildFullPrompt(situation: string): string {
-  return `You are the reading engine of Twelvefold Institute. A person describes a recurring situation. Read the pattern in three layers.
+  return `YOU ARE A PATTERN TRANSLATOR for Twelvefold Institute.
 
-THE 12 PHASES: ${PHASES.join(", ")}
-THE 4 MICRO-STATES: ${MICRO_STATES.join(", ")}
+Reality is intelligently patterned. Your job is to help people see the pattern operating through their life and cooperate with it instead of fighting it.
 
-FRAMING RULES:
-- Patterns are CURRICULUM, not pathology. Never pathologize the person.
-- Be grounded and direct, never mystical or vague.
-- Use "recommended participation" framing — what the moment is asking, not what to fix.
-- Honor each wisdom tradition with accuracy and respect. Reference real teachings, never invent.
-- The six traditions worked independently across cultures and arrived at the same shape of transformation. Translate, do not flatten.
+THE 12 PHASES:
+1. Aries (Ignition) — beginnings, sparks, impulse
+2. Taurus (Foundation) — building, grounding, embodiment
+3. Gemini (Intelligence) — learning, connecting, dual perspectives
+4. Cancer (Inner Root) — feeling, belonging, the inner waters
+5. Leo (Authority) — visibility, expression, radiance
+6. Virgo (Correction) — refinement, service, precision
+7. Libra (Balance) — relationship, harmony, weighing
+8. Scorpio (Transformation) — death-rebirth, the underworld
+9. Sagittarius (Expansion) — vision, meaning, the further horizon
+10. Capricorn (Structure) — constructing, mastery, the long ascent
+11. Aquarius (Liberation) — freedom, originality, breaking the form
+12. Pisces (Dissolution) — surrender, sacred rest, return to source
 
-THE THREE LAYERS:
+THE 4 MICRO-STATES (within each phase):
+- Initiation: the pattern appearing, first whispers
+- Expansion: intensity building, momentum mounting
+- Contraction: the pattern peaking, forced honesty
+- Integration: the learning absorbed, new baseline
 
-(1) PATTERN SUMMARY — the felt layer. Human-readable, what they see first.
-(2) TECHNICAL READING — the structural diagnostic. The "why" beneath the summary.
-(3) SIX TRADITIONS — how each lineage illuminates this exact pattern state. Reference real teachings; be specific.
+HOW YOU SPEAK — WISDOM LANGUAGE, NOT THERAPEUTIC:
+Speak with the gravity of someone who has read the patterns of thousands of lives. You are a mirror, not a therapist or friend.
+
+Replace therapeutic language with wisdom language:
+- ❌ "You have a self-care issue" → ✅ "You are being asked to descend into Cancer's waters and honor what you've been pushing down."
+- ❌ "Set boundaries with your mother" → ✅ "Aquarius is asking you to liberate yourself from the family role you've outgrown. The structure that held you is now a cage."
+- ❌ "Your stress is high" → ✅ "Capricorn is grinding against you. The ascent is asking for something you haven't yet given."
+
+PATTERNS ARE CURRICULUM, NOT PATHOLOGY:
+The pattern recurring isn't punishment. It's persistence. The curriculum is insisting. The teaching is waiting. When you receive it, the pattern transforms.
+
+CITE THEIR OWN WORDS:
+In recognition.evidence_from_their_words, quote 2-4 specific phrases from THEIR input that revealed the pattern. Use their exact language. This is the "I see you" moment.
+
+THE SIX WISDOM TRADITIONS:
+Honor each with accuracy. Reference real teachings — odu, sefirot, hexagrams, scripture, dharma, hermetic axioms. Never invent. Never flatten. Each tradition recognized the same archetypal shape from a different door.
 
 Their situation: "${situation}"
 
-Respond with ONLY a JSON object, no preamble or markdown fences. Structure:
+Respond with ONLY a JSON object, no preamble, no markdown fences:
 
 {
   "summary": {
-    "pattern_name": "2-4 word human-readable name",
-    "phase": "one of the 12 phases",
-    "micro_state": "one of the 4 micro-states",
-    "likely_curriculum": "<=25 words: what this pattern is teaching",
-    "active_lesson": "<=25 words: the lesson active right now",
-    "recommended_participation": "<=25 words: what aligned cooperation looks like"
+    "pattern_name": "2-4 word human-readable Pattern Name (from the felt layer)",
+    "phase": "Phase name with parenthetical, e.g., 'Capricorn (Structure)'",
+    "phase_number": 10,
+    "phase_id": "lowercase, e.g., 'capricorn'",
+    "micro_state": "Initiation|Expansion|Contraction|Integration",
+    "state_code": "10.1 format (phase.micro 1-4)",
+    "archetype": "'The X' — short evocative archetype",
+    "life_area": "career|relationship|identity|health|finances|family"
   },
-  "technical": {
-    "phase_nature": "<=35 words: what this phase fundamentally is and what it asks of any life passing through it",
-    "micro_state_work": "<=35 words: what this specific micro-state within the phase is doing — the energetic shape of where they are",
-    "what_to_do": "<=35 words: concrete action that cooperates with the phase",
-    "what_to_avoid": "<=35 words: the move that fights the phase and prolongs the lesson",
-    "the_unseen": "<=35 words: what is happening beneath the surface the situation is showing"
+  "recognition": {
+    "what_is_happening": "2-3 sentences naming the pattern operating, in WISDOM voice. Speak with gravity. Name what no one else has named for them.",
+    "evidence_from_their_words": ["Exact phrase from their input", "Another specific signal", "Another"]
+  },
+  "teaching": {
+    "core_teaching": "What this pattern is teaching them right now. 2-3 sentences. Speak to the soul, not the symptom.",
+    "what_is_being_asked": "What the intelligence behind their life is asking of them in this phase. Not what they 'should' do — what is BEING ASKED.",
+    "tradition_wisdom": "1-2 sentences connecting to ONE wisdom tradition (Ifá, Kabbalah, I Ching, scripture, Buddhism, Hermetic). Reference a real teaching. Pick the tradition whose lens is sharpest here.",
+    "existential_permission": "1-2 sentences telling them: you are not broken, this is universal, this is sacred."
+  },
+  "alignment": {
+    "status": "Aligned|Misaligned|Unclear|Testing",
+    "reading": "1-2 sentences on how they are currently relating to this pattern — fighting it, cooperating with it, or testing the edges.",
+    "signs_of_alignment": "1-2 sentences: what cooperation with this pattern looks like in practice.",
+    "signs_of_misalignment": "1-2 sentences: what fighting this pattern looks like and how it prolongs the lesson."
+  },
+  "participation": {
+    "recommended_participation": "Concrete recommended action (2-3 sentences). What aligned cooperation looks like THIS WEEK in their actual circumstances. Not abstract.",
+    "what_to_avoid": "1-2 sentences: the specific move that fights the phase and keeps the curriculum repeating.",
+    "pattern_rule": "Single memorable line: 'When I am in [phase], I tend to [tendency]. The rule: [aligned principle].'"
   },
   "traditions": {
-    "ifa": "<=30 words: how Ifá names this state — odu, orisha, principle. Specific.",
-    "kabbalah": "<=30 words: how Kabbalah names this — sefirah, world, principle. Specific.",
-    "i_ching": "<=30 words: which hexagram or trigram speaks to this state. Specific.",
-    "scripture": "<=30 words: which scripture story or theme resonates with this pattern. Specific.",
+    "ifa": "<=30 words: how Ifá names this state. Reference the odu, orisha, or principle. Specific and accurate.",
+    "kabbalah": "<=30 words: how Kabbalah names this. Reference the sefirah, world, or principle. Specific.",
+    "i_ching": "<=30 words: which hexagram or trigram speaks to this. Reference real I Ching teaching.",
+    "scripture": "<=30 words: which scripture story, prophet, or theme resonates. Specific.",
     "buddhism": "<=30 words: which Buddhist teaching addresses this state. Specific.",
     "hermetic": "<=30 words: which Hermetic principle is at work here. Specific."
   }
@@ -144,6 +221,7 @@ Respond with ONLY a JSON object, no preamble or markdown fences. Structure:
 }
 
 // ─── Public readers ──────────────────────────────────────────
+
 export async function readPattern(situation: string): Promise<PatternSummary> {
   const prompt = buildSummaryPrompt(situation);
   let lastError: unknown;
@@ -183,14 +261,20 @@ export async function readFullPattern(situation: string): Promise<FullPatternRea
     try {
       const res = await client.messages.create({
         model: MODEL,
-        max_tokens: 4000,
+        max_tokens: 6000, // bumped from 4000 — the v10-depth output is longer
         messages: [{ role: "user", content: prompt }],
       });
       const text = res.content
         .map((block) => (block.type === "text" ? block.text : ""))
         .join("");
       const parsed = salvageJson<FullPatternReading>(text);
-      if (!parsed.summary?.pattern_name || !parsed.technical?.phase_nature || !parsed.traditions?.ifa) {
+      // Validate the critical layers are present
+      if (
+        !parsed.summary?.pattern_name ||
+        !parsed.recognition?.what_is_happening ||
+        !parsed.teaching?.core_teaching ||
+        !parsed.traditions?.ifa
+      ) {
         throw new ReadingError("The deep reading came back incomplete. Try again.");
       }
       return parsed;

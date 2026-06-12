@@ -252,20 +252,251 @@ interface TechnicalReadingLite {
   the_unseen?: string;
 }
 
+interface RecognitionLite {
+  what_is_happening?: string;
+  evidence_from_their_words?: string[];
+}
+
+interface TeachingLite {
+  core_teaching?: string;
+  what_is_being_asked?: string;
+  tradition_wisdom?: string;
+  existential_permission?: string;
+}
+
+interface AlignmentLite {
+  status?: string;
+  reading?: string;
+  signs_of_alignment?: string;
+  signs_of_misalignment?: string;
+}
+
+interface ParticipationLite {
+  recommended_participation?: string;
+  what_to_avoid?: string;
+  pattern_rule?: string;
+}
+
 export async function emailReadingToClient(args: {
   clientName: string;
   clientEmail: string;
   practitionerName: string;
-  practitionerEmail?: string; // for Reply-To
+  practitionerEmail?: string;
   patternName?: string;
   phase?: string;
   microState?: string;
+  archetype?: string;
+  // Legacy fields (preserved for old readings being re-sent)
   curriculum?: string;
   activeLesson?: string;
   recommendedParticipation?: string;
   technical?: TechnicalReadingLite;
+  // New v10 layers
+  recognition?: RecognitionLite;
+  teaching?: TeachingLite;
+  alignment?: AlignmentLite;
+  participation?: ParticipationLite;
   traditions?: SixTraditionsLite;
 }): Promise<boolean> {
+  const fieldRow = (label: string, value: string | undefined, accentColor: string) =>
+    value
+      ? `
+    <div style="padding:18px 22px;background:#f7f4ef;border-left:3px solid ${accentColor};border-radius:6px;margin-bottom:12px;">
+      <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1.5px;color:${accentColor};text-transform:uppercase;margin-bottom:8px;font-weight:700;">${escape(label)}</div>
+      <div style="font-size:16px;color:#1a1a2e;line-height:1.6;">${escape(value)}</div>
+    </div>`
+      : "";
+
+  const traditionRow = (label: string, value: string | undefined) =>
+    value
+      ? `
+      <tr>
+        <td style="padding:12px 14px;border-bottom:1px solid #e8e2d5;vertical-align:top;width:110px;">
+          <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:1.2px;color:#7C3AED;text-transform:uppercase;font-weight:700;">${escape(label)}</div>
+        </td>
+        <td style="padding:12px 14px;border-bottom:1px solid #e8e2d5;font-size:14px;color:#1a1a2e;line-height:1.55;">
+          ${escape(value)}
+        </td>
+      </tr>`
+      : "";
+
+  // ─── Detect schema: v10 layers present? Or legacy technical reading? ───
+  const hasV10 = !!(args.recognition?.what_is_happening || args.teaching?.core_teaching);
+
+  // ─── V10 sections ───
+  let recognitionSection = "";
+  if (hasV10 && args.recognition) {
+    const evidenceHtml = (args.recognition.evidence_from_their_words || [])
+      .map(
+        (q) =>
+          `<div style="font-size:14px;color:#6b6b7a;font-style:italic;padding:6px 0 6px 12px;border-left:2px solid #FBBF24;margin-bottom:4px;">&ldquo;${escape(q)}&rdquo;</div>`,
+      )
+      .join("");
+    recognitionSection = `
+      <div style="margin-top:28px;padding-top:24px;border-top:1px solid #e8e2d5;">
+        <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#7C3AED;text-transform:uppercase;font-weight:700;margin-bottom:14px;text-align:center;">— What's Happening —</div>
+        <div style="padding:18px 22px;background:#f7f4ef;border-radius:6px;margin-bottom:12px;">
+          <div style="font-size:17px;font-style:italic;color:#1a1a2e;line-height:1.7;">${escape(args.recognition.what_is_happening ?? "")}</div>
+          ${
+            evidenceHtml
+              ? `<div style="margin-top:14px;padding-top:12px;border-top:1px solid #e8e2d5;">
+                  <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:1.5px;color:#6b6b7a;text-transform:uppercase;margin-bottom:8px;">From your words</div>
+                  ${evidenceHtml}
+                </div>`
+              : ""
+          }
+        </div>
+      </div>`;
+  }
+
+  let teachingSection = "";
+  if (hasV10 && args.teaching) {
+    teachingSection = `
+      <div style="margin-top:28px;padding-top:24px;border-top:1px solid #e8e2d5;">
+        <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#7C3AED;text-transform:uppercase;font-weight:700;margin-bottom:14px;text-align:center;">— The Teaching —</div>
+        ${fieldRow("Core teaching", args.teaching.core_teaching, "#7C3AED")}
+        ${fieldRow("What is being asked", args.teaching.what_is_being_asked, "#F59E0B")}
+        ${fieldRow("Tradition wisdom", args.teaching.tradition_wisdom, "#7C3AED")}
+        ${
+          args.teaching.existential_permission
+            ? `<div style="padding:18px 22px;background:linear-gradient(135deg,#f7f4ef,#fff8e8);border:1px solid #e8e2d5;border-radius:6px;text-align:center;font-size:16px;font-style:italic;color:#1a1a2e;line-height:1.65;">${escape(args.teaching.existential_permission)}</div>`
+            : ""
+        }
+      </div>`;
+  }
+
+  let alignmentSection = "";
+  if (hasV10 && args.alignment?.status) {
+    const c =
+      args.alignment.status === "Aligned"
+        ? "#16a34a"
+        : args.alignment.status === "Misaligned"
+          ? "#dc2626"
+          : args.alignment.status === "Testing"
+            ? "#F59E0B"
+            : "#7C3AED";
+    alignmentSection = `
+      <div style="margin-top:28px;padding-top:24px;border-top:1px solid #e8e2d5;">
+        <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#7C3AED;text-transform:uppercase;font-weight:700;margin-bottom:14px;text-align:center;">— Alignment —</div>
+        <div style="padding:18px 22px;background:#f7f4ef;border-radius:6px;border:1px solid ${c}30;">
+          <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:${args.alignment.reading ? "10px" : "0"};">
+            <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1.5px;color:${c};text-transform:uppercase;font-weight:700;">Status</div>
+            <div style="padding:4px 12px;border-radius:999px;background:${c}15;border:1px solid ${c}40;font-family:'Courier New',monospace;font-size:11px;color:${c};font-weight:700;letter-spacing:1px;text-transform:uppercase;">${escape(args.alignment.status)}</div>
+          </div>
+          ${args.alignment.reading ? `<div style="font-size:15px;color:#1a1a2e;line-height:1.6;">${escape(args.alignment.reading)}</div>` : ""}
+        </div>
+      </div>`;
+  }
+
+  let participationSection = "";
+  if (hasV10 && args.participation) {
+    participationSection = `
+      <div style="margin-top:28px;padding-top:24px;border-top:1px solid #e8e2d5;">
+        <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#7C3AED;text-transform:uppercase;font-weight:700;margin-bottom:14px;text-align:center;">— Recommended Participation —</div>
+        ${fieldRow("This week", args.participation.recommended_participation, "#F59E0B")}
+        ${fieldRow("What to avoid", args.participation.what_to_avoid, "#dc2626")}
+        ${
+          args.participation.pattern_rule
+            ? `<div style="padding:18px 22px;background:#fff8e8;border:1px solid #FBBF2444;border-radius:6px;text-align:center;">
+                <div style="font-family:'Courier New',monospace;font-size:9px;letter-spacing:2px;color:#F59E0B;text-transform:uppercase;font-weight:700;margin-bottom:8px;">The pattern rule</div>
+                <div style="font-size:16px;font-style:italic;color:#1a1a2e;line-height:1.6;">${escape(args.participation.pattern_rule)}</div>
+              </div>`
+            : ""
+        }
+      </div>`;
+  }
+
+  // ─── LEGACY: technical reading section (for older readings being re-sent) ───
+  const legacyTechnicalSection =
+    !hasV10 && args.technical
+      ? `
+    <div style="margin-top:28px;padding-top:24px;border-top:1px solid #e8e2d5;">
+      <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#7C3AED;text-transform:uppercase;font-weight:700;margin-bottom:18px;text-align:center;">— Going Deeper —</div>
+      ${fieldRow("Phase nature", args.technical.phase_nature, "#7C3AED")}
+      ${fieldRow("Micro-state work", args.technical.micro_state_work, "#F59E0B")}
+      ${fieldRow("What to do", args.technical.what_to_do, "#7C3AED")}
+      ${fieldRow("What to avoid", args.technical.what_to_avoid, "#dc2626")}
+      ${fieldRow("The unseen", args.technical.the_unseen, "#7C3AED")}
+    </div>`
+      : "";
+
+  // Legacy summary fields (used only if v10 layers not present)
+  const legacySummarySection = !hasV10
+    ? `
+      ${fieldRow("The curriculum", args.curriculum, "#7C3AED")}
+      ${fieldRow("The lesson active now", args.activeLesson, "#F59E0B")}
+      ${fieldRow("Recommended participation", args.recommendedParticipation, "#7C3AED")}`
+    : "";
+
+  // ─── Six Traditions section ───
+  const traditionsSection =
+    args.traditions &&
+    (args.traditions.ifa ||
+      args.traditions.kabbalah ||
+      args.traditions.i_ching ||
+      args.traditions.scripture ||
+      args.traditions.buddhism ||
+      args.traditions.hermetic)
+      ? `
+    <div style="margin-top:28px;padding-top:24px;border-top:1px solid #e8e2d5;">
+      <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#7C3AED;text-transform:uppercase;font-weight:700;margin-bottom:14px;text-align:center;">— Six Traditions on this Pattern —</div>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border:1px solid #e8e2d5;border-radius:8px;overflow:hidden;">
+        ${traditionRow("Ifá", args.traditions.ifa)}
+        ${traditionRow("Kabbalah", args.traditions.kabbalah)}
+        ${traditionRow("I Ching", args.traditions.i_ching)}
+        ${traditionRow("Scripture", args.traditions.scripture)}
+        ${traditionRow("Buddhism", args.traditions.buddhism)}
+        ${traditionRow("Hermetic", args.traditions.hermetic)}
+      </table>
+    </div>`
+      : "";
+
+  const phaseLine =
+    args.phase || args.microState
+      ? `<div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:1.5px;color:#6b6b7a;text-transform:uppercase;margin-top:8px;">${escape([args.phase, args.microState].filter(Boolean).join(" · "))}</div>`
+      : "";
+
+  const archetypeLine = args.archetype
+    ? `<div style="font-family:Georgia,serif;font-size:14px;font-style:italic;color:#6b6b7a;margin-top:6px;">${escape(args.archetype)}</div>`
+    : "";
+
+  const html = shell({
+    preheader: `Your pattern reading from ${args.practitionerName}: ${args.patternName || "a recurring pattern"}.`,
+    body: `
+      <p style="margin:0 0 24px;">${escape(args.clientName)},</p>
+      <p style="margin:0 0 30px;">Following our session, here is your pattern reading. Take it slowly. The layers move from the felt surface to the structure beneath.</p>
+
+      <!-- HERO -->
+      <div style="text-align:center;padding:28px 20px;background:linear-gradient(135deg,#f7f4ef,#ffffff);border:1px solid #e8e2d5;border-radius:10px;margin-bottom:24px;">
+        <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;color:#F59E0B;text-transform:uppercase;font-weight:700;margin-bottom:10px;">Your Pattern</div>
+        <div style="font-family:Georgia,serif;font-size:30px;font-style:italic;color:#1a1a2e;line-height:1.1;letter-spacing:-0.5px;">${escape(args.patternName || "Unnamed Pattern")}</div>
+        ${archetypeLine}
+        ${phaseLine}
+      </div>
+
+      ${legacySummarySection}
+      ${recognitionSection}
+      ${teachingSection}
+      ${alignmentSection}
+      ${participationSection}
+      ${legacyTechnicalSection}
+      ${traditionsSection}
+
+      <div style="margin-top:36px;padding-top:24px;border-top:1px solid #e8e2d5;font-size:15px;color:#6b6b7a;line-height:1.7;">
+        <p style="margin:0 0 14px;">If anything in this reading lands strangely or sharply — that is the curriculum working. You don't have to act on it immediately. You only have to notice it.</p>
+        <p style="margin:0 0 14px;">Reply to this email any time with questions, or to talk further.</p>
+        <p style="margin:0;font-style:italic;">— ${escape(args.practitionerName)}<br/><span style="font-size:13px;color:#6b6b7a;">Twelvefold-certified practitioner</span></p>
+      </div>
+    `,
+  });
+
+  return send({
+    to: args.clientEmail,
+    subject: `Your pattern reading from ${args.practitionerName}`,
+    html,
+    replyTo: args.practitionerEmail,
+  });
+}
   const fieldRow = (label: string, value: string | undefined, accentColor: string) =>
     value
       ? `

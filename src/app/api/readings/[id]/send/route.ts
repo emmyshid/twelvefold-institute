@@ -82,8 +82,39 @@ export async function POST(_req: Request, context: RouteContext) {
     user.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)?.emailAddress ||
     user.emailAddresses[0]?.emailAddress;
 
-  // 4. Extract full reading layers from `raw`
+  // 4. Extract full reading layers from `raw`. Newer readings have the
+  //    v10-parity schema (recognition, teaching, alignment, participation,
+  //    archetype on summary, plus traditions). Older readings only have
+  //    the legacy `technical` block. We pass both — the email template
+  //    detects which schema is present and renders accordingly.
   const raw = reading.raw as {
+    summary?: {
+      archetype?: string;
+      pattern_name?: string;
+      phase?: string;
+      micro_state?: string;
+    };
+    recognition?: {
+      what_is_happening?: string;
+      evidence_from_their_words?: string[];
+    };
+    teaching?: {
+      core_teaching?: string;
+      what_is_being_asked?: string;
+      tradition_wisdom?: string;
+      existential_permission?: string;
+    };
+    alignment?: {
+      status?: string;
+      reading?: string;
+      signs_of_alignment?: string;
+      signs_of_misalignment?: string;
+    };
+    participation?: {
+      recommended_participation?: string;
+      what_to_avoid?: string;
+      pattern_rule?: string;
+    };
     technical?: {
       phase_nature?: string;
       micro_state_work?: string;
@@ -110,10 +141,17 @@ export async function POST(_req: Request, context: RouteContext) {
     patternName: reading.patternName ?? undefined,
     phase: reading.phase ?? undefined,
     microState: reading.microState ?? undefined,
+    archetype: raw?.summary?.archetype,
+    // Legacy back-compat
     curriculum: reading.curriculum ?? undefined,
     activeLesson: reading.activeLesson ?? undefined,
     recommendedParticipation: reading.recommendedParticipation ?? undefined,
     technical: raw?.technical,
+    // v10 layers (rendered when present, gracefully absent on older readings)
+    recognition: raw?.recognition,
+    teaching: raw?.teaching,
+    alignment: raw?.alignment,
+    participation: raw?.participation,
     traditions: raw?.traditions,
   });
 

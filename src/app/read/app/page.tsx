@@ -41,18 +41,41 @@ const T = {
 interface PatternSummary {
   pattern_name?: string;
   phase?: string;
+  phase_number?: number;
+  phase_id?: string;
   micro_state?: string;
+  state_code?: string;
+  archetype?: string;
+  life_area?: string;
+  // Legacy fallback fields
   likely_curriculum?: string;
   active_lesson?: string;
   recommended_participation?: string;
 }
 
-interface TechnicalReading {
-  phase_nature?: string;
-  micro_state_work?: string;
-  what_to_do?: string;
+interface Recognition {
+  what_is_happening?: string;
+  evidence_from_their_words?: string[];
+}
+
+interface Teaching {
+  core_teaching?: string;
+  what_is_being_asked?: string;
+  tradition_wisdom?: string;
+  existential_permission?: string;
+}
+
+interface Alignment {
+  status?: "Aligned" | "Misaligned" | "Unclear" | "Testing";
+  reading?: string;
+  signs_of_alignment?: string;
+  signs_of_misalignment?: string;
+}
+
+interface Participation {
+  recommended_participation?: string;
   what_to_avoid?: string;
-  the_unseen?: string;
+  pattern_rule?: string;
 }
 
 interface SixTraditions {
@@ -64,10 +87,25 @@ interface SixTraditions {
   hermetic?: string;
 }
 
+// Legacy "technical" structure from v1 reading shape — kept so existing
+// history items render without crashing.
+interface TechnicalReading {
+  phase_nature?: string;
+  micro_state_work?: string;
+  what_to_do?: string;
+  what_to_avoid?: string;
+  the_unseen?: string;
+}
+
 interface FullReading {
   summary: PatternSummary;
-  technical?: TechnicalReading;
+  recognition?: Recognition;
+  teaching?: Teaching;
+  alignment?: Alignment;
+  participation?: Participation;
   traditions?: SixTraditions;
+  // Legacy:
+  technical?: TechnicalReading;
 }
 
 interface HistoryItem {
@@ -170,27 +208,29 @@ function Btn({
   );
 }
 
-// ─── Reading display (3 layers: Summary, Technical, Traditions) ──────────
+// ─── Reading display (6 layers, v10 schema parity) ─────────────────
 function ReadingDisplay({ full }: { full: FullReading }) {
-  const { summary, technical, traditions } = full;
+  const { summary, recognition, teaching, alignment, participation, traditions, technical } = full;
   const [visibleTiers, setVisibleTiers] = useState(0);
-  const [showTechnical, setShowTechnical] = useState(false);
   const [openTradition, setOpenTradition] = useState<string | null>(null);
+  const [showAlignment, setShowAlignment] = useState(false);
 
-  const hasTechnical = !!technical && !!technical.phase_nature;
-  const hasTraditions = !!traditions && !!traditions.ifa;
+  // Detect which schema this reading uses — new (v10-parity) or legacy
+  const hasV10 = !!recognition?.what_is_happening || !!teaching?.core_teaching;
+  const hasTechnical = !!technical?.phase_nature;
+  const hasTraditions = !!traditions?.ifa;
 
   useEffect(() => {
     setVisibleTiers(0);
-    setShowTechnical(false);
     setOpenTradition(null);
+    setShowAlignment(false);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      setVisibleTiers(5);
+      setVisibleTiers(8);
       return;
     }
     const timers: ReturnType<typeof setTimeout>[] = [];
-    for (let i = 1; i <= 5; i++) {
-      timers.push(setTimeout(() => setVisibleTiers((v) => Math.max(v, i)), i * 350));
+    for (let i = 1; i <= 8; i++) {
+      timers.push(setTimeout(() => setVisibleTiers((v) => Math.max(v, i)), i * 280));
     }
     return () => timers.forEach(clearTimeout);
   }, [summary.pattern_name, summary.phase]);
@@ -207,11 +247,37 @@ function ReadingDisplay({ full }: { full: FullReading }) {
     </div>
   );
 
+  // Build a metadata strip (phase · micro · archetype · life_area)
+  const metaParts: string[] = [];
+  if (summary.phase) metaParts.push(summary.phase);
+  if (summary.micro_state) metaParts.push(summary.micro_state);
+  if (summary.state_code) metaParts.push(summary.state_code);
+  if (summary.life_area) metaParts.push(summary.life_area);
+
+  const ALIGNMENT_COLORS: Record<string, string> = {
+    Aligned: "#4ADE80",
+    Misaligned: "#FF6B6B",
+    Unclear: T.accent,
+    Testing: T.gold,
+  };
+  const alignColor =
+    (alignment?.status && ALIGNMENT_COLORS[alignment.status]) || T.accent;
+
+  const TRADITION_LABELS: Array<[keyof SixTraditions, string]> = [
+    ["ifa", "Ifá"],
+    ["kabbalah", "Kabbalah"],
+    ["i_ching", "I Ching"],
+    ["scripture", "Scripture"],
+    ["buddhism", "Buddhism"],
+    ["hermetic", "Hermetic"],
+  ];
+
+  // ─── Layer building blocks ──────────────────────────────
   const field = (label: string, value?: string | null, accent?: string) =>
     value ? (
       <div
         style={{
-          padding: "18px 20px",
+          padding: "18px 22px",
           background: "rgba(255,255,255,0.025)",
           borderRadius: T.radiusSm,
           borderLeft: `2px solid ${accent || "rgba(167,139,250,0.4)"}`,
@@ -225,26 +291,38 @@ function ReadingDisplay({ full }: { full: FullReading }) {
             color: accent || T.accent,
             textTransform: "uppercase",
             marginBottom: "8px",
+            fontWeight: 700,
           }}
         >
           {label}
         </div>
-        <div style={{ fontFamily: T.font, fontSize: "17px", color: T.text, lineHeight: 1.6 }}>{value}</div>
+        <div style={{ fontFamily: T.font, fontSize: "16.5px", color: T.text, lineHeight: 1.65 }}>
+          {value}
+        </div>
       </div>
     ) : null;
 
-  const TRADITION_LABELS: Array<[keyof SixTraditions, string]> = [
-    ["ifa", "Ifá"],
-    ["kabbalah", "Kabbalah"],
-    ["i_ching", "I Ching"],
-    ["scripture", "Scripture"],
-    ["buddhism", "Buddhism"],
-    ["hermetic", "Hermetic"],
-  ];
+  const sectionHeader = (label: string) => (
+    <div
+      style={{
+        fontFamily: T.fontMono,
+        fontSize: "10px",
+        letterSpacing: "2.5px",
+        color: T.gold,
+        textTransform: "uppercase",
+        fontWeight: 700,
+        textAlign: "center",
+        padding: "10px 0 4px",
+        opacity: 0.85,
+      }}
+    >
+      — {label} —
+    </div>
+  );
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-      {/* LAYER 1: PATTERN SUMMARY */}
+    <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+      {/* ════════ LAYER 1: PATTERN SUMMARY (felt layer) ════════ */}
       {tier(
         1,
         <div style={{ textAlign: "center", paddingBottom: "8px" }}>
@@ -272,156 +350,438 @@ function ReadingDisplay({ full }: { full: FullReading }) {
           >
             {summary.pattern_name}
           </div>
-          {(summary.phase || summary.micro_state) && (
+          {summary.archetype && (
+            <div
+              style={{
+                fontFamily: T.font,
+                fontSize: "15px",
+                fontStyle: "italic",
+                color: T.textDim,
+                marginTop: "6px",
+              }}
+            >
+              {summary.archetype}
+            </div>
+          )}
+          {metaParts.length > 0 && (
             <div
               style={{
                 fontFamily: T.fontMono,
                 fontSize: "11px",
                 letterSpacing: "1.5px",
                 color: T.textDim,
-                marginTop: "12px",
+                marginTop: "14px",
                 textTransform: "uppercase",
               }}
             >
-              {summary.phase}
-              {summary.micro_state ? ` · ${summary.micro_state}` : ""}
-            </div>
-          )}
-        </div>
-      )}
-      {tier(2, field("The curriculum", summary.likely_curriculum))}
-      {tier(3, field("The lesson active now", summary.active_lesson, T.gold))}
-      {tier(4, field("Recommended participation", summary.recommended_participation))}
-
-      {/* LAYER 2: TECHNICAL READING (collapsible) */}
-      {hasTechnical && tier(
-        5,
-        <div style={{ marginTop: "10px" }}>
-          <button
-            onClick={() => setShowTechnical((s) => !s)}
-            style={{
-              width: "100%",
-              background: showTechnical ? "rgba(167,139,250,0.10)" : "rgba(255,255,255,0.03)",
-              border: `1px solid ${showTechnical ? "rgba(167,139,250,0.30)" : T.border}`,
-              borderRadius: T.radiusSm,
-              padding: "14px 18px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: "12px",
-              fontFamily: T.fontMono,
-              fontSize: "11px",
-              letterSpacing: "1.5px",
-              color: showTechnical ? T.text : T.textDim,
-              textTransform: "uppercase",
-              transition: "all 0.25s " + T.ease,
-            }}
-          >
-            <span>{showTechnical ? "↓ Technical reading" : "→ Go deeper · Technical reading"}</span>
-            <span style={{ color: T.accent, fontSize: "10px" }}>{showTechnical ? "HIDE" : "EXPAND"}</span>
-          </button>
-
-          {showTechnical && technical && (
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px", marginTop: "12px" }}>
-              {field("Phase nature", technical.phase_nature)}
-              {field("Micro-state work", technical.micro_state_work, T.gold)}
-              {field("What to do", technical.what_to_do)}
-              {field("What to avoid", technical.what_to_avoid, "#FF6B6B")}
-              {field("The unseen", technical.the_unseen)}
+              {metaParts.join(" · ")}
             </div>
           )}
         </div>
       )}
 
-      {/* LAYER 3: SIX TRADITIONS */}
-      {hasTraditions && tier(
-        5,
-        <div style={{ marginTop: "6px" }}>
-          <div
-            style={{
-              fontFamily: T.fontMono,
-              fontSize: "10px",
-              letterSpacing: "2px",
-              color: T.accent,
-              textTransform: "uppercase",
-              marginBottom: "10px",
-              textAlign: "center",
-            }}
-          >
-            Six traditions on this pattern
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "8px" }}>
-            {TRADITION_LABELS.map(([key, label]) => {
-              const value = traditions?.[key];
-              if (!value) return null;
-              const isOpen = openTradition === key;
-              return (
-                <button
-                  key={key}
-                  onClick={() => setOpenTradition((o) => (o === key ? null : key))}
+      {/* ════════ LAYER 2: RECOGNITION ════════ */}
+      {hasV10 && recognition?.what_is_happening && (
+        <>
+          {tier(2, sectionHeader("What's Happening"))}
+          {tier(
+            2,
+            <div
+              style={{
+                padding: "22px 24px",
+                background: "rgba(255,255,255,0.03)",
+                borderRadius: T.radiusSm,
+                border: "1px solid rgba(255,255,255,0.06)",
+              }}
+            >
+              <div
+                style={{
+                  fontFamily: T.font,
+                  fontSize: "17px",
+                  fontStyle: "italic",
+                  color: T.text,
+                  lineHeight: 1.7,
+                }}
+              >
+                {recognition.what_is_happening}
+              </div>
+              {recognition.evidence_from_their_words && recognition.evidence_from_their_words.length > 0 && (
+                <div
                   style={{
-                    background: isOpen ? "rgba(251,191,36,0.08)" : "rgba(255,255,255,0.025)",
-                    border: `1px solid ${isOpen ? "rgba(251,191,36,0.30)" : T.border}`,
-                    borderRadius: T.radiusSm,
-                    padding: "12px 14px",
-                    cursor: "pointer",
-                    textAlign: "left",
-                    transition: "all 0.2s " + T.ease,
+                    marginTop: "16px",
+                    paddingTop: "14px",
+                    borderTop: `1px solid ${T.border}`,
                   }}
                 >
                   <div
                     style={{
                       fontFamily: T.fontMono,
-                      fontSize: "10px",
+                      fontSize: "9px",
                       letterSpacing: "1.5px",
-                      color: isOpen ? T.gold : T.textDim,
+                      color: T.textMuted,
                       textTransform: "uppercase",
+                      marginBottom: "8px",
                     }}
                   >
-                    {label}
+                    From your words
                   </div>
-                  {isOpen && (
-                    <div
-                      style={{
-                        fontFamily: T.font,
-                        fontSize: "14px",
-                        color: T.text,
-                        lineHeight: 1.55,
-                        marginTop: "8px",
-                      }}
-                    >
-                      {value}
-                    </div>
-                  )}
-                </button>
-              );
-            })}
-          </div>
-          {!openTradition && (
-            <div
-              style={{
-                marginTop: "10px",
-                fontFamily: T.fontMono,
-                fontSize: "10px",
-                letterSpacing: "1px",
-                color: T.textMuted,
-                textAlign: "center",
-                fontStyle: "italic",
-              }}
-            >
-              Tap any tradition to see how it names this pattern state.
+                  <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+                    {recognition.evidence_from_their_words.map((quote, i) => (
+                      <div
+                        key={i}
+                        style={{
+                          fontFamily: T.font,
+                          fontSize: "14px",
+                          color: T.textDim,
+                          fontStyle: "italic",
+                          paddingLeft: "12px",
+                          borderLeft: `2px solid ${T.gold}40`,
+                        }}
+                      >
+                        &ldquo;{quote}&rdquo;
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
-        </div>
+        </>
+      )}
+
+      {/* ════════ LAYER 3: TEACHING ════════ */}
+      {hasV10 && teaching && (
+        <>
+          {tier(3, sectionHeader("The Teaching"))}
+          {tier(3, field("Core teaching", teaching.core_teaching))}
+          {tier(4, field("What is being asked", teaching.what_is_being_asked, T.gold))}
+          {tier(4, field("Tradition wisdom", teaching.tradition_wisdom))}
+          {tier(
+            5,
+            teaching.existential_permission && (
+              <div
+                style={{
+                  padding: "20px 24px",
+                  background: "linear-gradient(135deg, rgba(167,139,250,0.06), rgba(251,191,36,0.04))",
+                  borderRadius: T.radiusSm,
+                  border: "1px solid rgba(167,139,250,0.15)",
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: T.font,
+                    fontSize: "16px",
+                    fontStyle: "italic",
+                    color: T.text,
+                    lineHeight: 1.65,
+                  }}
+                >
+                  {teaching.existential_permission}
+                </div>
+              </div>
+            )
+          )}
+        </>
+      )}
+
+      {/* ════════ LAYER 4: ALIGNMENT ════════ */}
+      {hasV10 && alignment?.status && (
+        <>
+          {tier(6, sectionHeader("Alignment"))}
+          {tier(
+            6,
+            <div
+              style={{
+                padding: "18px 22px",
+                background: `${alignColor}0d`,
+                borderRadius: T.radiusSm,
+                border: `1px solid ${alignColor}30`,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  gap: "12px",
+                  flexWrap: "wrap",
+                  marginBottom: alignment.reading ? "12px" : 0,
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: T.fontMono,
+                    fontSize: "10px",
+                    letterSpacing: "2px",
+                    color: alignColor,
+                    textTransform: "uppercase",
+                    fontWeight: 700,
+                  }}
+                >
+                  Status
+                </div>
+                <div
+                  style={{
+                    padding: "5px 14px",
+                    borderRadius: "999px",
+                    background: `${alignColor}15`,
+                    border: `1px solid ${alignColor}40`,
+                    fontFamily: T.fontMono,
+                    fontSize: "11px",
+                    color: alignColor,
+                    fontWeight: 700,
+                    letterSpacing: "1px",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {alignment.status}
+                </div>
+              </div>
+              {alignment.reading && (
+                <div
+                  style={{
+                    fontFamily: T.font,
+                    fontSize: "15.5px",
+                    color: T.text,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {alignment.reading}
+                </div>
+              )}
+              {(alignment.signs_of_alignment || alignment.signs_of_misalignment) && (
+                <div style={{ marginTop: "14px" }}>
+                  <button
+                    onClick={() => setShowAlignment((s) => !s)}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: alignColor,
+                      fontFamily: T.fontMono,
+                      fontSize: "10px",
+                      letterSpacing: "1.5px",
+                      cursor: "pointer",
+                      padding: "4px 0",
+                      textTransform: "uppercase",
+                      opacity: 0.8,
+                    }}
+                  >
+                    {showAlignment ? "↑ Hide signs" : "↓ Show signs of each"}
+                  </button>
+                  {showAlignment && (
+                    <div
+                      style={{
+                        marginTop: "10px",
+                        display: "grid",
+                        gridTemplateColumns: "1fr",
+                        gap: "10px",
+                      }}
+                    >
+                      {alignment.signs_of_alignment && (
+                        <div
+                          style={{
+                            padding: "12px 14px",
+                            background: "rgba(74,222,128,0.05)",
+                            borderRadius: "8px",
+                            borderLeft: "2px solid #4ADE80",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontFamily: T.fontMono,
+                              fontSize: "9px",
+                              color: "#4ADE80",
+                              letterSpacing: "1.5px",
+                              textTransform: "uppercase",
+                              marginBottom: "6px",
+                              fontWeight: 700,
+                            }}
+                          >
+                            ✓ Cooperation
+                          </div>
+                          <div style={{ fontFamily: T.font, fontSize: "14px", color: T.textDim, lineHeight: 1.55 }}>
+                            {alignment.signs_of_alignment}
+                          </div>
+                        </div>
+                      )}
+                      {alignment.signs_of_misalignment && (
+                        <div
+                          style={{
+                            padding: "12px 14px",
+                            background: "rgba(255,107,107,0.05)",
+                            borderRadius: "8px",
+                            borderLeft: "2px solid #FF6B6B",
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontFamily: T.fontMono,
+                              fontSize: "9px",
+                              color: "#FF6B6B",
+                              letterSpacing: "1.5px",
+                              textTransform: "uppercase",
+                              marginBottom: "6px",
+                              fontWeight: 700,
+                            }}
+                          >
+                            ✗ Resistance
+                          </div>
+                          <div style={{ fontFamily: T.font, fontSize: "14px", color: T.textDim, lineHeight: 1.55 }}>
+                            {alignment.signs_of_misalignment}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* ════════ LAYER 5: PARTICIPATION ════════ */}
+      {hasV10 && participation && (
+        <>
+          {tier(7, sectionHeader("Recommended Participation"))}
+          {tier(7, field("This week", participation.recommended_participation, T.gold))}
+          {tier(7, field("What to avoid", participation.what_to_avoid, "#FF6B6B"))}
+          {tier(
+            7,
+            participation.pattern_rule && (
+              <div
+                style={{
+                  padding: "20px 24px",
+                  background: "rgba(251,191,36,0.05)",
+                  borderRadius: T.radiusSm,
+                  border: "1px solid rgba(251,191,36,0.18)",
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{
+                    fontFamily: T.fontMono,
+                    fontSize: "9px",
+                    letterSpacing: "2px",
+                    color: T.gold,
+                    textTransform: "uppercase",
+                    marginBottom: "10px",
+                    fontWeight: 700,
+                  }}
+                >
+                  The pattern rule
+                </div>
+                <div
+                  style={{
+                    fontFamily: T.font,
+                    fontSize: "16px",
+                    fontStyle: "italic",
+                    color: T.text,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {participation.pattern_rule}
+                </div>
+              </div>
+            )
+          )}
+        </>
+      )}
+
+      {/* ════════ LEGACY: TECHNICAL READING (only for old readings) ════════ */}
+      {!hasV10 && hasTechnical && technical && (
+        <>
+          {tier(3, sectionHeader("Technical reading"))}
+          {tier(3, field("Phase nature", technical.phase_nature))}
+          {tier(4, field("Micro-state work", technical.micro_state_work, T.gold))}
+          {tier(4, field("What to do", technical.what_to_do))}
+          {tier(5, field("What to avoid", technical.what_to_avoid, "#FF6B6B"))}
+          {tier(5, field("The unseen", technical.the_unseen))}
+        </>
+      )}
+
+      {/* ════════ LAYER 6: SIX TRADITIONS ════════ */}
+      {hasTraditions && (
+        <>
+          {tier(8, sectionHeader("Six Traditions"))}
+          {tier(
+            8,
+            <div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: "8px" }}>
+                {TRADITION_LABELS.map(([key, label]) => {
+                  const value = traditions?.[key];
+                  if (!value) return null;
+                  const isOpen = openTradition === key;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => setOpenTradition((o) => (o === key ? null : key))}
+                      style={{
+                        background: isOpen ? "rgba(251,191,36,0.08)" : "rgba(255,255,255,0.025)",
+                        border: `1px solid ${isOpen ? "rgba(251,191,36,0.30)" : T.border}`,
+                        borderRadius: T.radiusSm,
+                        padding: "12px 14px",
+                        cursor: "pointer",
+                        textAlign: "left",
+                        transition: "all 0.2s " + T.ease,
+                      }}
+                    >
+                      <div
+                        style={{
+                          fontFamily: T.fontMono,
+                          fontSize: "10px",
+                          letterSpacing: "1.5px",
+                          color: isOpen ? T.gold : T.textDim,
+                          textTransform: "uppercase",
+                          fontWeight: 700,
+                        }}
+                      >
+                        {label}
+                      </div>
+                      {isOpen && (
+                        <div
+                          style={{
+                            fontFamily: T.font,
+                            fontSize: "14px",
+                            color: T.text,
+                            lineHeight: 1.55,
+                            marginTop: "8px",
+                          }}
+                        >
+                          {value}
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+              {!openTradition && (
+                <div
+                  style={{
+                    marginTop: "10px",
+                    fontFamily: T.fontMono,
+                    fontSize: "10px",
+                    letterSpacing: "1px",
+                    color: T.textMuted,
+                    textAlign: "center",
+                    fontStyle: "italic",
+                  }}
+                >
+                  Tap any tradition to see how it names this pattern state.
+                </div>
+              )}
+            </div>
+          )}
+        </>
       )}
 
       {/* Closing line */}
       {tier(
-        5,
+        8,
         <div
           style={{
-            marginTop: "8px",
+            marginTop: "10px",
             textAlign: "center",
             fontFamily: T.font,
             fontStyle: "italic",
@@ -764,8 +1124,13 @@ export default function PatternOSApp() {
       const data = await res.json();
       setReading({
         summary: data.summary,
-        technical: data.technical,
+        recognition: data.recognition,
+        teaching: data.teaching,
+        alignment: data.alignment,
+        participation: data.participation,
         traditions: data.traditions,
+        // legacy field — preserved for backward-compat
+        technical: data.technical,
       });
       // Refresh history (mode-aware effect handles the rest)
       try {
@@ -791,14 +1156,29 @@ export default function PatternOSApp() {
   function selectHistory(item: HistoryItem) {
     setActiveHistoryId(item.id);
     // Prefer the full reading from raw if it exists; fall back to flat columns
-    const raw = item.raw as { summary?: PatternSummary; technical?: TechnicalReading; traditions?: SixTraditions } | null;
+    const raw = item.raw as {
+      summary?: PatternSummary;
+      recognition?: Recognition;
+      teaching?: Teaching;
+      alignment?: Alignment;
+      participation?: Participation;
+      traditions?: SixTraditions;
+      technical?: TechnicalReading;
+    } | null;
+
     if (raw && raw.summary) {
+      // New v10-parity shape OR legacy with technical/traditions
       setReading({
         summary: raw.summary,
-        technical: raw.technical,
+        recognition: raw.recognition,
+        teaching: raw.teaching,
+        alignment: raw.alignment,
+        participation: raw.participation,
         traditions: raw.traditions,
+        technical: raw.technical,
       });
     } else {
+      // Oldest shape — just the flat columns
       setReading({
         summary: {
           pattern_name: item.patternName ?? undefined,
