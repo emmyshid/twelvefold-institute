@@ -190,13 +190,13 @@ export default function Homepage() {
   const navLinks: [string, string][] = [
     ["Pattern Literacy", "/pattern-literacy"],
     ["Read", "/read"],
-    ["Book", "#book-soon"],
+    ["Book", "/book"],
     ["Certification", "/certification"],
     ["Institutions", "/institutions"],
   ];
   const doors = [
     { eyebrow: "Start here", title: "Get a reading", body: "Describe what keeps happening. PatternOS reads the phase you are in and what it is asking of you.", cta: "Open PatternOS", href: "/read", variant: "gold" as Variant },
-    { eyebrow: "The book", title: "Pattern Literacy", body: "What's actually running your life — and how to read it. Read the opening chapter free.", cta: "Read a sample", href: "#book-soon", variant: "ghost" as Variant },
+    { eyebrow: "The book", title: "Pattern Literacy", body: "How to read the intelligent cycles governing your life. Read the opening pages, see the chapter list, and join the launch list.", cta: "Read more", href: "/book", variant: "ghost" as Variant },
     { eyebrow: "Become a practitioner", title: "Certification", body: "Become a Twelvefold-certified practitioner. 200 hours, small cohorts, $6,500.", cta: "See the program", href: "/certification", variant: "primary" as Variant, feature: true },
     { eyebrow: "For organizations", title: "License the Twelvefold framework", body: "Organizational diagnostics and licensing for schools, healthcare, and teams. Book a consult.", cta: "Start a conversation", href: "/institutions", variant: "ghost" as Variant },
   ];
