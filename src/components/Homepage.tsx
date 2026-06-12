@@ -25,6 +25,35 @@ const T = {
 
 const PHASES = ["Sparking","Building","Learning","Feeling","Expressing","Refining","Relating","Transforming","Reaching","Constructing","Liberating","Dissolving"];
 const TRADITIONS = ["Ifá","Kabbalah","I Ching","Scripture","Buddhism","Hermetic"];
+// ─── Recognition carousel data ──────────────────────────────────
+// Each card mirrors a real voice — something a cold visitor might
+// say to themselves. Tapping a card prefills the reading textarea
+// below with that exact phrasing so they can immediately get a
+// reading on what they recognized.
+// Pattern Names sourced from PatternOS-Pattern-Name-Library.md
+const RECOGNITION_CARDS = [
+  { voice: "I keep starting things with excitement and abandoning them at week three.", pattern: "The Boredom Test", state: "Taurus · Contraction · 2.3" },
+  { voice: "Every relationship ends the same way, and I can describe exactly how.", pattern: "The Compromise Wall", state: "Libra · Contraction · 7.3" },
+  { voice: "I'm exhausted, and slowing down feels like falling behind.", pattern: "The Tiredness That Knows", state: "Pisces · Initiation · 12.1" },
+  { voice: "I see what's wrong but can't make myself fix it.", pattern: "Perfectionist's Trap", state: "Virgo · Contraction · 6.3" },
+  { voice: "Something needs to end — a job, a story, an old self — and I'm resisting it.", pattern: "The Underworld Crossing", state: "Scorpio · Expansion · 8.2" },
+  { voice: "I left the form that held me, and I haven't built what's next.", pattern: "Breaking the Form", state: "Aquarius · Expansion · 11.2" },
+  { voice: "Something new is calling me, and I'm afraid to say yes.", pattern: "Ignition Moment", state: "Aries · Initiation · 1.1" },
+  { voice: "I feel stuck — but I sense I'm being prepared for something.", pattern: "Hidden Preparation", state: "Capricorn · Initiation · 10.1" },
+];
+
+// ─── Six traditions carousel data ───────────────────────────────
+// The convergence argument made visible: six lineages, all serious,
+// all pointing at the same underlying structure.
+const TRADITION_CARDS = [
+  { name: "Ifá",        origin: "Yoruba tradition (West Africa)", insight: "256 odu configurations map every human cycle and the right relationship with each.", source: "Wande Abimbola, Sixteen Great Poems of Ifá (Harvard)" },
+  { name: "Kabbalah",   origin: "Jewish mysticism",                insight: "The ten Sefirot represent stages of conscious evolution.",                              source: "Sefer Yetzirah; Gershom Scholem, Major Trends in Jewish Mysticism" },
+  { name: "I Ching",    origin: "Chinese classic",                 insight: "Sixty-four hexagrams describe situations and how they transform. Nothing is static.", source: "Wilhelm/Baynes translation (Princeton, 1967)" },
+  { name: "Scripture",  origin: "World spiritual texts",           insight: "Reality operates on patterns. Solomon's prayer: teach me how reality works.",         source: "1 Kings 3:9; Genesis, Exodus, Job; 1 Corinthians 12:4–11" },
+  { name: "Buddhism",   origin: "Asian tradition",                 insight: "The Twelve Nidanas map the cycle of suffering and awakening.",                         source: "Bhikkhu Bodhi, Comprehensive Manual of the Dharma" },
+  { name: "Hermetic",   origin: "Western esoteric philosophy",     insight: "The Principle of Rhythm: everything flows, out and in; everything has its tides.",  source: "The Kybalion (1908)" },
+];
+
 
 type Variant = "primary" | "gold" | "ghost";
 
@@ -132,6 +161,25 @@ function Eyebrow({ children, color }: { children: ReactNode; color?: string }) {
 
 function TryReading() {
   const [input, setInput] = useState("");
+
+  // Listen for prefill events dispatched by recognition cards above.
+  // When a card is tapped, we drop its voice into our textarea, scroll
+  // into view, and focus so the visitor can immediately Read.
+  useEffect(() => {
+    function onPrefill(e: Event) {
+      const detail = (e as CustomEvent<{ text: string }>).detail;
+      if (!detail?.text) return;
+      setInput(detail.text);
+      // Defer focus until after the textarea has the new value
+      setTimeout(() => {
+        const ta = document.querySelector("#try-it textarea") as HTMLTextAreaElement | null;
+        if (ta) ta.focus();
+      }, 50);
+    }
+    window.addEventListener("prefill-reading", onPrefill as EventListener);
+    return () => window.removeEventListener("prefill-reading", onPrefill as EventListener);
+  }, []);
+
   const [loading, setLoading] = useState(false);
   const [reading, setReading] = useState<PatternReading | null>(null);
 
@@ -232,6 +280,51 @@ export default function Homepage() {
           .pi-shift-row { grid-template-columns: 1fr; gap: 8px; }
           .pi-shift-arrow { transform: rotate(90deg); padding: 2px 0; }
         }
+        /* Carousels — horizontal scroll-snap with peek-on-edges */
+        .pi-carousel-track {
+          display: grid;
+          grid-auto-flow: column;
+          grid-auto-columns: minmax(260px, 320px);
+          gap: 14px;
+          overflow-x: auto;
+          overflow-y: hidden;
+          scroll-snap-type: x mandatory;
+          padding: 8px clamp(20px, 5vw, 64px) 24px;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(167,139,250,0.3) transparent;
+          -webkit-overflow-scrolling: touch;
+        }
+        .pi-carousel-track::-webkit-scrollbar { height: 6px; }
+        .pi-carousel-track::-webkit-scrollbar-track { background: transparent; }
+        .pi-carousel-track::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.22); border-radius: 6px; }
+        .pi-carousel-card {
+          scroll-snap-align: start;
+          background: rgba(255,255,255,0.025);
+          border: 1px solid ${T.border};
+          border-radius: 14px;
+          padding: 24px 24px;
+          cursor: default;
+          transition: transform 0.3s ${T.ease}, border-color 0.3s ${T.ease}, box-shadow 0.3s ${T.ease};
+          display: flex;
+          flex-direction: column;
+          text-align: left;
+          color: inherit;
+          font: inherit;
+        }
+        .pi-recog-card { cursor: pointer; }
+        .pi-recog-card:hover, .pi-recog-card:focus-visible {
+          transform: translateY(-3px);
+          border-color: rgba(167,139,250,0.35);
+          box-shadow: 0 14px 40px rgba(0,0,0,0.40);
+        }
+        .pi-tradition-card:hover {
+          transform: translateY(-3px);
+          border-color: rgba(167,139,250,0.30);
+          box-shadow: 0 14px 40px rgba(0,0,0,0.36);
+        }
+        @media (max-width: 640px) {
+          .pi-carousel-track { grid-auto-columns: minmax(240px, 80vw); padding: 8px 20px 24px; }
+        }
         button:focus-visible, textarea:focus-visible, a:focus-visible { outline: 2px solid #A78BFA; outline-offset: 3px; }
       `}</style>
 
@@ -313,6 +406,61 @@ export default function Homepage() {
             </p>
           </Reveal>
         </header>
+
+        <section id="recognition" style={{ padding: "clamp(40px, 7vw, 90px) 0 clamp(20px, 4vw, 50px)", maxWidth: 1200, margin: "0 auto" }}>
+          <Reveal>
+            <div style={{ textAlign: "center", padding: "0 clamp(20px, 5vw, 64px)", marginBottom: "32px" }}>
+              <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>Recognition</Eyebrow></div>
+              <h2 style={{ fontFamily: T.font, fontSize: "clamp(28px, 4.5vw, 44px)", fontWeight: 600, letterSpacing: "-0.5px", margin: "0 0 10px" }}>Does this sound like you?</h2>
+              <p style={{ fontFamily: T.font, fontSize: "clamp(15px, 2.2vw, 17px)", color: T.textDim, maxWidth: 540, margin: "0 auto", lineHeight: 1.6 }}>Tap any voice that feels familiar. Each one is a real pattern, with a name and a phase. Tapping drops it into the reading below.</p>
+            </div>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div className="pi-carousel-track" role="region" aria-label="Recognition carousel">
+              {RECOGNITION_CARDS.map((c, i) => (
+                <button key={i} className="pi-carousel-card pi-recog-card" onClick={() => {
+                  window.dispatchEvent(new CustomEvent("prefill-reading", { detail: { text: c.voice } }));
+                  setTimeout(() => {
+                    const el = document.getElementById("try-it");
+                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }, 0);
+                }}>
+                  <div style={{ fontFamily: T.font, fontSize: "18px", fontStyle: "italic", color: T.text, lineHeight: 1.55, marginBottom: "18px", flex: 1 }}>&ldquo;{c.voice}&rdquo;</div>
+                  <div style={{ paddingTop: "14px", borderTop: `1px solid ${T.border}` }}>
+                    <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "1.5px", color: T.gold, textTransform: "uppercase", fontWeight: 700, marginBottom: "5px" }}>{c.pattern}</div>
+                    <div style={{ fontFamily: T.fontMono, fontSize: "9.5px", letterSpacing: "1.2px", color: T.textMuted, textTransform: "uppercase" }}>{c.state}</div>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <div style={{ textAlign: "center", marginTop: "8px", fontFamily: T.fontMono, fontSize: "10px", color: T.textMuted, letterSpacing: "1.5px", textTransform: "uppercase" }}>← Swipe to see all eight →</div>
+          </Reveal>
+        </section>
+
+        <section id="convergence" style={{ padding: "clamp(40px, 7vw, 90px) 0 clamp(20px, 4vw, 50px)", maxWidth: 1200, margin: "0 auto" }}>
+          <Reveal>
+            <div style={{ textAlign: "center", padding: "0 clamp(20px, 5vw, 64px)", marginBottom: "32px" }}>
+              <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>Convergence</Eyebrow></div>
+              <h2 style={{ fontFamily: T.font, fontSize: "clamp(28px, 4.5vw, 44px)", fontWeight: 600, letterSpacing: "-0.5px", margin: "0 0 10px" }}>Six traditions, one structure.</h2>
+              <p style={{ fontFamily: T.font, fontSize: "clamp(15px, 2.2vw, 17px)", color: T.textDim, maxWidth: 580, margin: "0 auto", lineHeight: 1.6 }}>Six independent lineages — across continents and millennia — recognized the same underlying patterns. When traditions this different agree on the structure, the structure is not invented. It&rsquo;s recognized.</p>
+            </div>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div className="pi-carousel-track" role="region" aria-label="Six traditions carousel">
+              {TRADITION_CARDS.map((t, i) => (
+                <div key={i} className="pi-carousel-card pi-tradition-card">
+                  <div style={{ fontFamily: T.font, fontSize: "26px", fontWeight: 600, color: T.text, letterSpacing: "-0.3px", marginBottom: "4px" }}>{t.name}</div>
+                  <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "1.5px", color: T.accent, textTransform: "uppercase", fontWeight: 700, marginBottom: "16px" }}>{t.origin}</div>
+                  <div style={{ fontFamily: T.font, fontSize: "16.5px", color: T.text, lineHeight: 1.6, flex: 1, marginBottom: "16px" }}>{t.insight}</div>
+                  <div style={{ paddingTop: "12px", borderTop: `1px solid ${T.border}`, fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "0.5px", color: T.textMuted, lineHeight: 1.5 }}>{t.source}</div>
+                </div>
+              ))}
+            </div>
+            <div style={{ textAlign: "center", marginTop: "16px", padding: "0 clamp(20px, 5vw, 64px)" }}>
+              <a href="/pattern-literacy" style={{ fontFamily: T.fontMono, fontSize: "11px", letterSpacing: "1.5px", color: T.accent, textDecoration: "none", textTransform: "uppercase" }}>How each tradition maps to the 12 phases →</a>
+            </div>
+          </Reveal>
+        </section>
 
         <section id="shift" style={{ padding: "clamp(50px, 8vw, 100px) clamp(20px, 5vw, 64px)", maxWidth: 980, margin: "0 auto" }}>
           <Reveal><div style={{ textAlign: "center", marginBottom: "48px" }}>
