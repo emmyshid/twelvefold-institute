@@ -18,13 +18,21 @@ import { pgTable, uuid, text, timestamp, jsonb, integer, boolean } from "drizzle
 // ════════════════════════════════════════════════════════════════
 
 // One profile row per Clerk user. Identity lives in Clerk; this holds
-// app-specific fields (role = member | practitioner | admin).
+// app-specific fields (role = member | practitioner | admin) and the
+// welcome-email idempotency timestamp.
+//
+// welcomedAt is set the first time we see a signed-in user, used by
+// src/lib/welcome.ts to fire the welcome email exactly once. The unique
+// constraint on clerk_user_id is the lock — concurrent inserts from
+// multiple tabs all hit the same constraint, only one wins, only one
+// email is sent.
 export const profiles = pgTable("profiles", {
   id: uuid("id").defaultRandom().primaryKey(),
   clerkUserId: text("clerk_user_id").notNull().unique(),
   email: text("email"),
   displayName: text("display_name"),
   role: text("role").notNull().default("member"),
+  welcomedAt: timestamp("welcomed_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
@@ -133,7 +141,6 @@ export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
 export type Client = typeof clients.$inferSelect;
 export type NewClient = typeof clients.$inferInsert;
-
 export type Profile = typeof profiles.$inferSelect;
 export type NewProfile = typeof profiles.$inferInsert;
 

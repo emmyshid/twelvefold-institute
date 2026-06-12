@@ -48,23 +48,33 @@ export async function maybeWelcome(): Promise<void> {
 
     if (!primaryEmail) return; // can't email without an address
 
-    // onConflictDoNothing: if a row with this clerk_user_id already
-    // exists, the insert is a no-op and we don't fire the email again.
+    const displayName =
+      [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
+      user.username ||
+      null;
+
+    // Insert keyed on the unique clerk_user_id column. If a row already
+    // exists for this user, the insert is a no-op and returning() comes
+    // back empty — we don't fire the welcome email again.
+    //
+    // IMPORTANT: the conflict target MUST be clerkUserId (the unique
+    // column), not the primary key. The primary key is a random UUID
+    // that will never collide, so without specifying target, every
+    // insert would succeed and the welcome email would fire on every
+    // page load.
     const inserted = await db
       .insert(profiles)
       .values({
         clerkUserId: userId,
         email: primaryEmail,
+        displayName,
+        welcomedAt: new Date(),
       })
-      .onConflictDoNothing()
+      .onConflictDoNothing({ target: profiles.clerkUserId })
       .returning();
 
     // If insert returned a row, this was the first sight — send welcome.
     if (inserted.length === 1) {
-      const displayName =
-        [user.firstName, user.lastName].filter(Boolean).join(" ").trim() ||
-        user.username ||
-        null;
 
       // Fire emails non-blocking. We don't await — the user's page
       // shouldn't wait for email delivery.
