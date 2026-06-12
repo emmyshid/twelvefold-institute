@@ -356,6 +356,166 @@ export async function emailReadingToClient(args: {
   });
 }
 
+// ─── 6. Status-change templates ──────────────────────────────
+// Fired from /api/admin/status when an admin flips a record's status
+// in the admin dashboard. Each function returns a Promise<boolean>
+// matching the pattern of other templates; failures are non-blocking.
+
+// CERT APPLICATIONS
+
+export async function emailCertApplicationReviewing(args: {
+  name: string;
+  email: string;
+}): Promise<boolean> {
+  const html = shell({
+    preheader: "Your Twelvefold Practitioner Certification application is in active review.",
+    body: `
+      <p style="font-size:24px;font-weight:600;margin:0 0 20px;letter-spacing:-0.3px;">Your application is in review.</p>
+      <p style="margin:0 0 18px;">${escape(args.name)},</p>
+      <p style="margin:0 0 18px;">A quick note — your application for the Twelvefold Practitioner Certification has moved into active review. We're reading it carefully.</p>
+      <p style="margin:0 0 18px;">If we want to learn more about you, we'll be in touch within the next two weeks to schedule a brief conversation. If not, you'll hear from us either way — we respond to every application.</p>
+      <p style="margin:0 0 18px;color:#6b6b7a;font-size:14px;">No action needed from you right now. Thank you for your patience.</p>
+      <p style="margin:0;font-style:italic;color:#6b6b7a;">— The Twelvefold Institute</p>
+    `,
+  });
+  return send({
+    to: args.email,
+    subject: "We're reviewing your Twelvefold application",
+    html,
+    replyTo: process.env.ADMIN_NOTIFICATION_EMAIL,
+  });
+}
+
+export async function emailCertApplicationAdmitted(args: {
+  name: string;
+  email: string;
+}): Promise<boolean> {
+  const html = shell({
+    preheader: "Your offer to the Twelvefold Practitioner Certification.",
+    body: `
+      <p style="font-size:26px;font-weight:600;margin:0 0 22px;letter-spacing:-0.4px;">Welcome.</p>
+      <p style="margin:0 0 18px;">${escape(args.name)},</p>
+      <p style="margin:0 0 18px;">After reading your application carefully, we're offering you a place in the next Twelvefold Practitioner Certification cohort.</p>
+      <p style="margin:0 0 18px;">This is a real practice — not a credential collection — and admission means we believe you're ready to train rigorously in pattern literacy and to carry the work into your own community with seriousness and care.</p>
+      <p style="margin:0 0 8px;font-family:'Courier New',monospace;font-size:11px;letter-spacing:1.5px;color:#7C3AED;text-transform:uppercase;">What happens next</p>
+      <ol style="margin:0 0 24px;padding-left:20px;">
+        <li style="margin-bottom:6px;">Reply to this email confirming you'd like to accept your place.</li>
+        <li style="margin-bottom:6px;">We'll send your enrollment paperwork, tuition payment link ($6,500), and your cohort start date.</li>
+        <li style="margin-bottom:6px;">Phase I (Foundation) materials are released two weeks before the cohort begins.</li>
+        <li style="margin-bottom:6px;">Your supervised practicum opens after Phase II is complete.</li>
+        <li style="margin-bottom:6px;">Certification review is the final phase, followed by your formal designation as a Twelvefold-certified practitioner.</li>
+      </ol>
+      <p style="margin:0 0 18px;">You have <strong>14 days</strong> to confirm your place before we release the seat to the next applicant on the list. If you need more time or have questions, just reply — we're here.</p>
+      <p style="margin:0 0 18px;color:#6b6b7a;font-size:14px;">Take a moment with this. Most of the practitioners we admit say yes; some discover the timing isn't right for them. Either answer is honest, and we want yours.</p>
+      <p style="margin:0;font-style:italic;color:#6b6b7a;">— The Twelvefold Institute</p>
+    `,
+  });
+  return send({
+    to: args.email,
+    subject: "Your Twelvefold Practitioner Certification offer",
+    html,
+    replyTo: process.env.ADMIN_NOTIFICATION_EMAIL,
+  });
+}
+
+export async function emailCertApplicationDeclined(args: {
+  name: string;
+  email: string;
+}): Promise<boolean> {
+  const html = shell({
+    preheader: "An update on your Twelvefold Practitioner Certification application.",
+    body: `
+      <p style="font-size:24px;font-weight:600;margin:0 0 20px;letter-spacing:-0.3px;">Thank you for applying.</p>
+      <p style="margin:0 0 18px;">${escape(args.name)},</p>
+      <p style="margin:0 0 18px;">We've completed our review of your application for the Twelvefold Practitioner Certification, and we won't be offering you a place in the current cohort.</p>
+      <p style="margin:0 0 18px;">This isn't a judgment of you. The certification is small and rigorous, and we admit only the applicants we believe are the right fit for this particular cohort, at this particular moment. Timing and fit matter more than worth.</p>
+      <p style="margin:0 0 18px;">You're welcome to apply again in the future — many of our certified practitioners applied more than once. If you'd like specific feedback on your application, simply reply and we'll be honest with you.</p>
+      <p style="margin:0 0 18px;color:#6b6b7a;font-size:14px;">In the meantime, if pattern literacy interests you, you can continue your own practice at <a href="https://twelvefold.institute/read" style="color:#7C3AED;">twelvefold.institute/read</a> — free, no certification required.</p>
+      <p style="margin:0;font-style:italic;color:#6b6b7a;">— The Twelvefold Institute</p>
+    `,
+  });
+  return send({
+    to: args.email,
+    subject: "Your Twelvefold application",
+    html,
+    replyTo: process.env.ADMIN_NOTIFICATION_EMAIL,
+  });
+}
+
+// INSTITUTIONAL CONSULTS
+
+export async function emailConsultQualified(args: {
+  name: string;
+  email: string;
+  organization: string;
+}): Promise<boolean> {
+  const html = shell({
+    preheader: "Your Twelvefold consult — we'd like to talk further.",
+    body: `
+      <p style="font-size:24px;font-weight:600;margin:0 0 20px;letter-spacing:-0.3px;">Let's talk.</p>
+      <p style="margin:0 0 18px;">${escape(args.name)},</p>
+      <p style="margin:0 0 18px;">Thank you for your consult request from ${escape(args.organization)}. Based on what you've shared, we'd like to schedule a conversation to explore whether and how the Twelvefold framework fits your organization's situation.</p>
+      <p style="margin:0 0 18px;">We'll be in touch within the next few days to propose a few times. Please reply with any windows that work for you, or just wait for our outreach — whichever's easier.</p>
+      <p style="margin:0 0 18px;color:#6b6b7a;font-size:14px;">The first conversation is exploratory and free. No pitch, no pressure — we want to understand your situation first and see if we're the right partners for it.</p>
+      <p style="margin:0;font-style:italic;color:#6b6b7a;">— The Twelvefold Institute</p>
+    `,
+  });
+  return send({
+    to: args.email,
+    subject: "Your Twelvefold consult — next step",
+    html,
+    replyTo: process.env.ADMIN_NOTIFICATION_EMAIL,
+  });
+}
+
+export async function emailConsultScheduled(args: {
+  name: string;
+  email: string;
+  organization: string;
+}): Promise<boolean> {
+  const html = shell({
+    preheader: "Your Twelvefold consult conversation is being scheduled.",
+    body: `
+      <p style="font-size:24px;font-weight:600;margin:0 0 20px;letter-spacing:-0.3px;">Your consult is on the calendar.</p>
+      <p style="margin:0 0 18px;">${escape(args.name)},</p>
+      <p style="margin:0 0 18px;">Your conversation with us is being scheduled. You'll receive a separate calendar invitation shortly with the date, time, and meeting link.</p>
+      <p style="margin:0 0 18px;">In the meantime, if there's any context about ${escape(args.organization)}'s situation you'd like us to read before we meet, simply reply and send it along.</p>
+      <p style="margin:0 0 18px;color:#6b6b7a;font-size:14px;">If something changes and the proposed time doesn't work, just let us know — we'll find another.</p>
+      <p style="margin:0;font-style:italic;color:#6b6b7a;">— The Twelvefold Institute</p>
+    `,
+  });
+  return send({
+    to: args.email,
+    subject: "Your Twelvefold consult — scheduling",
+    html,
+    replyTo: process.env.ADMIN_NOTIFICATION_EMAIL,
+  });
+}
+
+export async function emailConsultClosed(args: {
+  name: string;
+  email: string;
+  organization: string;
+}): Promise<boolean> {
+  const html = shell({
+    preheader: "An update on your Twelvefold consult request.",
+    body: `
+      <p style="font-size:24px;font-weight:600;margin:0 0 20px;letter-spacing:-0.3px;">Thank you for reaching out.</p>
+      <p style="margin:0 0 18px;">${escape(args.name)},</p>
+      <p style="margin:0 0 18px;">We've completed our review of your consult request from ${escape(args.organization)}. At this time, we don't see a strong fit between what your organization is asking for and what the Twelvefold framework is designed to address.</p>
+      <p style="margin:0 0 18px;">That's a fit assessment, not a judgment. If your circumstances change or your needs evolve in a direction where pattern literacy might serve you, you're welcome to reach out again.</p>
+      <p style="margin:0 0 18px;color:#6b6b7a;font-size:14px;">If you'd like to understand our reasoning, simply reply — we're happy to be specific about why this didn't feel like a match.</p>
+      <p style="margin:0;font-style:italic;color:#6b6b7a;">— The Twelvefold Institute</p>
+    `,
+  });
+  return send({
+    to: args.email,
+    subject: "Your Twelvefold consult",
+    html,
+    replyTo: process.env.ADMIN_NOTIFICATION_EMAIL,
+  });
+}
+
 // ─── Helpers ─────────────────────────────────────────────────
 function escape(s: string): string {
   return String(s)
