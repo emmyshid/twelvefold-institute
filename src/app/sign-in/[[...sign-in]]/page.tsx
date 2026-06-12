@@ -1,33 +1,36 @@
 "use client";
 
-import { SignIn, useUser } from "@clerk/nextjs";
 import { useEffect } from "react";
 
+// ════════════════════════════════════════════════════════════════
+// /sign-in — redirect to Clerk-hosted Account Portal.
+//
+// Why this exists instead of an embedded <SignIn /> component:
+// Clerk's free tier sets session cookies on the subdomain
+// (clerk.twelvefold.institute) which mobile browsers reject as
+// cross-site cookies during the post-auth redirect back to the main
+// app. The hosted Account Portal at accounts.twelvefold.institute
+// uses Clerk's own first-party cookie + transfer flow that works
+// reliably on every browser including iOS Safari and mobile Chrome.
+//
+// Trade-off: users see Clerk's default white-themed sign-in instead
+// of our dark-themed component. Worth it for guaranteed mobile auth.
+// If/when Clerk plan is upgraded to Pro, this can revert to the
+// embedded component with a cookie-domain config change.
+// ════════════════════════════════════════════════════════════════
+
 export default function SignInPage() {
-  const { isLoaded, isSignedIn } = useUser();
-
-  // ════════════════════════════════════════════════════════════════
-  // Fallback redirect.
-  // On some mobile browsers, Clerk's internal post-auth redirect via
-  // window.location.href can be silently dropped — particularly on
-  // iOS Safari + Chrome iOS where tracking prevention interferes,
-  // and in some Chrome Android setups with strict cookie policies.
-  //
-  // This effect watches for the signed-in state via Clerk's React
-  // hook. The moment auth succeeds (anywhere in the flow), we force
-  // a real navigation ourselves. Redundant with Clerk's built-in
-  // redirect, but ensures the user reaches their destination even
-  // when the built-in flow stalls.
-  // ════════════════════════════════════════════════════════════════
   useEffect(() => {
-    if (isLoaded && isSignedIn) {
-      const params = new URLSearchParams(window.location.search);
-      const redirectUrl = params.get("redirect_url") || "/";
-      // Use replace() so the sign-in page isn't kept in browser history.
-      window.location.replace(redirectUrl);
-    }
-  }, [isLoaded, isSignedIn]);
+    const params = new URLSearchParams(window.location.search);
+    // Preserve the post-auth destination if the user was sent here
+    // by middleware (e.g. they tried to reach /read/app while signed out).
+    const redirect = params.get("redirect_url") || "/";
+    const target = `https://accounts.twelvefold.institute/sign-in?redirect_url=${encodeURIComponent(redirect)}`;
+    window.location.replace(target);
+  }, []);
 
+  // Brief landing screen shown for the ~100ms before the redirect fires.
+  // Matches site design so the user doesn't see a white flash.
   return (
     <div
       style={{
@@ -37,166 +40,31 @@ export default function SignInPage() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "clamp(20px, 6vw, 40px) clamp(12px, 4vw, 20px)",
-        position: "relative",
+        padding: "40px 20px",
+        color: "#EDE9F5",
       }}
     >
       <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          inset: 0,
-          overflow: "hidden",
-          pointerEvents: "none",
-          zIndex: 0,
-        }}
-      >
-        <div
-          style={{
-            position: "absolute",
-            width: "min(480px, 90vw)",
-            height: "min(480px, 90vw)",
-            top: "-15%",
-            left: "-20%",
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(124,58,237,0.32), transparent 70%)",
-            filter: "blur(90px)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            width: "min(400px, 85vw)",
-            height: "min(400px, 85vw)",
-            bottom: "-15%",
-            right: "-20%",
-            borderRadius: "50%",
-            background: "radial-gradient(circle, rgba(167,139,250,0.22), transparent 70%)",
-            filter: "blur(90px)",
-          }}
-        />
-      </div>
-
-      <a
-        href="/"
         style={{
           fontFamily: "'Space Mono', monospace",
           fontSize: "15px",
           letterSpacing: "1px",
           fontWeight: 700,
-          textDecoration: "none",
-          marginBottom: "clamp(20px, 4vw, 32px)",
-          position: "relative",
-          zIndex: 2,
+          marginBottom: "20px",
         }}
       >
         <span style={{ color: "#EDE9F5" }}>Twelvefold</span>{" "}
         <span style={{ color: "#A78BFA" }}>Institute</span>
-      </a>
-
-      <div
-        style={{
-          position: "relative",
-          zIndex: 2,
-          width: "100%",
-          maxWidth: 440,
-          display: "flex",
-          justifyContent: "center",
-        }}
-      >
-        <SignIn
-          path="/sign-in"
-          routing="path"
-          signUpUrl="/sign-up"
-          forceRedirectUrl="/"
-          fallbackRedirectUrl="/"
-          appearance={{
-            variables: {
-              colorPrimary: "#A78BFA",
-              colorBackground: "#0c0c1a",
-              colorInputBackground: "rgba(255,255,255,0.05)",
-              colorInputText: "#EDE9F5",
-              colorText: "#EDE9F5",
-              colorTextSecondary: "rgba(237,233,245,0.6)",
-              colorNeutral: "#EDE9F5",
-              colorDanger: "#FF6B6B",
-              colorSuccess: "#FBBF24",
-              borderRadius: "11px",
-              fontFamily: "'Crimson Text', Georgia, serif",
-            },
-            elements: {
-              rootBox: { width: "100%" },
-              card: {
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                backdropFilter: "blur(20px)",
-                boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
-                width: "100%",
-                maxWidth: "100%",
-                padding: "clamp(20px, 5vw, 32px)",
-              },
-              headerTitle: {
-                fontFamily: "'Crimson Text', Georgia, serif",
-                fontSize: "clamp(22px, 5vw, 28px)",
-                fontWeight: 600,
-              },
-              headerSubtitle: {
-                fontFamily: "'Crimson Text', Georgia, serif",
-                color: "rgba(237,233,245,0.6)",
-                fontSize: "clamp(14px, 3vw, 15px)",
-              },
-              formButtonPrimary: {
-                background: "linear-gradient(135deg, #FBBF24, #F59E0B)",
-                color: "#1a1206",
-                fontFamily: "'Space Mono', monospace",
-                fontSize: "12.5px",
-                letterSpacing: "0.8px",
-                textTransform: "none",
-                minHeight: "44px",
-              },
-              socialButtonsBlockButton: {
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.08)",
-                fontFamily: "'Space Mono', monospace",
-                minHeight: "44px",
-              },
-              dividerText: {
-                fontFamily: "'Space Mono', monospace",
-                fontSize: "10px",
-                letterSpacing: "2px",
-              },
-              formFieldLabel: {
-                fontFamily: "'Space Mono', monospace",
-                fontSize: "11px",
-                letterSpacing: "1px",
-                textTransform: "uppercase",
-              },
-              formFieldInput: {
-                fontSize: "16px",
-                minHeight: "44px",
-              },
-              footerActionLink: {
-                color: "#A78BFA",
-              },
-            },
-          }}
-        />
       </div>
-
       <div
         style={{
-          marginTop: "clamp(16px, 3vw, 24px)",
-          fontFamily: "'Space Mono', monospace",
-          fontSize: "11px",
-          letterSpacing: "1px",
-          color: "rgba(237,233,245,0.34)",
-          position: "relative",
-          zIndex: 2,
-          textAlign: "center",
-          padding: "0 20px",
+          fontFamily: "'Crimson Text', Georgia, serif",
+          fontSize: "18px",
+          fontStyle: "italic",
+          color: "rgba(237,233,245,0.6)",
         }}
       >
-        Pattern literacy · for the long arc
+        Taking you to sign in…
       </div>
     </div>
   );
