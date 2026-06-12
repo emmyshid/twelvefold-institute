@@ -5,32 +5,27 @@ import { useEffect } from "react";
 // ════════════════════════════════════════════════════════════════
 // /sign-in — redirect to Clerk-hosted Account Portal.
 //
-// Why this exists instead of an embedded <SignIn /> component:
-// Clerk's free tier sets session cookies on the subdomain
-// (clerk.twelvefold.institute) which mobile browsers reject as
-// cross-site cookies during the post-auth redirect back to the main
-// app. The hosted Account Portal at accounts.twelvefold.institute
-// uses Clerk's own first-party cookie + transfer flow that works
-// reliably on every browser including iOS Safari and mobile Chrome.
-//
-// Trade-off: users see Clerk's default white-themed sign-in instead
-// of our dark-themed component. Worth it for guaranteed mobile auth.
-// If/when Clerk plan is upgraded to Pro, this can revert to the
-// embedded component with a cookie-domain config change.
+// IMPORTANT: the redirect_url query param sent to the hosted Portal
+// MUST be a fully-qualified URL (https://twelvefold.institute/…).
+// If we send a relative path like "/", Clerk's hosted page resolves
+// it against its own origin (accounts.twelvefold.institute/) and
+// after auth the user gets stuck on Clerk's user dashboard instead
+// of returning to our app.
 // ════════════════════════════════════════════════════════════════
 
 export default function SignInPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    // Preserve the post-auth destination if the user was sent here
-    // by middleware (e.g. they tried to reach /read/app while signed out).
     const redirect = params.get("redirect_url") || "/";
-    const target = `https://accounts.twelvefold.institute/sign-in?redirect_url=${encodeURIComponent(redirect)}`;
+    // Resolve to an absolute URL against our origin, no matter what
+    // the source query param looked like.
+    const absolute = redirect.startsWith("http")
+      ? redirect
+      : `${window.location.origin}${redirect.startsWith("/") ? redirect : "/" + redirect}`;
+    const target = `https://accounts.twelvefold.institute/sign-in?redirect_url=${encodeURIComponent(absolute)}`;
     window.location.replace(target);
   }, []);
 
-  // Brief landing screen shown for the ~100ms before the redirect fires.
-  // Matches site design so the user doesn't see a white flash.
   return (
     <div
       style={{

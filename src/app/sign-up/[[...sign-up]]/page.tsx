@@ -7,7 +7,10 @@ export default function SignUpPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const redirect = params.get("redirect_url") || "/";
-    const target = `https://accounts.twelvefold.institute/sign-up?redirect_url=${encodeURIComponent(redirect)}`;
+    const absolute = redirect.startsWith("http")
+      ? redirect
+      : `${window.location.origin}${redirect.startsWith("/") ? redirect : "/" + redirect}`;
+    const target = `https://accounts.twelvefold.institute/sign-up?redirect_url=${encodeURIComponent(absolute)}`;
     window.location.replace(target);
   }, []);
 
