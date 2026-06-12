@@ -133,3 +133,18 @@ export type Payment = typeof payments.$inferSelect;
 export type NewPayment = typeof payments.$inferInsert;
 export type Client = typeof clients.$inferSelect;
 export type NewClient = typeof clients.$inferInsert;
+
+// Profiles — one row per signed-up Clerk user we've seen.
+// Used for first-sight welcome email idempotency: the unique constraint
+// on clerk_user_id ensures inserting twice fails harmlessly, so the
+// welcome email fires exactly once per user no matter how many times
+// the auth check runs (every page load, multiple tabs, etc.).
+export const profiles = pgTable("profiles", {
+  clerkUserId: text("clerk_user_id").primaryKey(),
+  email: text("email"),
+  welcomedAt: timestamp("welcomed_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type Profile = typeof profiles.$inferSelect;
+export type NewProfile = typeof profiles.$inferInsert;
