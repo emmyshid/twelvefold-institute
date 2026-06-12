@@ -34,6 +34,7 @@ export async function GET(req: Request) {
       recommendedParticipation: readings.recommendedParticipation,
       raw: readings.raw,
       clientId: readings.clientId,
+      sentToClientAt: readings.sentToClientAt,
       createdAt: readings.createdAt,
     };
 

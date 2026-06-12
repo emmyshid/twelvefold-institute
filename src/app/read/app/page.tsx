@@ -81,6 +81,7 @@ interface HistoryItem {
   recommendedParticipation: string | null;
   raw: unknown;
   clientId?: string | null;
+  sentToClientAt?: string | null;
   createdAt: string;
 }
 
@@ -519,6 +520,11 @@ export default function PatternOSApp() {
   const [newClientEmail, setNewClientEmail] = useState("");
   const [creatingClient, setCreatingClient] = useState(false);
 
+  // State for emailing the active reading to its client
+  const [sending, setSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
+  const [sentAt, setSentAt] = useState<string | null>(null); // ISO string of the most recent send
+
   // Stars memoized so they don't re-randomize on every render
   const stars = useMemo(
     () =>
@@ -625,6 +631,8 @@ export default function PatternOSApp() {
     setActiveHistoryId(null);
     setInput("");
     setError(null);
+    setSentAt(null);
+    setSendError(null);
   }
 
   async function runReading() {
@@ -637,6 +645,8 @@ export default function PatternOSApp() {
     setError(null);
     setReading(null);
     setActiveHistoryId(null);
+    setSentAt(null);
+    setSendError(null);
     try {
       const res = await fetch("/api/reading", {
         method: "POST",
@@ -702,6 +712,9 @@ export default function PatternOSApp() {
     }
     setInput(item.input);
     setMobileHistoryOpen(false);
+    // Load send state for this past reading
+    setSentAt(item.sentToClientAt ?? null);
+    setSendError(null);
     // Scroll reading into view on mobile
     setTimeout(() => {
       const el = document.getElementById("reading-pane");
@@ -714,6 +727,50 @@ export default function PatternOSApp() {
     setActiveHistoryId(null);
     setInput("");
     setError(null);
+    setSentAt(null);
+    setSendError(null);
+  }
+
+  // Email the currently-viewed reading to its client.
+  // Only valid in practitioner mode, when viewing a past reading that has
+  // an id (activeHistoryId is set) AND that reading was for the active client.
+  async function sendReadingToClient() {
+    if (!activeHistoryId || !activeClient) {
+      setSendError("Select a reading from this client's history to send.");
+      return;
+    }
+    if (!activeClient.email) {
+      setSendError(`${activeClient.name} has no email on file. Add one to send.`);
+      return;
+    }
+    setSending(true);
+    setSendError(null);
+    try {
+      const res = await fetch(`/api/readings/${encodeURIComponent(activeHistoryId)}/send`, {
+        method: "POST",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Could not send the reading.");
+      }
+      const data = await res.json();
+      setSentAt(data.sentAt);
+      // Refresh history so the list reflects the new sent state
+      try {
+        const url = `/api/readings?clientId=${encodeURIComponent(activeClient.id)}`;
+        const hRes = await fetch(url);
+        if (hRes.ok) {
+          const hData = await hRes.json();
+          setHistory(hData.readings || []);
+        }
+      } catch {
+        // Non-critical
+      }
+    } catch (e) {
+      setSendError(e instanceof Error ? e.message : "Something went wrong.");
+    } finally {
+      setSending(false);
+    }
   }
 
   return (
@@ -1018,6 +1075,8 @@ export default function PatternOSApp() {
                       setActiveHistoryId(null);
                       setInput("");
                       setMobileHistoryOpen(false);
+                      setSentAt(null);
+                      setSendError(null);
                     }}
                     style={{
                       textAlign: "left",
@@ -1216,16 +1275,91 @@ export default function PatternOSApp() {
               {/* Reading */}
               <section id="reading-pane">
                 {reading ? (
-                  <div
-                    style={{
-                      background: T.bgCard,
-                      border: `1px solid ${T.border}`,
-                      borderRadius: T.radius,
-                      padding: "clamp(24px, 4vw, 36px)",
-                    }}
-                  >
-                    <ReadingDisplay full={reading} />
-                  </div>
+                  <>
+                    <div
+                      style={{
+                        background: T.bgCard,
+                        border: `1px solid ${T.border}`,
+                        borderRadius: T.radius,
+                        padding: "clamp(24px, 4vw, 36px)",
+                      }}
+                    >
+                      <ReadingDisplay full={reading} />
+                    </div>
+
+                    {/* Email-to-client panel (Master mode + saved reading for active client) */}
+                    {mode === "practitioner" && activeClient && activeHistoryId && (
+                      <div
+                        style={{
+                          marginTop: "20px",
+                          padding: "20px 24px",
+                          background: sentAt ? "rgba(74,222,128,0.06)" : "rgba(251,191,36,0.06)",
+                          border: `1px solid ${sentAt ? "rgba(74,222,128,0.25)" : "rgba(251,191,36,0.22)"}`,
+                          borderRadius: T.radius,
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            gap: "16px",
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <div style={{ flex: "1 1 240px" }}>
+                            <div
+                              style={{
+                                fontFamily: T.fontMono,
+                                fontSize: "10px",
+                                letterSpacing: "2px",
+                                color: sentAt ? "#4ADE80" : T.gold,
+                                textTransform: "uppercase",
+                                marginBottom: "6px",
+                                fontWeight: 700,
+                              }}
+                            >
+                              {sentAt ? "✓ Sent" : "Share with client"}
+                            </div>
+                            <div style={{ fontFamily: T.font, fontSize: "16px", color: T.text }}>
+                              {sentAt
+                                ? `Sent to ${activeClient.email || activeClient.name} on ${new Date(sentAt).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })}`
+                                : activeClient.email
+                                  ? `Send this reading to ${activeClient.name} at ${activeClient.email}`
+                                  : `${activeClient.name} has no email on file. Add one to send.`}
+                            </div>
+                          </div>
+                          <Btn
+                            variant={sentAt ? "ghost" : "gold"}
+                            onClick={sendReadingToClient}
+                            disabled={sending || !activeClient.email}
+                          >
+                            {sending
+                              ? "Sending…"
+                              : sentAt
+                                ? "Send again"
+                                : "Email reading"}
+                          </Btn>
+                        </div>
+                        {sendError && (
+                          <div
+                            style={{
+                              marginTop: "12px",
+                              padding: "10px 14px",
+                              background: "rgba(255,107,107,0.08)",
+                              border: "1px solid rgba(255,107,107,0.25)",
+                              borderRadius: T.radiusSm,
+                              fontFamily: T.font,
+                              fontSize: "14px",
+                              color: "#FF9B9B",
+                            }}
+                          >
+                            {sendError}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </>
                 ) : !loading ? (
                   <div
                     style={{

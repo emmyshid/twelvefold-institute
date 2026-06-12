@@ -45,6 +45,9 @@ export const readings = pgTable("readings", {
   activeLesson: text("active_lesson"),
   recommendedParticipation: text("recommended_participation"),
   raw: jsonb("raw"),
+  // When non-null, this reading was emailed to the client at this timestamp.
+  // Practitioners use this to avoid double-sends and to show "✓ Sent" state.
+  sentToClientAt: timestamp("sent_to_client_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 

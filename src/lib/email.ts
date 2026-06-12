@@ -232,6 +232,130 @@ export async function emailAdminNotification(args: {
   });
 }
 
+// 5. Reading delivered to a client — sent by a Twelvefold-certified practitioner.
+//    The practitioner's name appears in the subject and body; their email is
+//    set as Reply-To so the client replies directly to them.
+interface SixTraditionsLite {
+  ifa?: string;
+  kabbalah?: string;
+  i_ching?: string;
+  scripture?: string;
+  buddhism?: string;
+  hermetic?: string;
+}
+
+interface TechnicalReadingLite {
+  phase_nature?: string;
+  micro_state_work?: string;
+  what_to_do?: string;
+  what_to_avoid?: string;
+  the_unseen?: string;
+}
+
+export async function emailReadingToClient(args: {
+  clientName: string;
+  clientEmail: string;
+  practitionerName: string;
+  practitionerEmail?: string; // for Reply-To
+  patternName?: string;
+  phase?: string;
+  microState?: string;
+  curriculum?: string;
+  activeLesson?: string;
+  recommendedParticipation?: string;
+  technical?: TechnicalReadingLite;
+  traditions?: SixTraditionsLite;
+}): Promise<boolean> {
+  const fieldRow = (label: string, value: string | undefined, accentColor: string) =>
+    value
+      ? `
+    <div style="padding:18px 22px;background:#f7f4ef;border-left:3px solid ${accentColor};border-radius:6px;margin-bottom:12px;">
+      <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1.5px;color:${accentColor};text-transform:uppercase;margin-bottom:8px;font-weight:700;">${escape(label)}</div>
+      <div style="font-size:16px;color:#1a1a2e;line-height:1.6;">${escape(value)}</div>
+    </div>`
+      : "";
+
+  const traditionRow = (label: string, value: string | undefined) =>
+    value
+      ? `
+      <tr>
+        <td style="padding:12px 14px;border-bottom:1px solid #e8e2d5;vertical-align:top;width:110px;">
+          <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:1.2px;color:#7C3AED;text-transform:uppercase;font-weight:700;">${escape(label)}</div>
+        </td>
+        <td style="padding:12px 14px;border-bottom:1px solid #e8e2d5;font-size:14px;color:#1a1a2e;line-height:1.55;">
+          ${escape(value)}
+        </td>
+      </tr>`
+      : "";
+
+  const technicalSection = args.technical
+    ? `
+    <div style="margin-top:32px;padding-top:24px;border-top:1px solid #e8e2d5;">
+      <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#7C3AED;text-transform:uppercase;font-weight:700;margin-bottom:18px;text-align:center;">— Going Deeper —</div>
+      ${fieldRow("Phase nature", args.technical.phase_nature, "#7C3AED")}
+      ${fieldRow("Micro-state work", args.technical.micro_state_work, "#F59E0B")}
+      ${fieldRow("What to do", args.technical.what_to_do, "#7C3AED")}
+      ${fieldRow("What to avoid", args.technical.what_to_avoid, "#dc2626")}
+      ${fieldRow("The unseen", args.technical.the_unseen, "#7C3AED")}
+    </div>`
+    : "";
+
+  const traditionsSection = args.traditions && (args.traditions.ifa || args.traditions.kabbalah || args.traditions.i_ching || args.traditions.scripture || args.traditions.buddhism || args.traditions.hermetic)
+    ? `
+    <div style="margin-top:32px;padding-top:24px;border-top:1px solid #e8e2d5;">
+      <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:2px;color:#7C3AED;text-transform:uppercase;font-weight:700;margin-bottom:14px;text-align:center;">— Six Traditions on this Pattern —</div>
+      <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border:1px solid #e8e2d5;border-radius:8px;overflow:hidden;">
+        ${traditionRow("Ifá", args.traditions.ifa)}
+        ${traditionRow("Kabbalah", args.traditions.kabbalah)}
+        ${traditionRow("I Ching", args.traditions.i_ching)}
+        ${traditionRow("Scripture", args.traditions.scripture)}
+        ${traditionRow("Buddhism", args.traditions.buddhism)}
+        ${traditionRow("Hermetic", args.traditions.hermetic)}
+      </table>
+    </div>`
+    : "";
+
+  const phaseLine = args.phase || args.microState
+    ? `<div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:1.5px;color:#6b6b7a;text-transform:uppercase;margin-top:8px;">${escape([args.phase, args.microState].filter(Boolean).join(" · "))}</div>`
+    : "";
+
+  const html = shell({
+    preheader: `Your pattern reading from ${args.practitionerName}: ${args.patternName || "a recurring pattern"}.`,
+    body: `
+      <p style="margin:0 0 24px;">${escape(args.clientName)},</p>
+      <p style="margin:0 0 30px;">Following our session, here is your pattern reading. Take it slowly. The summary is what is moving on the surface; the layers below are what is moving beneath.</p>
+
+      <!-- HERO -->
+      <div style="text-align:center;padding:28px 20px;background:linear-gradient(135deg,#f7f4ef,#ffffff);border:1px solid #e8e2d5;border-radius:10px;margin-bottom:24px;">
+        <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;color:#F59E0B;text-transform:uppercase;font-weight:700;margin-bottom:10px;">Your Pattern</div>
+        <div style="font-family:Georgia,serif;font-size:30px;font-style:italic;color:#1a1a2e;line-height:1.1;letter-spacing:-0.5px;">${escape(args.patternName || "Unnamed Pattern")}</div>
+        ${phaseLine}
+      </div>
+
+      <!-- PATTERN SUMMARY -->
+      ${fieldRow("The curriculum", args.curriculum, "#7C3AED")}
+      ${fieldRow("The lesson active now", args.activeLesson, "#F59E0B")}
+      ${fieldRow("Recommended participation", args.recommendedParticipation, "#7C3AED")}
+
+      ${technicalSection}
+      ${traditionsSection}
+
+      <div style="margin-top:36px;padding-top:24px;border-top:1px solid #e8e2d5;font-size:15px;color:#6b6b7a;line-height:1.7;">
+        <p style="margin:0 0 14px;">If anything in this reading lands strangely or sharply — that is the curriculum working. You don't have to act on it immediately. You only have to notice it.</p>
+        <p style="margin:0 0 14px;">Reply to this email any time with questions, or to talk further.</p>
+        <p style="margin:0;font-style:italic;">— ${escape(args.practitionerName)}<br/><span style="font-size:13px;color:#6b6b7a;">Twelvefold-certified practitioner</span></p>
+      </div>
+    `,
+  });
+
+  return send({
+    to: args.clientEmail,
+    subject: `Your pattern reading from ${args.practitionerName}`,
+    html,
+    replyTo: args.practitionerEmail,
+  });
+}
+
 // ─── Helpers ─────────────────────────────────────────────────
 function escape(s: string): string {
   return String(s)
