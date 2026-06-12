@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { certApplications } from "@/lib/db/schema";
+import { emailCertApplicationReceived, emailAdminNotification } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -27,6 +28,17 @@ export async function POST(req: NextRequest) {
 
   try {
     await db.insert(certApplications).values({ name, email, motivation });
+
+    // Fire emails in parallel. Failures are non-blocking — the application
+    // is already safe in the database.
+    Promise.all([
+      emailCertApplicationReceived({ name, email }),
+      emailAdminNotification({
+        subject: `New cert application: ${name}`,
+        body: `Name: ${name}\nEmail: ${email}\n\nMotivation:\n${motivation || "(none provided)"}`,
+      }),
+    ]).catch((e) => console.error("[email] cert-apply notifications failed:", e));
+
     return NextResponse.json({ ok: true });
   } catch (err) {
     console.error("apply route error:", err);

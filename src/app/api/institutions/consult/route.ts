@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { consultRequests } from "@/lib/db/schema";
+import { emailConsultReceived, emailAdminNotification } from "@/lib/email";
 
 export const runtime = "nodejs";
 
@@ -43,6 +44,16 @@ export async function POST(req: Request) {
       message: message || null,
       status: "received",
     });
+
+    // Fire emails in parallel. Failures are non-blocking.
+    Promise.all([
+      emailConsultReceived({ name, email, organization, scope }),
+      emailAdminNotification({
+        subject: `New institutional consult: ${organization}`,
+        body: `Name: ${name}\nEmail: ${email}\nOrganization: ${organization}\nRole: ${role || "(none)"}\nScope: ${scope || "(none)"}\n\nMessage:\n${message || "(none)"}`,
+      }),
+    ]).catch((e) => console.error("[email] consult notifications failed:", e));
+
     return NextResponse.json({ ok: true });
   } catch (e) {
     console.error("consult insert failed", e);

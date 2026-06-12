@@ -3,6 +3,7 @@ import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
 import { payments } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
+import { emailPaymentWelcome, emailAdminNotification } from "@/lib/email";
 import type Stripe from "stripe";
 
 export const runtime = "nodejs";
@@ -59,6 +60,22 @@ export async function POST(req: Request) {
           })
           .where(eq(payments.stripeSessionId, session.id));
         console.log(`[stripe] payment succeeded: session=${session.id}`);
+
+        // Fire welcome + admin notification. Non-blocking — webhook
+        // must return 200 quickly or Stripe retries.
+        const customerEmail = session.customer_email ?? session.customer_details?.email ?? null;
+        const amount = session.amount_total ?? 0;
+        const currency = session.currency ?? "usd";
+        const product = (session.metadata?.product as string) || "certification";
+        if (customerEmail) {
+          Promise.all([
+            emailPaymentWelcome({ email: customerEmail, amount, currency, product }),
+            emailAdminNotification({
+              subject: `New payment: ${currency.toUpperCase()} $${(amount / 100).toFixed(2)} for ${product}`,
+              body: `Email: ${customerEmail}\nAmount: ${currency.toUpperCase()} $${(amount / 100).toFixed(2)}\nProduct: ${product}\nStripe session: ${session.id}`,
+            }),
+          ]).catch((e) => console.error("[email] payment notifications failed:", e));
+        }
         break;
       }
 
