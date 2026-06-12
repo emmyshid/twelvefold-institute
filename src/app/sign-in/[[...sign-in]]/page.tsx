@@ -10,40 +10,45 @@ export default function SignInPage() {
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
-        padding: "40px 20px",
+        padding: "clamp(20px, 6vw, 40px) clamp(12px, 4vw, 20px)",
         position: "relative",
-        overflow: "hidden",
       }}
     >
-      {/* Aurora blobs */}
       <div
         aria-hidden
         style={{
           position: "absolute",
-          width: 480,
-          height: 480,
-          top: -120,
-          left: -100,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(124,58,237,0.32), transparent 70%)",
-          filter: "blur(90px)",
+          inset: 0,
+          overflow: "hidden",
           pointerEvents: "none",
+          zIndex: 0,
         }}
-      />
-      <div
-        aria-hidden
-        style={{
-          position: "absolute",
-          width: 400,
-          height: 400,
-          bottom: -120,
-          right: -100,
-          borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(167,139,250,0.22), transparent 70%)",
-          filter: "blur(90px)",
-          pointerEvents: "none",
-        }}
-      />
+      >
+        <div
+          style={{
+            position: "absolute",
+            width: "min(480px, 90vw)",
+            height: "min(480px, 90vw)",
+            top: "-15%",
+            left: "-20%",
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(124,58,237,0.32), transparent 70%)",
+            filter: "blur(90px)",
+          }}
+        />
+        <div
+          style={{
+            position: "absolute",
+            width: "min(400px, 85vw)",
+            height: "min(400px, 85vw)",
+            bottom: "-15%",
+            right: "-20%",
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(167,139,250,0.22), transparent 70%)",
+            filter: "blur(90px)",
+          }}
+        />
+      </div>
 
       <a
         href="/"
@@ -53,7 +58,7 @@ export default function SignInPage() {
           letterSpacing: "1px",
           fontWeight: 700,
           textDecoration: "none",
-          marginBottom: "32px",
+          marginBottom: "clamp(20px, 4vw, 32px)",
           position: "relative",
           zIndex: 2,
         }}
@@ -62,7 +67,16 @@ export default function SignInPage() {
         <span style={{ color: "#A78BFA" }}>Institute</span>
       </a>
 
-      <div style={{ position: "relative", zIndex: 2 }}>
+      <div
+        style={{
+          position: "relative",
+          zIndex: 2,
+          width: "100%",
+          maxWidth: 440,
+          display: "flex",
+          justifyContent: "center",
+        }}
+      >
         <SignIn
           appearance={{
             variables: {
@@ -79,20 +93,25 @@ export default function SignInPage() {
               fontFamily: "'Crimson Text', Georgia, serif",
             },
             elements: {
+              rootBox: { width: "100%" },
               card: {
                 background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(255,255,255,0.08)",
                 backdropFilter: "blur(20px)",
                 boxShadow: "0 20px 60px rgba(0,0,0,0.5)",
+                width: "100%",
+                maxWidth: "100%",
+                padding: "clamp(20px, 5vw, 32px)",
               },
               headerTitle: {
                 fontFamily: "'Crimson Text', Georgia, serif",
-                fontSize: "28px",
+                fontSize: "clamp(22px, 5vw, 28px)",
                 fontWeight: 600,
               },
               headerSubtitle: {
                 fontFamily: "'Crimson Text', Georgia, serif",
                 color: "rgba(237,233,245,0.6)",
+                fontSize: "clamp(14px, 3vw, 15px)",
               },
               formButtonPrimary: {
                 background: "linear-gradient(135deg, #FBBF24, #F59E0B)",
@@ -101,15 +120,13 @@ export default function SignInPage() {
                 fontSize: "12.5px",
                 letterSpacing: "0.8px",
                 textTransform: "none",
-                "&:hover": {
-                  background: "linear-gradient(135deg, #FBBF24, #F59E0B)",
-                  filter: "brightness(1.08)",
-                },
+                minHeight: "44px",
               },
               socialButtonsBlockButton: {
                 background: "rgba(255,255,255,0.04)",
                 border: "1px solid rgba(255,255,255,0.08)",
                 fontFamily: "'Space Mono', monospace",
+                minHeight: "44px",
               },
               dividerText: {
                 fontFamily: "'Space Mono', monospace",
@@ -122,9 +139,12 @@ export default function SignInPage() {
                 letterSpacing: "1px",
                 textTransform: "uppercase",
               },
+              formFieldInput: {
+                fontSize: "16px",
+                minHeight: "44px",
+              },
               footerActionLink: {
                 color: "#A78BFA",
-                "&:hover": { color: "#FBBF24" },
               },
             },
           }}
@@ -133,13 +153,15 @@ export default function SignInPage() {
 
       <div
         style={{
-          marginTop: "24px",
+          marginTop: "clamp(16px, 3vw, 24px)",
           fontFamily: "'Space Mono', monospace",
           fontSize: "11px",
           letterSpacing: "1px",
           color: "rgba(237,233,245,0.34)",
           position: "relative",
           zIndex: 2,
+          textAlign: "center",
+          padding: "0 20px",
         }}
       >
         Pattern literacy · for the long arc

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, Fragment } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { UserButton } from "@clerk/nextjs";
 
@@ -520,6 +520,15 @@ export default function PatternOSApp() {
   const [newClientEmail, setNewClientEmail] = useState("");
   const [creatingClient, setCreatingClient] = useState(false);
 
+  // Client edit state — `editingClientId` is the id of the client whose
+  // inline editor is currently open (null means none open).
+  const [editingClientId, setEditingClientId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editNotes, setEditNotes] = useState("");
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+
   // State for emailing the active reading to its client
   const [sending, setSending] = useState(false);
   const [sendError, setSendError] = useState<string | null>(null);
@@ -620,6 +629,97 @@ export default function PatternOSApp() {
       alert(e instanceof Error ? e.message : "Could not save client");
     } finally {
       setCreatingClient(false);
+    }
+  }
+
+  function openEditClient(client: ClientRecord) {
+    setEditingClientId(client.id);
+    setEditName(client.name);
+    setEditEmail(client.email || "");
+    setEditNotes(client.notes || "");
+    setConfirmDeleteId(null);
+  }
+
+  function closeEditClient() {
+    setEditingClientId(null);
+    setEditName("");
+    setEditEmail("");
+    setEditNotes("");
+    setConfirmDeleteId(null);
+  }
+
+  async function saveEditClient(id: string) {
+    if (!editName.trim() || savingEdit) return;
+    setSavingEdit(true);
+    try {
+      const res = await fetch(`/api/clients/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: editName.trim(),
+          email: editEmail.trim() || null,
+          notes: editNotes.trim() || null,
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Could not save changes");
+      }
+      const data = await res.json();
+      // Update in client list
+      setClientList((prev) => prev.map((c) => (c.id === id ? data.client : c)));
+      // If this is the active client, refresh that reference too
+      if (activeClient?.id === id) setActiveClient(data.client);
+      closeEditClient();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Could not save changes");
+    } finally {
+      setSavingEdit(false);
+    }
+  }
+
+  async function archiveClient(id: string) {
+    try {
+      const res = await fetch(`/api/clients/${encodeURIComponent(id)}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ archived: true }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Could not archive");
+      }
+      // Remove from active list (the GET defaults to non-archived)
+      setClientList((prev) => prev.filter((c) => c.id !== id));
+      if (activeClient?.id === id) {
+        setActiveClient(null);
+        setReading(null);
+        setActiveHistoryId(null);
+      }
+      closeEditClient();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Could not archive");
+    }
+  }
+
+  async function deleteClient(id: string) {
+    try {
+      const res = await fetch(`/api/clients/${encodeURIComponent(id)}`, {
+        method: "DELETE",
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Could not delete");
+      }
+      setClientList((prev) => prev.filter((c) => c.id !== id));
+      if (activeClient?.id === id) {
+        setActiveClient(null);
+        setReading(null);
+        setActiveHistoryId(null);
+      }
+      closeEditClient();
+    } catch (e) {
+      alert(e instanceof Error ? e.message : "Could not delete");
     }
   }
 
@@ -1067,50 +1167,305 @@ export default function PatternOSApp() {
             {mode === "practitioner" && clientList.length > 0 && (
               <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginBottom: "20px" }}>
                 {clientList.map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => {
-                      setActiveClient(c);
-                      setReading(null);
-                      setActiveHistoryId(null);
-                      setInput("");
-                      setMobileHistoryOpen(false);
-                      setSentAt(null);
-                      setSendError(null);
-                    }}
-                    style={{
-                      textAlign: "left",
-                      padding: "10px 14px",
-                      background:
-                        activeClient?.id === c.id
-                          ? "rgba(251,191,36,0.10)"
-                          : "rgba(255,255,255,0.025)",
-                      border:
-                        activeClient?.id === c.id
-                          ? "1px solid rgba(251,191,36,0.35)"
-                          : `1px solid ${T.border}`,
-                      borderRadius: T.radiusSm,
-                      cursor: "pointer",
-                      transition: "all 0.2s " + T.ease,
-                      width: "100%",
-                    }}
-                  >
-                    <div
-                      style={{
-                        fontFamily: T.font,
-                        fontSize: "15px",
-                        color: activeClient?.id === c.id ? T.gold : T.text,
-                        fontWeight: 600,
-                      }}
-                    >
-                      {c.name}
-                    </div>
-                    {c.email && (
-                      <div style={{ fontFamily: T.fontMono, fontSize: "10px", color: T.textDim, marginTop: "2px" }}>
-                        {c.email}
+                  <Fragment key={c.id}>
+                    {editingClientId === c.id ? (
+                      // Inline editor
+                      <div
+                        style={{
+                          padding: "14px",
+                          background: "rgba(167,139,250,0.06)",
+                          border: "1px solid rgba(167,139,250,0.25)",
+                          borderRadius: T.radiusSm,
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "10px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            fontFamily: T.fontMono,
+                            fontSize: "10px",
+                            letterSpacing: "1.5px",
+                            color: T.accent,
+                            textTransform: "uppercase",
+                            fontWeight: 700,
+                          }}
+                        >
+                          Editing {c.name}
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Name"
+                          value={editName}
+                          onChange={(e) => setEditName(e.target.value)}
+                          style={{
+                            width: "100%",
+                            boxSizing: "border-box",
+                            padding: "8px 10px",
+                            background: "rgba(255,255,255,0.05)",
+                            border: `1px solid ${T.border}`,
+                            borderRadius: "6px",
+                            color: T.text,
+                            fontFamily: T.font,
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                        <input
+                          type="email"
+                          placeholder="Email (optional)"
+                          value={editEmail}
+                          onChange={(e) => setEditEmail(e.target.value)}
+                          style={{
+                            width: "100%",
+                            boxSizing: "border-box",
+                            padding: "8px 10px",
+                            background: "rgba(255,255,255,0.05)",
+                            border: `1px solid ${T.border}`,
+                            borderRadius: "6px",
+                            color: T.text,
+                            fontFamily: T.font,
+                            fontSize: "14px",
+                            outline: "none",
+                          }}
+                        />
+                        <textarea
+                          placeholder="Notes (optional)"
+                          value={editNotes}
+                          onChange={(e) => setEditNotes(e.target.value)}
+                          rows={3}
+                          style={{
+                            width: "100%",
+                            boxSizing: "border-box",
+                            padding: "8px 10px",
+                            background: "rgba(255,255,255,0.05)",
+                            border: `1px solid ${T.border}`,
+                            borderRadius: "6px",
+                            color: T.text,
+                            fontFamily: T.font,
+                            fontSize: "14px",
+                            outline: "none",
+                            resize: "vertical",
+                            lineHeight: 1.5,
+                          }}
+                        />
+                        <div style={{ display: "flex", gap: "6px" }}>
+                          <button
+                            onClick={() => saveEditClient(c.id)}
+                            disabled={!editName.trim() || savingEdit}
+                            style={{
+                              flex: 1,
+                              padding: "8px",
+                              background: T.gradGold,
+                              color: "#1a1206",
+                              border: "none",
+                              borderRadius: "6px",
+                              fontFamily: T.fontMono,
+                              fontSize: "10px",
+                              letterSpacing: "1px",
+                              cursor: !editName.trim() || savingEdit ? "not-allowed" : "pointer",
+                              opacity: !editName.trim() || savingEdit ? 0.5 : 1,
+                              textTransform: "uppercase",
+                            }}
+                          >
+                            {savingEdit ? "Saving…" : "Save"}
+                          </button>
+                          <button
+                            onClick={closeEditClient}
+                            style={{
+                              padding: "8px 14px",
+                              background: "transparent",
+                              color: T.textDim,
+                              border: `1px solid ${T.border}`,
+                              borderRadius: "6px",
+                              fontFamily: T.fontMono,
+                              fontSize: "10px",
+                              letterSpacing: "1px",
+                              cursor: "pointer",
+                              textTransform: "uppercase",
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </div>
+
+                        {/* Destructive actions — separated */}
+                        <div
+                          style={{
+                            marginTop: "4px",
+                            paddingTop: "10px",
+                            borderTop: `1px dashed ${T.border}`,
+                            display: "flex",
+                            gap: "6px",
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          {confirmDeleteId === c.id ? (
+                            <>
+                              <div style={{ flexBasis: "100%", fontFamily: T.fontMono, fontSize: "10px", color: "#FF9B9B", letterSpacing: "1px", marginBottom: "4px" }}>
+                                Delete {c.name} permanently?
+                              </div>
+                              <button
+                                onClick={() => deleteClient(c.id)}
+                                style={{
+                                  flex: 1,
+                                  padding: "8px",
+                                  background: "rgba(255,107,107,0.15)",
+                                  color: "#FF9B9B",
+                                  border: "1px solid rgba(255,107,107,0.4)",
+                                  borderRadius: "6px",
+                                  fontFamily: T.fontMono,
+                                  fontSize: "10px",
+                                  letterSpacing: "1px",
+                                  cursor: "pointer",
+                                  textTransform: "uppercase",
+                                }}
+                              >
+                                Yes, delete
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteId(null)}
+                                style={{
+                                  padding: "8px 14px",
+                                  background: "transparent",
+                                  color: T.textDim,
+                                  border: `1px solid ${T.border}`,
+                                  borderRadius: "6px",
+                                  fontFamily: T.fontMono,
+                                  fontSize: "10px",
+                                  letterSpacing: "1px",
+                                  cursor: "pointer",
+                                  textTransform: "uppercase",
+                                }}
+                              >
+                                Keep
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => archiveClient(c.id)}
+                                style={{
+                                  flex: 1,
+                                  padding: "8px",
+                                  background: "transparent",
+                                  color: T.textDim,
+                                  border: `1px solid ${T.border}`,
+                                  borderRadius: "6px",
+                                  fontFamily: T.fontMono,
+                                  fontSize: "10px",
+                                  letterSpacing: "1px",
+                                  cursor: "pointer",
+                                  textTransform: "uppercase",
+                                }}
+                              >
+                                Archive
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteId(c.id)}
+                                style={{
+                                  padding: "8px 14px",
+                                  background: "transparent",
+                                  color: "#FF9B9B",
+                                  border: "1px solid rgba(255,107,107,0.3)",
+                                  borderRadius: "6px",
+                                  fontFamily: T.fontMono,
+                                  fontSize: "10px",
+                                  letterSpacing: "1px",
+                                  cursor: "pointer",
+                                  textTransform: "uppercase",
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      // Normal row
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "stretch",
+                          gap: "4px",
+                        }}
+                      >
+                        <button
+                          onClick={() => {
+                            setActiveClient(c);
+                            setReading(null);
+                            setActiveHistoryId(null);
+                            setInput("");
+                            setMobileHistoryOpen(false);
+                            setSentAt(null);
+                            setSendError(null);
+                          }}
+                          style={{
+                            flex: 1,
+                            textAlign: "left",
+                            padding: "10px 14px",
+                            background:
+                              activeClient?.id === c.id
+                                ? "rgba(251,191,36,0.10)"
+                                : "rgba(255,255,255,0.025)",
+                            border:
+                              activeClient?.id === c.id
+                                ? "1px solid rgba(251,191,36,0.35)"
+                                : `1px solid ${T.border}`,
+                            borderRadius: T.radiusSm,
+                            cursor: "pointer",
+                            transition: "all 0.2s " + T.ease,
+                          }}
+                        >
+                          <div
+                            style={{
+                              fontFamily: T.font,
+                              fontSize: "15px",
+                              color: activeClient?.id === c.id ? T.gold : T.text,
+                              fontWeight: 600,
+                            }}
+                          >
+                            {c.name}
+                          </div>
+                          {c.email && (
+                            <div style={{ fontFamily: T.fontMono, fontSize: "10px", color: T.textDim, marginTop: "2px" }}>
+                              {c.email}
+                            </div>
+                          )}
+                        </button>
+                        <button
+                          aria-label={`Edit ${c.name}`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openEditClient(c);
+                          }}
+                          style={{
+                            width: 38,
+                            background: "transparent",
+                            border: `1px solid ${T.border}`,
+                            borderRadius: T.radiusSm,
+                            color: T.textDim,
+                            cursor: "pointer",
+                            fontFamily: T.fontMono,
+                            fontSize: "12px",
+                            transition: "all 0.2s " + T.ease,
+                            flexShrink: 0,
+                          }}
+                          onMouseEnter={(e) => {
+                            e.currentTarget.style.color = T.text;
+                            e.currentTarget.style.borderColor = "rgba(167,139,250,0.3)";
+                          }}
+                          onMouseLeave={(e) => {
+                            e.currentTarget.style.color = T.textDim;
+                            e.currentTarget.style.borderColor = T.border;
+                          }}
+                        >
+                          ✎
+                        </button>
                       </div>
                     )}
-                  </button>
+                  </Fragment>
                 ))}
               </div>
             )}
