@@ -1,6 +1,33 @@
-import { SignIn } from "@clerk/nextjs";
+"use client";
+
+import { SignIn, useUser } from "@clerk/nextjs";
+import { useEffect } from "react";
 
 export default function SignInPage() {
+  const { isLoaded, isSignedIn } = useUser();
+
+  // ════════════════════════════════════════════════════════════════
+  // Fallback redirect.
+  // On some mobile browsers, Clerk's internal post-auth redirect via
+  // window.location.href can be silently dropped — particularly on
+  // iOS Safari + Chrome iOS where tracking prevention interferes,
+  // and in some Chrome Android setups with strict cookie policies.
+  //
+  // This effect watches for the signed-in state via Clerk's React
+  // hook. The moment auth succeeds (anywhere in the flow), we force
+  // a real navigation ourselves. Redundant with Clerk's built-in
+  // redirect, but ensures the user reaches their destination even
+  // when the built-in flow stalls.
+  // ════════════════════════════════════════════════════════════════
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      const params = new URLSearchParams(window.location.search);
+      const redirectUrl = params.get("redirect_url") || "/";
+      // Use replace() so the sign-in page isn't kept in browser history.
+      window.location.replace(redirectUrl);
+    }
+  }, [isLoaded, isSignedIn]);
+
   return (
     <div
       style={{

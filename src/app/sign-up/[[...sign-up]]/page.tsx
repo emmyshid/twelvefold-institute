@@ -1,6 +1,19 @@
-import { SignUp } from "@clerk/nextjs";
+"use client";
+
+import { SignUp, useUser } from "@clerk/nextjs";
+import { useEffect } from "react";
 
 export default function SignUpPage() {
+  const { isLoaded, isSignedIn } = useUser();
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) {
+      const params = new URLSearchParams(window.location.search);
+      const redirectUrl = params.get("redirect_url") || "/";
+      window.location.replace(redirectUrl);
+    }
+  }, [isLoaded, isSignedIn]);
+
   return (
     <div
       style={{
