@@ -77,7 +77,26 @@ export async function maybeWelcome(): Promise<void> {
       ]).catch((e) => console.error("[welcome] email send failed:", e));
     }
   } catch (e) {
-    // Any DB or auth error: silently fail. Welcome is not critical.
+    // Next.js pre-renders some built-in routes (notably /_not-found) at
+    // BUILD TIME, before any real request exists. During that pass, our
+    // layout still runs and tries to call auth() → headers(), which
+    // throws "Dynamic server usage" because those APIs require a real
+    // runtime request context.
+    //
+    // This is expected, NOT an error. At runtime, when a real user
+    // hits a real route, the layout re-renders dynamically and the
+    // welcome check works normally. So we recognize this specific
+    // build-time signal and silently no-op without log noise.
+    //
+    // Any OTHER error is genuinely unexpected and worth logging.
+    const msg = e instanceof Error ? e.message : String(e);
+    if (
+      msg.includes("Dynamic server usage") ||
+      msg.includes("couldn't be rendered statically") ||
+      msg.includes("DYNAMIC_SERVER_USAGE")
+    ) {
+      return;
+    }
     console.error("[welcome] dispatcher error:", e);
   }
 }
