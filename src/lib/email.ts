@@ -713,6 +713,75 @@ export async function emailBookSubscribeConfirmation(args: {
   });
 }
 
+// 9. Initiation completion confirmation — fired when someone reaches the
+//    end of the /initiation experience and submits name + email + CTA.
+export async function emailInitiationConfirmation(args: {
+  name: string | null;
+  email: string;
+  phaseFelt: string | null; // "Sparking" / "Building" / etc.
+  phaseAstro: string | null; // "Aries" / "Taurus" / etc.
+  practiceCommitment: string | null;
+  ctaChosen: "certification" | "consult" | "community" | null;
+}): Promise<boolean> {
+  const greeting = args.name ? escape(args.name) : "Hello";
+
+  // Tailor the closing paragraph to whichever path they chose
+  const closingByPath: Record<string, string> = {
+    certification: `You also indicated interest in the Practitioner Certification. We'll follow up about your application within a few days. In the meantime, the cohort page is at <a href="https://twelvefold.institute/certification" style="color:#7C3AED;">twelvefold.institute/certification</a>.`,
+    consult: `You also asked about a 1:1 consultation. We'll be in touch shortly to schedule.`,
+    community: `You also asked to join the community. We'll add you to the next round of community updates.`,
+  };
+  const closing = args.ctaChosen
+    ? closingByPath[args.ctaChosen]
+    : `Whenever you're ready, the deeper layers — the framework explainer at <a href="https://twelvefold.institute/pattern-literacy" style="color:#7C3AED;">twelvefold.institute/pattern-literacy</a>, the reading app at <a href="https://twelvefold.institute/read" style="color:#7C3AED;">twelvefold.institute/read</a>, and the certification — are there.`;
+
+  const phaseLine =
+    args.phaseFelt && args.phaseAstro
+      ? `<div style="text-align:center;padding:24px 20px;background:linear-gradient(135deg,#f7f4ef,#ffffff);border:1px solid #e8e2d5;border-radius:10px;margin:24px 0;">
+          <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:2px;color:#F59E0B;text-transform:uppercase;font-weight:700;margin-bottom:8px;">Your Phase</div>
+          <div style="font-family:Georgia,serif;font-size:30px;font-style:italic;color:#1a1a2e;line-height:1.1;letter-spacing:-0.5px;">${escape(args.phaseFelt)}</div>
+          <div style="font-family:'Courier New',monospace;font-size:11px;letter-spacing:1.5px;color:#6b6b7a;text-transform:uppercase;margin-top:8px;">${escape(args.phaseAstro)}</div>
+        </div>`
+      : "";
+
+  const practiceLine = args.practiceCommitment
+    ? `<div style="padding:18px 22px;background:#f7f4ef;border-left:3px solid #4ADE80;border-radius:6px;margin:0 0 24px;">
+        <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1.5px;color:#16a34a;text-transform:uppercase;font-weight:700;margin-bottom:8px;">Your Practice This Week</div>
+        <div style="font-size:16px;color:#1a1a2e;line-height:1.6;font-style:italic;">&ldquo;${escape(args.practiceCommitment)}&rdquo;</div>
+      </div>`
+    : "";
+
+  const html = shell({
+    preheader: "Your Twelvefold Initiation is complete. Here's what you carried out of it.",
+    body: `
+      <p style="font-size:24px;font-weight:600;margin:0 0 20px;letter-spacing:-0.3px;">You've completed the Initiation.</p>
+      <p style="margin:0 0 18px;">${greeting},</p>
+      <p style="margin:0 0 18px;">Thank you for sitting through the full Initiation. You've now done something most people never do — you've consciously read the phase you're in and looked at what it's actually asking of you.</p>
+
+      ${phaseLine}
+      ${practiceLine}
+
+      <p style="margin:0 0 18px;">A few things worth saying out loud, now that the experience is behind you:</p>
+      <ul style="margin:0 0 22px;padding-left:22px;color:#4a4a5a;">
+        <li style="margin-bottom:8px;line-height:1.65;">The phase you recognized today is real, and it will keep moving. Most phases run a few weeks to a few months — they aren't permanent.</li>
+        <li style="margin-bottom:8px;line-height:1.65;">If your practice this week starts to feel awkward or hard, that's the curriculum working. Stay with it.</li>
+        <li style="margin-bottom:8px;line-height:1.65;">When something shifts — and it will — come back to <a href="https://twelvefold.institute/read" style="color:#7C3AED;font-weight:600;">the reading app</a> and describe it in your own words. You'll see how the pattern is moving.</li>
+      </ul>
+
+      <p style="margin:0 0 18px;">${closing}</p>
+
+      <p style="margin:0;font-style:italic;color:#6b6b7a;">— The Twelvefold Institute</p>
+    `,
+  });
+
+  return send({
+    to: args.email,
+    subject: "Your Twelvefold Initiation",
+    html,
+    replyTo: process.env.ADMIN_NOTIFICATION_EMAIL,
+  });
+}
+
 // ─── Helpers ─────────────────────────────────────────────────
 function escape(s: string): string {
   return String(s)

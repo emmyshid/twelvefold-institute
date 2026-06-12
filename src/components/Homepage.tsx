@@ -188,6 +188,7 @@ function TryReading() {
 export default function Homepage() {
   const [menuOpen, setMenuOpen] = useState(false);
   const navLinks: [string, string][] = [
+    ["Initiation", "/initiation"],
     ["Pattern Literacy", "/pattern-literacy"],
     ["Read", "/read"],
     ["Book", "/book"],
@@ -195,7 +196,8 @@ export default function Homepage() {
     ["Institutions", "/institutions"],
   ];
   const doors = [
-    { eyebrow: "Start here", title: "Get a reading", body: "Describe what keeps happening. PatternOS reads the phase you are in and what it is asking of you.", cta: "Open PatternOS", href: "/read", variant: "gold" as Variant },
+    { eyebrow: "Begin here", title: "Take the Initiation", body: "A guided 35-minute introduction to the framework. Recognize the phase you are in, hear what it is asking, and leave with a practice for the week.", cta: "Begin the Initiation", href: "/initiation", variant: "gold" as Variant },
+    { eyebrow: "When you have a situation in mind", title: "Get a reading", body: "Describe what keeps happening. PatternOS reads the phase you are in and what it is asking of you.", cta: "Open PatternOS", href: "/read", variant: "primary" as Variant },
     { eyebrow: "The book", title: "Pattern Literacy", body: "How to read the intelligent cycles governing your life. Read the opening pages, see the chapter list, and join the launch list.", cta: "Read more", href: "/book", variant: "ghost" as Variant },
     { eyebrow: "Become a practitioner", title: "Certification", body: "Become a Twelvefold-certified practitioner. 200 hours, small cohorts, $6,500.", cta: "See the program", href: "/certification", variant: "primary" as Variant, feature: true },
     { eyebrow: "For organizations", title: "License the Twelvefold framework", body: "Organizational diagnostics and licensing for schools, healthcare, and teams. Book a consult.", cta: "Start a conversation", href: "/institutions", variant: "ghost" as Variant },
@@ -392,7 +394,7 @@ export default function Homepage() {
         <footer style={{ borderTop: `1px solid ${T.border}`, padding: "40px clamp(20px, 5vw, 64px)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "18px" }}>
           <div style={{ fontFamily: T.fontMono, fontSize: "13px", letterSpacing: "1px" }}><span style={{ color: T.text }}>Twelvefold</span> <span style={{ color: T.accent }}>Institute</span></div>
           <div style={{ display: "flex", gap: "22px", flexWrap: "wrap" }}>
-            {([["Pattern Literacy", "/pattern-literacy"], ["PatternOS", "/read"], ["Certification", "/certification"], ["Institutions", "/institutions"], ["About", "/about"]] as [string, string][]).map(([label, href]) => {
+            {([["Initiation", "/initiation"], ["Pattern Literacy", "/pattern-literacy"], ["PatternOS", "/read"], ["Certification", "/certification"], ["Institutions", "/institutions"], ["About", "/about"]] as [string, string][]).map(([label, href]) => {
               const handle = (e: React.MouseEvent<HTMLAnchorElement>) => {
                 if (href.startsWith("#")) {
                   e.preventDefault();

@@ -157,3 +157,30 @@ export const bookSubscribers = pgTable("book_subscribers", {
 
 export type BookSubscriber = typeof bookSubscribers.$inferSelect;
 export type NewBookSubscriber = typeof bookSubscribers.$inferInsert;
+
+// Initiation completions — people who reach the end of the /initiation
+// experience and submit name + email. Captures the diagnosed phase,
+// their committed practice, and any per-segment reflections so we can
+// follow up meaningfully. Email is unique (re-completion is a no-op).
+export const initiationCompletions = pgTable("initiation_completions", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  email: text("email").notNull().unique(),
+  name: text("name"),
+  // Phase 1-12, e.g. 10 for Capricorn
+  diagnosedPhaseId: integer("diagnosed_phase_id"),
+  // Felt name (e.g. "Sparking") AND astro name (e.g. "Aries") together
+  // are used in the email + admin notification, so we store both.
+  diagnosedPhaseFelt: text("diagnosed_phase_felt"),
+  diagnosedPhaseAstro: text("diagnosed_phase_astro"),
+  // The reflection they wrote in segment 6 ("How to Work With It") —
+  // their committed practice for the week.
+  practiceCommitment: text("practice_commitment"),
+  // All per-segment reflections keyed by segment id.
+  reflections: jsonb("reflections"),
+  // Which CTA they clicked to leave: "certification" | "consult" | "community" | null
+  ctaChosen: text("cta_chosen"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type InitiationCompletion = typeof initiationCompletions.$inferSelect;
+export type NewInitiationCompletion = typeof initiationCompletions.$inferInsert;
