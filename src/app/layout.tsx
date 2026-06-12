@@ -9,8 +9,21 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  // Explicit sign-in/sign-up URLs. Without these, Clerk's SDK detects
+  // the Account Portal and routes <UserButton>, middleware redirects,
+  // and protected-route prompts directly to accounts.twelvefold.institute,
+  // skipping our /sign-in route (which provides the themed splash).
+  //
+  // With these set, every Clerk SDK link goes through /sign-in first,
+  // which then redirects to the hosted portal. URL bar shows our domain
+  // throughout the user-visible flow.
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInFallbackRedirectUrl="/"
+      signUpFallbackRedirectUrl="/"
+    >
       <html lang="en">
         <body>{children}</body>
       </html>
