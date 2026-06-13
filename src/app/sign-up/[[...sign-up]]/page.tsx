@@ -11,6 +11,7 @@ import SignUpClient from "./SignUpClient";
 
 const PHONE_UA = /iPhone|(?:Android.*Mobile)/i;
 const ACCOUNT_PORTAL = "https://accounts.twelvefold.institute/sign-up";
+const APP_ORIGIN = "https://twelvefold.institute";
 
 interface PageProps {
   searchParams: Promise<{ redirect_url?: string; [key: string]: string | undefined }>;
@@ -22,9 +23,14 @@ export default async function SignUpPage({ searchParams }: PageProps) {
   const isPhone = PHONE_UA.test(ua);
 
   if (isPhone) {
-    const target = sp.redirect_url || "/";
+    // Absolute return URL — see SignInPage rationale.
+    const requested = sp.redirect_url || "/";
+    const absoluteTarget = requested.startsWith("http")
+      ? requested
+      : `${APP_ORIGIN}${requested.startsWith("/") ? requested : "/" + requested}`;
+
     const url = new URL(ACCOUNT_PORTAL);
-    url.searchParams.set("redirect_url", target);
+    url.searchParams.set("redirect_url", absoluteTarget);
     redirect(url.toString());
   }
 

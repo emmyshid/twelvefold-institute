@@ -48,6 +48,12 @@ const PHONE_UA = /iPhone|(?:Android.*Mobile)/i;
 // Clerk dashboard → Configure → Domains.
 const ACCOUNT_PORTAL = "https://accounts.twelvefold.institute/sign-in";
 
+// The main app's origin. Used to build absolute redirect URLs back to
+// the parent app — without this, Clerk's portal interprets a bare "/"
+// as a path on accounts.twelvefold.institute and the user never leaves
+// the auth subdomain after signing in.
+const APP_ORIGIN = "https://twelvefold.institute";
+
 interface PageProps {
   searchParams: Promise<{ redirect_url?: string; [key: string]: string | undefined }>;
 }
@@ -58,13 +64,18 @@ export default async function SignInPage({ searchParams }: PageProps) {
   const isPhone = PHONE_UA.test(ua);
 
   if (isPhone) {
-    // Build the portal URL, preserving the original return target.
-    // Default to homepage if no redirect_url was provided.
-    const target = sp.redirect_url || "/";
-    // Clerk's portal expects an absolute URL OR a relative path;
-    // we pass relative since the portal already knows the parent app.
+    // Build an ABSOLUTE return target. Clerk's portal validates
+    // and uses this for the post-auth redirect. A bare "/" gets
+    // interpreted as a path on accounts.twelvefold.institute,
+    // which is exactly what we don't want — we want them back on
+    // the main twelvefold.institute domain.
+    const requested = sp.redirect_url || "/";
+    const absoluteTarget = requested.startsWith("http")
+      ? requested
+      : `${APP_ORIGIN}${requested.startsWith("/") ? requested : "/" + requested}`;
+
     const url = new URL(ACCOUNT_PORTAL);
-    url.searchParams.set("redirect_url", target);
+    url.searchParams.set("redirect_url", absoluteTarget);
     redirect(url.toString());
   }
 
