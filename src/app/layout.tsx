@@ -4,9 +4,33 @@ import { ClerkProvider } from "@clerk/nextjs";
 import { maybeWelcome } from "@/lib/welcome";
 
 export const metadata: Metadata = {
-  title: "Twelvefold Institute",
+  // Title template: child pages can set their own title and the
+  // " | Twelvefold Institute" suffix is appended automatically.
+  title: {
+    default: "Twelvefold Institute — Pattern Literacy",
+    template: "%s | Twelvefold Institute",
+  },
+  // Description = formal slogan + clarifier. Used by Google, sharing,
+  // browser bookmarks, and most aggregators.
   description:
-    "Pattern literacy — the ability to read the intelligent cycles governing human life and act with clarity, alignment, and purpose.",
+    "Pattern Literacy for Life, Leadership, and Transformation. Twelvefold Institute teaches the ability to read the intelligent cycles governing human life and act with clarity, alignment, and purpose.",
+  // Open Graph (Facebook, LinkedIn, Slack, iMessage, etc.) and
+  // Twitter cards — both use the catchphrase as the subtitle so the
+  // brand voice carries into social shares.
+  openGraph: {
+    title: "Twelvefold Institute — Read the Pattern. Align with the Order.",
+    description:
+      "Pattern Literacy for Life, Leadership, and Transformation.",
+    url: "https://twelvefold.institute",
+    siteName: "Twelvefold Institute",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Twelvefold Institute — Read the Pattern. Align with the Order.",
+    description:
+      "Pattern Literacy for Life, Leadership, and Transformation.",
+  },
 };
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

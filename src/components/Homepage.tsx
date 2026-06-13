@@ -387,7 +387,7 @@ export default function Homepage() {
         </nav>
 
         <header style={{ padding: "clamp(36px, 7vw, 80px) clamp(20px, 5vw, 64px) clamp(20px, 5vw, 40px)", maxWidth: 980, margin: "0 auto", textAlign: "center" }}>
-          <Reveal><div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>Pattern literacy · for the long arc</Eyebrow></div></Reveal>
+          <Reveal><div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>Read the pattern. Align with the order.</Eyebrow></div></Reveal>
           <Reveal delay={0.05}>
             <h1 style={{ fontFamily: T.font, fontSize: "clamp(40px, 8vw, 78px)", lineHeight: 1.0, fontWeight: 600, letterSpacing: "-1px" }}>Something invisible is<br />running your life.</h1>
             <p style={{ fontFamily: T.font, fontSize: "clamp(21px, 3.4vw, 28px)", color: T.accent, fontStyle: "italic", marginTop: "18px" }}>You can learn to read it.</p>
@@ -591,6 +591,9 @@ export default function Homepage() {
               })}
             </div>
           </div>
+          <p style={{ fontFamily: T.font, fontStyle: "italic", fontSize: "15px", color: T.textDim, lineHeight: 1.55, textAlign: "center", margin: "0 auto", maxWidth: 600 }}>
+            Pattern Literacy for Life, Leadership, and Transformation.
+          </p>
           <p style={{ fontFamily: T.fontMono, fontSize: "11px", color: T.textMuted, lineHeight: 1.6, letterSpacing: "0.3px", maxWidth: 760, textAlign: "center", margin: "0 auto" }}>
             Pattern Literacy is an educational and reflective framework. It is not therapy, medical care, diagnosis, financial advice, or a substitute for professional support.
           </p>
