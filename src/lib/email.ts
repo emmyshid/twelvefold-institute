@@ -198,6 +198,15 @@ export async function emailPaymentWelcome(args: {
         <li style="margin-bottom:6px;">Your supervised practicum opens after Phase II is complete.</li>
         <li style="margin-bottom:6px;">Certification review is the final phase, followed by your formal designation as a Twelvefold-certified practitioner.</li>
       </ol>
+      ${
+        args.product === "certification"
+          ? `<div style="padding:18px 22px;background:linear-gradient(135deg,#f7f4ef,#fff8e8);border:1px solid #FBBF2444;border-radius:8px;margin:0 0 22px;">
+              <div style="font-family:'Courier New',monospace;font-size:10px;letter-spacing:1.5px;color:#F59E0B;text-transform:uppercase;font-weight:700;margin-bottom:8px;">Your Portal Is Open</div>
+              <p style="margin:0 0 12px;font-size:15px;line-height:1.6;">You can already access the practitioner learning portal — the modules, the diagnostic engine, the practitioner tools — at the link below. Sign in with the same email you used for this payment.</p>
+              <a href="https://twelvefold.institute/portal" style="display:inline-block;padding:11px 22px;background:linear-gradient(135deg,#FBBF24,#F59E0B);color:#1a1206;text-decoration:none;border-radius:999px;font-family:'Courier New',monospace;font-size:11px;letter-spacing:1px;font-weight:700;text-transform:uppercase;">Open the Practitioner Portal →</a>
+            </div>`
+          : ""
+      }
       <p style="margin:0 0 18px;color:#6b6b7a;font-size:14px;">The work begins quietly. Most of it is just learning to see what was already there.</p>
       <p style="margin:0;font-style:italic;color:#6b6b7a;">— The Twelvefold Institute</p>
     `,
