@@ -89,6 +89,7 @@ export default function AboutPage() {
           <Reveal><div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>The institute</Eyebrow></div></Reveal>
           <Reveal delay={0.05}>
             <h1 style={{ fontFamily: T.font, fontSize: "clamp(38px, 6.5vw, 64px)", lineHeight: 1.04, fontWeight: 600, letterSpacing: "-1px" }}>Independent<br />by design.</h1>
+            <p style={{ fontFamily: T.font, fontStyle: "italic", fontSize: "clamp(17px, 2.4vw, 21px)", color: T.accent, marginTop: "18px", lineHeight: 1.45, letterSpacing: "-0.2px" }}>Pattern Literacy for Life, Leadership, and Transformation.</p>
           </Reveal>
           <Reveal delay={0.12}>
             <p style={{ fontFamily: T.font, fontSize: "clamp(19px, 2.6vw, 24px)", color: T.accent, fontStyle: "italic", lineHeight: 1.5, marginTop: "24px", maxWidth: 720, marginLeft: "auto", marginRight: "auto" }}>

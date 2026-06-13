@@ -218,7 +218,7 @@ export default function CertificationPage() {
         </nav>
 
         <header style={{ padding: "clamp(40px, 7vw, 80px) clamp(20px, 5vw, 64px) clamp(24px, 4vw, 40px)", maxWidth: 920, margin: "0 auto", textAlign: "center" }}>
-          <Reveal><div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>Practitioner Certification</Eyebrow></div></Reveal>
+          <Reveal><div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>Read the pattern. Align with the order.</Eyebrow></div></Reveal>
           <Reveal delay={0.05}>
             <h1 style={{ fontFamily: T.font, fontSize: "clamp(36px, 6.5vw, 64px)", lineHeight: 1.04, fontWeight: 600, letterSpacing: "-1px" }}>Learn to read patterns<br />for others.</h1>
           </Reveal>

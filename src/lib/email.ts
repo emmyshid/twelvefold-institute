@@ -105,7 +105,7 @@ function shell({
           </tr>
           <tr>
             <td style="padding:24px 40px;background:#f7f4ef;border-top:1px solid #e8e2d5;font-family:'Courier New',monospace;font-size:11px;letter-spacing:1px;color:#6b6b7a;text-align:center;">
-              Pattern literacy &middot; for the long arc<br>
+              Pattern Literacy for Life, Leadership, and Transformation.<br>
               <a href="https://twelvefold.institute" style="color:#7C3AED;text-decoration:none;">twelvefold.institute</a>
             </td>
           </tr>

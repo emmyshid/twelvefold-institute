@@ -641,7 +641,10 @@ export default function InitiationApp() {
             <button onClick={() => setNavOpen(o => !o)} style={{ background: "#ffffff08", border: "1px solid #ffffff14", borderRadius: "10px", width: 38, height: 38, color: "#fff", fontSize: "16px", cursor: "pointer", flexShrink: 0 }}>☰</button>
             <div style={{ flex: 1, minWidth: 0 }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", width: "100%" }}>
-                <div style={{ fontSize: "9px", color: "#A78BFA", fontFamily: ff, fontWeight: "700", letterSpacing: "2px", textTransform: "uppercase" }}>Twelvefold Institute · {seg + 1}/{SEGMENTS.length}</div>
+                <div>
+                  <div style={{ fontSize: "9px", color: "#A78BFA", fontFamily: ff, fontWeight: "700", letterSpacing: "2px", textTransform: "uppercase" }}>Twelvefold Institute · {seg + 1}/{SEGMENTS.length}</div>
+                  <div style={{ fontSize: "8px", color: "#FBBF24", fontFamily: ff, fontWeight: "700", letterSpacing: "1.5px", textTransform: "uppercase", marginTop: "3px", opacity: 0.7 }}>Read the pattern. Align with the order.</div>
+                </div>
                 <Link href="/" style={{ fontSize: "9px", color: "#ffffff50", fontFamily: ff, fontWeight: "700", letterSpacing: "1.5px", textTransform: "uppercase", textDecoration: "none" }}>← Exit</Link>
               </div>
               <div style={{ fontSize: "15px", color: "#fff", fontFamily: ff, fontWeight: "700", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{S.icon} {S.title}</div>
