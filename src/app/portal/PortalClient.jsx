@@ -1031,24 +1031,41 @@ const Onboarding = ({ onComplete }) => {
 
 // ─── SIDEBAR ─────────────────────────────────────────────────
 
-const Sidebar = ({ view, setView, progress }) => {
+const Sidebar = ({ view, setView, progress, mobileOpen, onClose }) => {
   const totalLessons = MODULES.reduce((sum, m) => sum + m.lessons.length, 0);
   const completed = progress.completedLessons?.length || 0;
 
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: "◈" },
     { id: "diagnostic", label: "Diagnostic", icon: "◎" },
+    { id: "client-readings", label: "Client Readings", icon: "✦", external: "/read/app?mode=master" },
     { id: "tools", label: "Practitioner Tools", icon: "◆" },
   ];
 
   return (
-    <div style={{
-      width: "240px", height: "100vh", position: "fixed", left: 0, top: 0,
-      background: "rgba(6,6,15,0.95)", borderRight: `1px solid ${T.border}`,
-      display: "flex", flexDirection: "column", padding: "24px 16px",
-      backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
-      zIndex: 100,
-    }}>
+    <div
+      className={`pi-portal-sidebar${mobileOpen ? " is-open" : ""}`}
+      style={{
+        width: "240px", height: "100vh", position: "fixed", left: 0, top: 0,
+        background: "rgba(6,6,15,0.97)", borderRight: `1px solid ${T.border}`,
+        display: "flex", flexDirection: "column", padding: "24px 16px",
+        backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)",
+        zIndex: 100, boxSizing: "border-box",
+      }}
+    >
+      {/* Mobile close button — only visible when sidebar is overlay */}
+      <button
+        className="pi-portal-close"
+        onClick={onClose}
+        aria-label="Close menu"
+        style={{
+          position: "absolute", top: "12px", right: "12px",
+          width: "36px", height: "36px", borderRadius: "999px",
+          background: "rgba(255,255,255,0.06)", border: `1px solid ${T.border}`,
+          color: T.textDim, cursor: "pointer", fontSize: "16px",
+          display: "none", alignItems: "center", justifyContent: "center",
+        }}
+      >×</button>
       {/* Logo */}
       <div style={{ marginBottom: "32px", padding: "0 8px" }}>
         <div style={{ fontFamily: T.fontMono, fontSize: "10px", color: T.textMuted, letterSpacing: "2px", textTransform: "uppercase" }}>Twelvefold Institute</div>
@@ -1060,20 +1077,31 @@ const Sidebar = ({ view, setView, progress }) => {
         {navItems.map(item => (
           <button
             key={item.id}
-            onClick={() => setView(item.id)}
+            onClick={() => {
+              if (item.external) {
+                // External nav — leave the portal for routes that live
+                // outside it (currently: /read/app for Client Readings).
+                window.location.href = item.external;
+              } else {
+                setView(item.id);
+                if (onClose) onClose();
+              }
+            }}
             style={{
               display: "flex", alignItems: "center", gap: "10px",
-              padding: "10px 12px", borderRadius: T.radiusSm,
+              padding: "12px 12px", borderRadius: T.radiusSm,
               background: view === item.id ? "rgba(167,139,250,0.1)" : "transparent",
               border: "none", cursor: "pointer",
               color: view === item.id ? T.accent : T.textDim,
               fontFamily: T.fontMono, fontSize: "13px",
               transition: "all 0.2s ease",
               textAlign: "left", width: "100%",
+              minHeight: "44px",
             }}
           >
             <span style={{ fontSize: "16px" }}>{item.icon}</span>
             {item.label}
+            {item.external && <span style={{ marginLeft: "auto", opacity: 0.5, fontSize: "11px" }}>↗</span>}
           </button>
         ))}
       </div>
@@ -1127,6 +1155,10 @@ export default function CertificationApp() {
   const [view, setView] = useState("dashboard");
   const [activeLesson, setActiveLesson] = useState(null);
   const [activeModule, setActiveModule] = useState(null);
+  // Mobile sidebar overlay — closed by default, opened via hamburger.
+  // On desktop (≥ 960px) the sidebar is always-on via CSS; this state
+  // only affects the mobile overlay path.
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Fonts & styles injected via JSX (see bottom of render)
 
@@ -1216,10 +1248,86 @@ export default function CertificationApp() {
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(167,139,250,0.3); border-radius: 3px; }
         ::selection { background: rgba(167,139,250,0.3); }
+
+        /* ─── Portal responsive layout ─── */
+        /* Desktop: sidebar is fixed at left, main content offset by 240px */
+        .pi-portal-main { margin-left: 240px; padding: 40px; }
+        .pi-portal-hamburger { display: none; }
+        .pi-portal-backdrop { display: none; }
+
+        @media (max-width: 960px) {
+          /* Phone/tablet: sidebar becomes an overlay drawer.
+             Closed = slid off-screen via translateX(-100%).
+             Open = .is-open class slides it in. */
+          .pi-portal-sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.22,1,0.36,1);
+            box-shadow: 0 0 60px rgba(0,0,0,0.6);
+          }
+          .pi-portal-sidebar.is-open { transform: translateX(0); }
+          .pi-portal-close { display: inline-flex !important; }
+          .pi-portal-main {
+            margin-left: 0;
+            padding: 20px 18px 60px;
+            padding-top: 76px; /* room for the floating hamburger button */
+          }
+          .pi-portal-hamburger {
+            display: inline-flex;
+            position: fixed; top: 14px; left: 14px; z-index: 90;
+            width: 44px; height: 44px; border-radius: 999px;
+            background: rgba(6,6,15,0.92); border: 1px solid rgba(255,255,255,0.14);
+            backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+            color: #EDE9F5; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 18px;
+          }
+          .pi-portal-backdrop {
+            display: block; position: fixed; inset: 0; z-index: 80;
+            background: rgba(0,0,0,0.55); backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
+            opacity: 0; pointer-events: none;
+            transition: opacity 0.25s ease;
+          }
+          .pi-portal-backdrop.is-open { opacity: 1; pointer-events: auto; }
+          /* Module/diagnostic cards: stack on small screens */
+          .pi-portal-main h1 { font-size: clamp(22px, 5vw, 32px) !important; }
+          .pi-portal-main h2 { font-size: clamp(18px, 4.5vw, 24px) !important; }
+        }
+
+        @media (max-width: 520px) {
+          .pi-portal-main { padding: 18px 14px 60px; padding-top: 72px; }
+        }
       `}</style>
       <div style={{ display: "flex", minHeight: "100vh", fontFamily: T.font, background: T.bg }}>
-        <Sidebar view={view} setView={(v) => { setView(v); setActiveLesson(null); if (!v.startsWith("module-")) setActiveModule(null); }} progress={progress} />
-        <div style={{ marginLeft: "240px", flex: 1, padding: "40px", overflow: "auto", height: "100vh", boxSizing: "border-box" }}>
+        {/* Hamburger button — visible on mobile only */}
+        <button
+          className="pi-portal-hamburger"
+          onClick={() => setSidebarOpen(true)}
+          aria-label="Open menu"
+        >☰</button>
+
+        {/* Backdrop — visible on mobile only when sidebar is open */}
+        <div
+          className={`pi-portal-backdrop${sidebarOpen ? " is-open" : ""}`}
+          onClick={() => setSidebarOpen(false)}
+          aria-hidden
+        />
+
+        <Sidebar
+          view={view}
+          setView={(v) => {
+            setView(v);
+            setActiveLesson(null);
+            if (!v.startsWith("module-")) setActiveModule(null);
+          }}
+          progress={progress}
+          mobileOpen={sidebarOpen}
+          onClose={() => setSidebarOpen(false)}
+        />
+
+        <div
+          className="pi-portal-main"
+          style={{ flex: 1, overflow: "auto", height: "100vh", boxSizing: "border-box" }}
+        >
           {renderContent()}
         </div>
       </div>

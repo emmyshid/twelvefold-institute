@@ -873,6 +873,49 @@ export default function PatternOSApp() {
 
   // ─── Master mode state ──────────────────────────────────────
   const [mode, setMode] = useState<Mode>("personal");
+
+  // Whether the current user is a paid certification customer. Master
+  // mode is a practitioner tool — only certified users see the toggle
+  // and can operate in practitioner mode. We fetch this lazily on
+  // mount; until the response lands, isCertified is null (treated as
+  // false for UI purposes).
+  const [isCertified, setIsCertified] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/me/cert-status");
+        if (!res.ok) return;
+        const data = (await res.json()) as { isCertified?: boolean };
+        if (cancelled) return;
+        const certified = !!data.isCertified;
+        setIsCertified(certified);
+
+        // Honor ?mode=master in the URL only if the user is actually
+        // certified — this is how the portal navigates them into Master
+        // mode. If not certified, ignore the param and stay in Personal.
+        if (certified && typeof window !== "undefined") {
+          const params = new URLSearchParams(window.location.search);
+          if (params.get("mode") === "master") {
+            setMode("practitioner");
+          }
+        }
+
+        // Defensive: if a user has Master mode persisted from an old
+        // session but is no longer certified (refund, cohort end, etc.),
+        // bounce them back to Personal so they can't see clients UI.
+        if (!certified) {
+          setMode("personal");
+        }
+      } catch {
+        /* fail closed — leave isCertified as null */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
   const [clientList, setClientList] = useState<ClientRecord[]>([]);
   const [activeClient, setActiveClient] = useState<ClientRecord | null>(null);
   const [showNewClientForm, setShowNewClientForm] = useState(false);
@@ -1359,6 +1402,7 @@ export default function PatternOSApp() {
           </a>
           <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
             {/* Mode toggle */}
+            {isCertified && (
             <div
               className="pos-mode-toggle"
               style={{
@@ -1392,6 +1436,7 @@ export default function PatternOSApp() {
                 </button>
               ))}
             </div>
+            )}
             <Btn variant="ghost" className="pos-history-btn" onClick={() => setMobileHistoryOpen((o) => !o)} style={{ padding: "9px 14px", fontSize: "11px" }}>
               {mobileHistoryOpen ? "Close" : mode === "practitioner" ? "Clients" : "History"}
             </Btn>
