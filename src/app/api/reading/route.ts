@@ -1,25 +1,27 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { readPattern, readFullPattern, ReadingError } from "@/lib/anthropic";
 import { rateLimit } from "@/lib/rateLimit";
 import { db } from "@/lib/db";
-import { readings } from "@/lib/db/schema";
+import { readings, payments } from "@/lib/db/schema";
+import { and, eq, or } from "drizzle-orm";
 
 export const runtime = "nodejs"; // Node runtime: postgres-js + SDK need it.
 
 // POST /api/reading  { situation: string, depth?: "summary" | "full" }
 //
-// Public (the homepage promises "no account needed") but rate-limited.
-// Signed-in users get a higher limit and their reading is saved to history.
-//
 // depth:
-//   "summary" (default) — fast/cheap, Pattern Summary only. Used by homepage.
-//   "full"              — Pattern Summary + Technical Reading + Six Traditions.
-//                         Used by /read/app for signed-in users.
+//   "summary" (default) — fast/cheap, Pattern Summary only. PUBLIC.
+//                         Used by the homepage try-it; no account needed.
+//   "full"              — Pattern Summary + Recognition + Teaching + Alignment
+//                         + Participation + Six Traditions. PRACTITIONER-ONLY.
+//                         Used by /read/app for certified practitioners.
 //
-// The full reading takes longer and uses more tokens (~4000 vs ~1024).
-// We allow anonymous users to request "full" but with a tighter limit
-// so the homepage path stays the cheap one in practice.
+// Access policy:
+//   Full readings are a practitioner tool. The /read/app page is server-
+//   gated to cert-paid users only. We also gate this endpoint server-
+//   side so that the API can't be called from outside the workspace by
+//   non-practitioners. Defense in depth.
 export async function POST(req: NextRequest) {
   const { userId } = await auth();
   const ip = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "anon";
@@ -35,6 +37,47 @@ export async function POST(req: NextRequest) {
   const situation = String((body as { situation?: unknown })?.situation ?? "").trim();
   const depthInput = String((body as { depth?: unknown })?.depth ?? "summary");
   const depth: "summary" | "full" = depthInput === "full" ? "full" : "summary";
+
+  // ─── Practitioner gate for full readings ───────────────────
+  // If someone requests depth=full, they must be a signed-in user
+  // with a succeeded certification payment. Anonymous requests for
+  // full are rejected outright; signed-in non-practitioners get a
+  // friendly message pointing them at the homepage try-it.
+  if (depth === "full") {
+    if (!userId) {
+      return NextResponse.json(
+        { error: "Full readings require sign-in as a certified practitioner." },
+        { status: 401 },
+      );
+    }
+    const user = await currentUser();
+    const email =
+      user?.emailAddresses.find((e) => e.id === user.primaryEmailAddressId)
+        ?.emailAddress?.toLowerCase() ?? "";
+    const matchClauses = [eq(payments.clerkUserId, userId)];
+    if (email) matchClauses.push(eq(payments.email, email));
+
+    const paid = await db
+      .select({ id: payments.id })
+      .from(payments)
+      .where(
+        and(
+          eq(payments.product, "certification"),
+          eq(payments.status, "succeeded"),
+          or(...matchClauses),
+        ),
+      )
+      .limit(1);
+    if (paid.length === 0) {
+      return NextResponse.json(
+        {
+          error:
+            "Full readings are offered through certified practitioners. Try the brief reading on the homepage, or visit /read to connect with a practitioner.",
+        },
+        { status: 403 },
+      );
+    }
+  }
 
   // Optional: practitioner tagging this reading to a specific client.
   // The clientId is only honored if it's a UUID-shaped string AND the

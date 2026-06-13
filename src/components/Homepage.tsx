@@ -245,7 +245,7 @@ export default function Homepage() {
   ];
   const doors = [
     { eyebrow: "Begin here", title: "Take the Initiation", body: "A guided 35-minute introduction to the framework. Recognize the phase you are in, hear what it is asking, and leave with a practice for the week.", cta: "Begin the Initiation", href: "/initiation", variant: "gold" as Variant },
-    { eyebrow: "When you have a situation in mind", title: "Get a reading", body: "Describe what keeps happening. PatternOS reads the phase you are in and what it is asking of you.", cta: "Open PatternOS", href: "/read", variant: "primary" as Variant },
+    { eyebrow: "When you have a situation in mind", title: "Try a brief reading", body: "Describe what keeps happening. The homepage try-it gives you a pattern name and a phase. For a full reading, work with a certified practitioner.", cta: "Try it now", href: "#try-it", variant: "primary" as Variant },
     { eyebrow: "The book", title: "Pattern Literacy", body: "How to read the intelligent cycles governing your life. Read the opening pages, see the chapter list, and join the launch list.", cta: "Read more", href: "/book", variant: "ghost" as Variant },
     { eyebrow: "Become a practitioner", title: "Certification", body: "Become a Twelvefold-certified practitioner. 200 hours, small cohorts, $6,500.", cta: "See the program", href: "/certification", variant: "primary" as Variant, feature: true },
     { eyebrow: "For organizations", title: "License the Twelvefold framework", body: "Organizational diagnostics and licensing for schools, healthcare, and teams. Book a consult.", cta: "Start a conversation", href: "/institutions", variant: "ghost" as Variant },
