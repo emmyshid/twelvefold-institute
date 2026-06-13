@@ -407,6 +407,37 @@ export default function Homepage() {
           </Reveal>
         </header>
 
+        <section id="how-it-works" style={{ padding: "clamp(40px, 7vw, 90px) clamp(20px, 5vw, 64px)", maxWidth: 1080, margin: "0 auto" }}>
+          <Reveal>
+            <div style={{ textAlign: "center", marginBottom: "44px" }}>
+              <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>How it works</Eyebrow></div>
+              <h2 style={{ fontFamily: T.font, fontSize: "clamp(28px, 4.5vw, 44px)", fontWeight: 600, letterSpacing: "-0.5px", margin: "0 0 14px" }}>Four steps. One cycle.</h2>
+              <p style={{ fontFamily: T.font, fontSize: "clamp(16px, 2.2vw, 18px)", color: T.textDim, maxWidth: 580, margin: "0 auto", lineHeight: 1.6 }}>The framework reads a recurring situation as a position in a larger cycle — and gives you a way to act with that cycle, not against it.</p>
+            </div>
+          </Reveal>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "14px" }}>
+            {[
+              { n: "01", label: "Name", title: "Name the recurring situation", body: "You describe what keeps happening. A relationship loop, a work pattern, an emotional cycle — the more specific, the better." },
+              { n: "02", label: "Phase", title: "Identify the phase", body: "The framework locates your situation in one of twelve universal phases — from Ignition through Dissolution — and names the curriculum it carries." },
+              { n: "03", label: "Micro-state", title: "Read the micro-state", body: "Each phase moves through four micro-states: Initiation, Expansion, Contraction, Integration. You see exactly where in the arc you are." },
+              { n: "04", label: "Action", title: "Receive aligned action", body: "You leave with a concrete recommended participation — what cooperation with this phase looks like in your actual life this week." },
+            ].map((step, i) => (
+              <Reveal key={step.n} delay={i * 0.06}>
+                <div className="pi-card" style={{ height: "100%", display: "flex", flexDirection: "column", padding: "26px 24px", background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: T.radius }}>
+                  <div style={{ fontFamily: T.fontMono, fontSize: "11px", letterSpacing: "1.5px", color: T.gold, fontWeight: 700, marginBottom: "10px" }}>{step.n} · {step.label.toUpperCase()}</div>
+                  <h3 style={{ fontFamily: T.font, fontSize: "20px", fontWeight: 600, marginBottom: "10px", letterSpacing: "-0.2px", lineHeight: 1.25 }}>{step.title}</h3>
+                  <p style={{ fontFamily: T.font, fontSize: "15px", color: T.textDim, lineHeight: 1.6, flex: 1 }}>{step.body}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+          <Reveal delay={0.3}>
+            <p style={{ textAlign: "center", marginTop: "32px", maxWidth: 620, marginLeft: "auto", marginRight: "auto", fontFamily: T.font, fontSize: "15px", color: T.textDim, lineHeight: 1.65, fontStyle: "italic" }}>
+              The brief reading below gives you all four steps in summary form. For depth on each — the full pattern named, the alignment read, the participation prescribed — you work with a <a href="/read" style={{ color: T.accent, textDecoration: "none", borderBottom: "1px dashed " + T.accent }}>certified practitioner</a>.
+            </p>
+          </Reveal>
+        </section>
+
         <section id="recognition" style={{ padding: "clamp(40px, 7vw, 90px) 0 clamp(20px, 4vw, 50px)", maxWidth: 1200, margin: "0 auto" }}>
           <Reveal>
             <div style={{ textAlign: "center", padding: "0 clamp(20px, 5vw, 64px)", marginBottom: "32px" }}>
@@ -508,6 +539,9 @@ export default function Homepage() {
               <h2 style={{ fontFamily: T.font, fontSize: "clamp(27px, 4vw, 40px)", fontWeight: 600, letterSpacing: "-0.5px" }}>Read one pattern, free.</h2>
             </div>
             <TryReading />
+            <p style={{ marginTop: "22px", textAlign: "center", maxWidth: 580, marginLeft: "auto", marginRight: "auto", fontFamily: T.fontMono, fontSize: "11px", color: T.textMuted, lineHeight: 1.6, letterSpacing: "0.3px" }}>
+              Pattern Literacy is an educational and reflective framework. It is not therapy, medical care, diagnosis, financial advice, or a substitute for professional support.
+            </p>
           </Reveal>
         </section>
 
@@ -539,22 +573,27 @@ export default function Homepage() {
           </Reveal>
         </section>
 
-        <footer style={{ borderTop: `1px solid ${T.border}`, padding: "40px clamp(20px, 5vw, 64px)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "18px" }}>
-          <div style={{ fontFamily: T.fontMono, fontSize: "13px", letterSpacing: "1px" }}><span style={{ color: T.text }}>Twelvefold</span> <span style={{ color: T.accent }}>Institute</span></div>
-          <div style={{ display: "flex", gap: "22px", flexWrap: "wrap" }}>
-            {([["Initiation", "/initiation"], ["Pattern Literacy", "/pattern-literacy"], ["PatternOS", "/read"], ["Certification", "/certification"], ["Institutions", "/institutions"], ["About", "/about"]] as [string, string][]).map(([label, href]) => {
-              const handle = (e: React.MouseEvent<HTMLAnchorElement>) => {
-                if (href.startsWith("#")) {
-                  e.preventDefault();
-                  const el = document.getElementById(href.slice(1));
-                  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-                }
-              };
-              return <a key={label} href={href} onClick={handle} style={{ fontFamily: T.fontMono, fontSize: "12px", color: T.textMuted, textDecoration: "none", cursor: "pointer" }}
-                onMouseEnter={(e) => (e.currentTarget.style.color = T.textDim)}
-                onMouseLeave={(e) => (e.currentTarget.style.color = T.textMuted)}>{label}</a>;
-            })}
+        <footer style={{ borderTop: `1px solid ${T.border}`, padding: "40px clamp(20px, 5vw, 64px) 30px", display: "flex", flexDirection: "column", gap: "26px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "18px" }}>
+            <div style={{ fontFamily: T.fontMono, fontSize: "13px", letterSpacing: "1px" }}><span style={{ color: T.text }}>Twelvefold</span> <span style={{ color: T.accent }}>Institute</span></div>
+            <div style={{ display: "flex", gap: "22px", flexWrap: "wrap" }}>
+              {([["Initiation", "/initiation"], ["Pattern Literacy", "/pattern-literacy"], ["Read", "/read"], ["Book", "/book"], ["Certification", "/certification"], ["Institutions", "/institutions"], ["Method", "/method"], ["About", "/about"]] as [string, string][]).map(([label, href]) => {
+                const handle = (e: React.MouseEvent<HTMLAnchorElement>) => {
+                  if (href.startsWith("#")) {
+                    e.preventDefault();
+                    const el = document.getElementById(href.slice(1));
+                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                  }
+                };
+                return <a key={label} href={href} onClick={handle} style={{ fontFamily: T.fontMono, fontSize: "12px", color: T.textMuted, textDecoration: "none", cursor: "pointer" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = T.textDim)}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = T.textMuted)}>{label}</a>;
+              })}
+            </div>
           </div>
+          <p style={{ fontFamily: T.fontMono, fontSize: "11px", color: T.textMuted, lineHeight: 1.6, letterSpacing: "0.3px", maxWidth: 760, textAlign: "center", margin: "0 auto" }}>
+            Pattern Literacy is an educational and reflective framework. It is not therapy, medical care, diagnosis, financial advice, or a substitute for professional support.
+          </p>
         </footer>
       </div>
     </div>
