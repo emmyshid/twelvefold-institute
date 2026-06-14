@@ -577,7 +577,7 @@ export default function Homepage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "18px" }}>
             <div style={{ fontFamily: T.fontMono, fontSize: "13px", letterSpacing: "1px" }}><span style={{ color: T.text }}>Twelvefold</span> <span style={{ color: T.accent }}>Institute</span></div>
             <div style={{ display: "flex", gap: "22px", flexWrap: "wrap" }}>
-              {([["Initiation", "/initiation"], ["Pattern Literacy", "/pattern-literacy"], ["Read", "/read"], ["Book", "/book"], ["Certification", "/certification"], ["Institutions", "/institutions"], ["Method", "/method"], ["About", "/about"]] as [string, string][]).map(([label, href]) => {
+              {([["Initiation", "/initiation"], ["Rhythms", "/rhythms"], ["Pattern Literacy", "/pattern-literacy"], ["Read", "/read"], ["Book", "/book"], ["Certification", "/certification"], ["Institutions", "/institutions"], ["Method", "/method"], ["About", "/about"]] as [string, string][]).map(([label, href]) => {
                 const handle = (e: React.MouseEvent<HTMLAnchorElement>) => {
                   if (href.startsWith("#")) {
                     e.preventDefault();
