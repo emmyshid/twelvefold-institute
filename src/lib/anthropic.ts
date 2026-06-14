@@ -99,6 +99,26 @@ export type FullPatternReading = {
   traditions: SixTraditions;
 };
 
+// ─── Dream reading ───────────────────────────────────────────
+// A dream is not a waking situation, so it gets its own structure:
+// the symbolic content is read first, then placed in a phase, then
+// bridged back to waking life. It still shares the felt summary,
+// the participation guidance, and the six-traditions layer.
+export type DreamLayer = {
+  symbols: { image: string; meaning: string }[]; // key dream images decoded
+  emotional_tone: string; // the dream's felt atmosphere
+  phase_commentary: string; // what the dream says about the phase they're in
+  waking_life_bridge: string; // how the dream connects to their waking circumstances
+};
+
+export type DreamReading = {
+  summary: PatternSummary;
+  dream: DreamLayer;
+  teaching: Teaching;
+  participation: Participation;
+  traditions: SixTraditions;
+};
+
 export class ReadingError extends Error {
   publicMessage: string;
   constructor(publicMessage: string, cause?: unknown) {
@@ -220,6 +240,81 @@ Respond with ONLY a JSON object, no preamble, no markdown fences:
 }`;
 }
 
+function buildDreamPrompt(dream: string): string {
+  return `YOU ARE A DREAM READER for Twelvefold Institute.
+
+A dream is the psyche speaking in images. It is not random noise and it is not literal prophecy — it is the intelligence of a life commenting on the phase that life is in. Your job: read the dream's symbols, name the phase it is speaking from, and bridge it back to the dreamer's waking life.
+
+THE 12 PHASES:
+1. Aries (Ignition) — beginnings, sparks, impulse
+2. Taurus (Foundation) — building, grounding, embodiment
+3. Gemini (Intelligence) — learning, connecting, dual perspectives
+4. Cancer (Inner Root) — feeling, belonging, the inner waters
+5. Leo (Authority) — visibility, expression, radiance
+6. Virgo (Correction) — refinement, service, precision
+7. Libra (Balance) — relationship, harmony, weighing
+8. Scorpio (Transformation) — death-rebirth, the underworld
+9. Sagittarius (Expansion) — vision, meaning, the further horizon
+10. Capricorn (Structure) — constructing, mastery, the long ascent
+11. Aquarius (Liberation) — freedom, originality, breaking the form
+12. Pisces (Dissolution) — surrender, sacred rest, return to source
+
+THE 4 MICRO-STATES: Initiation, Expansion, Contraction, Integration.
+
+HOW TO READ A DREAM:
+- Decode the key images symbolically, not literally. Water is rarely "water." A house is rarely "a house."
+- Do NOT moralize or diagnose. A dream is a message, not a verdict.
+- Dreams in Pisces (Dissolution) and Scorpio (Transformation) are especially common and meaningful — the psyche does its deepest work in the dark phases.
+- Speak with wisdom-gravity, never therapeutic flatness. You are a mirror.
+- Honor the six wisdom traditions accurately (Ifá, Kabbalah, I Ching, scripture, Buddhism, Hermetic). Many traditions have dream-reading lineages — reference real teachings, never invent.
+
+Their dream: "${dream}"
+
+Respond with ONLY a JSON object, no preamble, no markdown fences:
+
+{
+  "summary": {
+    "pattern_name": "2-4 word Pattern Name for the phase the dream speaks from",
+    "phase": "Phase name with parenthetical, e.g., 'Pisces (Dissolution)'",
+    "phase_number": 12,
+    "phase_id": "lowercase, e.g., 'pisces'",
+    "micro_state": "Initiation|Expansion|Contraction|Integration",
+    "state_code": "12.1 format",
+    "archetype": "'The X' — short evocative archetype",
+    "life_area": "career|relationship|identity|health|finances|family"
+  },
+  "dream": {
+    "symbols": [
+      {"image": "a key image from the dream, in their words", "meaning": "<=25 words: what it symbolizes in this phase"},
+      {"image": "another image", "meaning": "<=25 words"},
+      {"image": "another image", "meaning": "<=25 words"}
+    ],
+    "emotional_tone": "1-2 sentences naming the dream's felt atmosphere and what that tone reveals.",
+    "phase_commentary": "2-3 sentences: what this dream is saying about the phase the dreamer is in. Wisdom voice.",
+    "waking_life_bridge": "2-3 sentences connecting the dream to their waking circumstances. What is the dream asking them to see in daylight?"
+  },
+  "teaching": {
+    "core_teaching": "What this dream is teaching. 2-3 sentences. Speak to the soul.",
+    "what_is_being_asked": "What the intelligence behind their life is asking through this dream.",
+    "tradition_wisdom": "1-2 sentences connecting to ONE wisdom tradition's dream teaching. Reference something real.",
+    "existential_permission": "1-2 sentences: you are not broken, the psyche is working, this is sacred."
+  },
+  "participation": {
+    "recommended_participation": "Concrete practice (2-3 sentences) for carrying the dream's message into waking life THIS WEEK.",
+    "what_to_avoid": "1-2 sentences: how to avoid dismissing or over-literalizing the dream.",
+    "pattern_rule": "Single memorable line in the form: 'When I dream of [motif], the psyche is [message]. The rule: [aligned principle].'"
+  },
+  "traditions": {
+    "ifa": "<=30 words: how Ifá reads this dream-state. Reference odu, orisha, or principle.",
+    "kabbalah": "<=30 words: Kabbalah's lens — sefirah, world, or the tradition's dream teaching.",
+    "i_ching": "<=30 words: which hexagram or trigram speaks to this dream.",
+    "scripture": "<=30 words: which scriptural dream or theme resonates (scripture is rich with dreams).",
+    "buddhism": "<=30 words: which Buddhist teaching addresses this dream-state.",
+    "hermetic": "<=30 words: which Hermetic principle is at work."
+  }
+}`;
+}
+
 // ─── Public readers ──────────────────────────────────────────
 
 export async function readPattern(situation: string): Promise<PatternSummary> {
@@ -276,6 +371,43 @@ export async function readFullPattern(situation: string): Promise<FullPatternRea
         !parsed.traditions?.ifa
       ) {
         throw new ReadingError("The deep reading came back incomplete. Try again.");
+      }
+      return parsed;
+    } catch (err) {
+      lastError = err;
+      if (err instanceof Anthropic.APIError && err.status && err.status < 500 && err.status !== 429) {
+        break;
+      }
+    }
+  }
+
+  if (lastError instanceof ReadingError) throw lastError;
+  throw new ReadingError("The reading service is unavailable right now. Try again in a moment.", lastError);
+}
+
+export async function readDream(dream: string): Promise<DreamReading> {
+  const prompt = buildDreamPrompt(dream);
+  let lastError: unknown;
+
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await client.messages.create({
+        model: MODEL,
+        max_tokens: 6000,
+        messages: [{ role: "user", content: prompt }],
+      });
+      const text = res.content
+        .map((block) => (block.type === "text" ? block.text : ""))
+        .join("");
+      const parsed = salvageJson<DreamReading>(text);
+      // Validate the critical layers are present
+      if (
+        !parsed.summary?.pattern_name ||
+        !parsed.dream?.phase_commentary ||
+        !parsed.teaching?.core_teaching ||
+        !parsed.traditions?.ifa
+      ) {
+        throw new ReadingError("The dream reading came back incomplete. Try again.");
       }
       return parsed;
     } catch (err) {

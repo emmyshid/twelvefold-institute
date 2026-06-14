@@ -15,8 +15,11 @@ import { UserButton } from "@clerk/nextjs";
 //   • Tiered reveal animation for the reading display
 //   • Pattern Summary first (felt layer), Technical below
 //
-// Phase 2 (future session): Master/Client mode, Dream Reading,
-// per-phase recurrence digest.
+// Phase 2 status:
+//   • Master/Client mode — ✅ BUILT (client CRM, sessions, email-to-client)
+//   • Per-phase recurrence digest — ✅ BUILT (this update)
+//   • Dream Reading — ✅ BUILT (dream-tuned input + reading structure)
+//   • Live session codes — pending (real-time practitioner↔client sync)
 // ════════════════════════════════════════════════════════════════
 
 const T = {
@@ -106,6 +109,22 @@ interface FullReading {
   traditions?: SixTraditions;
   // Legacy:
   technical?: TechnicalReading;
+}
+
+// Dream reading result — dream-specific layer plus the shared summary,
+// teaching, participation, and six-traditions layers.
+interface DreamLayer {
+  symbols?: { image: string; meaning: string }[];
+  emotional_tone?: string;
+  phase_commentary?: string;
+  waking_life_bridge?: string;
+}
+interface DreamResult {
+  summary: PatternSummary;
+  dream: DreamLayer;
+  teaching?: Teaching;
+  participation?: Participation;
+  traditions?: SixTraditions;
 }
 
 interface HistoryItem {
@@ -860,12 +879,250 @@ function HistoryCard({ item, onClick, active }: { item: HistoryItem; onClick: ()
   );
 }
 
+// ─── Dream reading display ───────────────────────────────────
+// Dream-specific structure: summary hero → symbols → tone →
+// phase commentary → waking-life bridge → teaching → participation
+// → six traditions. Shares the visual language of ReadingDisplay.
+function DreamDisplay({ dream }: { dream: DreamResult }) {
+  const s = dream.summary;
+  const d = dream.dream;
+  const sectionLabel = (text: string) => (
+    <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "2.5px", color: T.accent, textTransform: "uppercase", fontWeight: 700, textAlign: "center", margin: "26px 0 14px" }}>
+      — {text} —
+    </div>
+  );
+  return (
+    <div>
+      {/* Hero */}
+      <div style={{ textAlign: "center", paddingBottom: "20px", borderBottom: `1px solid ${T.border}`, marginBottom: "8px" }}>
+        <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "2px", color: T.gold, textTransform: "uppercase", marginBottom: "10px" }}>☾ Dream reading</div>
+        {s?.pattern_name && (
+          <div style={{ fontFamily: T.font, fontSize: "clamp(28px, 5vw, 38px)", fontStyle: "italic", color: T.text, lineHeight: 1.1, letterSpacing: "-0.4px" }}>{s.pattern_name}</div>
+        )}
+        {s?.phase && (
+          <div style={{ fontFamily: T.fontMono, fontSize: "11px", letterSpacing: "1.5px", color: T.textDim, marginTop: "12px", textTransform: "uppercase" }}>
+            {s.phase}{s.micro_state ? ` · ${s.micro_state}` : ""}{s.state_code ? ` · ${s.state_code}` : ""}
+          </div>
+        )}
+      </div>
+
+      {/* Symbols */}
+      {d?.symbols && d.symbols.length > 0 && (
+        <>
+          {sectionLabel("The symbols")}
+          <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+            {d.symbols.map((sym, i) => (
+              <div key={i} style={{ padding: "14px 18px", background: "rgba(255,255,255,0.025)", borderRadius: T.radiusSm, borderLeft: `2px solid ${T.accent}` }}>
+                <div style={{ fontFamily: T.font, fontSize: "16px", fontStyle: "italic", color: T.gold, marginBottom: "4px" }}>{sym.image}</div>
+                <div style={{ fontFamily: T.font, fontSize: "15px", color: T.textDim, lineHeight: 1.55 }}>{sym.meaning}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Emotional tone */}
+      {d?.emotional_tone && (
+        <>
+          {sectionLabel("Emotional tone")}
+          <div style={{ padding: "16px 20px", background: "rgba(255,255,255,0.025)", borderRadius: T.radiusSm }}>
+            <div style={{ fontFamily: T.font, fontSize: "16px", color: T.text, lineHeight: 1.65, fontStyle: "italic" }}>{d.emotional_tone}</div>
+          </div>
+        </>
+      )}
+
+      {/* Phase commentary */}
+      {d?.phase_commentary && (
+        <>
+          {sectionLabel("What the dream is saying")}
+          <div style={{ padding: "18px 22px", background: "rgba(255,255,255,0.025)", borderRadius: T.radiusSm, borderLeft: `2px solid ${T.accent}` }}>
+            <div style={{ fontFamily: T.font, fontSize: "16.5px", color: T.text, lineHeight: 1.65 }}>{d.phase_commentary}</div>
+          </div>
+        </>
+      )}
+
+      {/* Waking life bridge */}
+      {d?.waking_life_bridge && (
+        <>
+          {sectionLabel("In waking life")}
+          <div style={{ padding: "18px 22px", background: "linear-gradient(135deg, rgba(167,139,250,0.06), rgba(251,191,36,0.04))", borderRadius: T.radiusSm, border: "1px solid rgba(167,139,250,0.15)" }}>
+            <div style={{ fontFamily: T.font, fontSize: "16.5px", color: T.text, lineHeight: 1.65 }}>{d.waking_life_bridge}</div>
+          </div>
+        </>
+      )}
+
+      {/* Teaching */}
+      {dream.teaching?.core_teaching && (
+        <>
+          {sectionLabel("The teaching")}
+          <div style={{ padding: "18px 22px", background: "rgba(255,255,255,0.025)", borderRadius: T.radiusSm, borderLeft: `2px solid ${T.accent}`, marginBottom: "10px" }}>
+            <div style={{ fontFamily: T.font, fontSize: "16px", color: T.text, lineHeight: 1.65 }}>{dream.teaching.core_teaching}</div>
+          </div>
+          {dream.teaching.existential_permission && (
+            <div style={{ padding: "16px 20px", background: "linear-gradient(135deg, rgba(167,139,250,0.06), rgba(251,191,36,0.04))", borderRadius: T.radiusSm, textAlign: "center" }}>
+              <div style={{ fontFamily: T.font, fontSize: "15.5px", fontStyle: "italic", color: T.text, lineHeight: 1.6 }}>{dream.teaching.existential_permission}</div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Participation */}
+      {dream.participation?.recommended_participation && (
+        <>
+          {sectionLabel("Carry it into waking life")}
+          <div style={{ padding: "18px 22px", background: "rgba(255,255,255,0.025)", borderRadius: T.radiusSm, borderLeft: `2px solid ${T.gold}`, marginBottom: "10px" }}>
+            <div style={{ fontFamily: T.font, fontSize: "16px", color: T.text, lineHeight: 1.65 }}>{dream.participation.recommended_participation}</div>
+          </div>
+          {dream.participation.pattern_rule && (
+            <div style={{ padding: "18px 22px", background: "rgba(251,191,36,0.05)", borderRadius: T.radiusSm, border: "1px solid rgba(251,191,36,0.18)", textAlign: "center" }}>
+              <div style={{ fontFamily: T.font, fontSize: "15.5px", fontStyle: "italic", color: T.text, lineHeight: 1.6 }}>{dream.participation.pattern_rule}</div>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Six traditions */}
+      {dream.traditions && (
+        <>
+          {sectionLabel("Six traditions")}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "8px" }}>
+            {([
+              ["Ifá", dream.traditions.ifa],
+              ["Kabbalah", dream.traditions.kabbalah],
+              ["I Ching", dream.traditions.i_ching],
+              ["Scripture", dream.traditions.scripture],
+              ["Buddhism", dream.traditions.buddhism],
+              ["Hermetic", dream.traditions.hermetic],
+            ] as [string, string | undefined][]).filter(([, v]) => v).map(([name, body]) => (
+              <div key={name} style={{ padding: "12px 14px", background: "rgba(255,255,255,0.025)", borderRadius: T.radiusSm, border: `1px solid ${T.border}` }}>
+                <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "1.5px", color: T.gold, textTransform: "uppercase", fontWeight: 700, marginBottom: "6px" }}>{name}</div>
+                <div style={{ fontFamily: T.font, fontSize: "13.5px", color: T.textDim, lineHeight: 1.55 }}>{body}</div>
+              </div>
+            ))}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ─── Recurrence digest ───────────────────────────────────────
+// Aggregates the reading history by phase to surface what keeps
+// recurring. Pure analytics over the existing history array — no new
+// AI, no new fetch. Renders only when there are enough readings to
+// say something meaningful (3+).
+function RecurrenceDigest({ history }: { history: HistoryItem[] }) {
+  // Tally phases. We normalize on the phase string as it appears in
+  // history (e.g. "Scorpio (Transformation)" or "Taurus"). Readings
+  // with no phase are skipped.
+  const tally = new Map<string, { count: number; lastAt: string; patternNames: Set<string> }>();
+  for (const item of history) {
+    if (!item.phase) continue;
+    const key = item.phase;
+    const existing = tally.get(key);
+    if (existing) {
+      existing.count += 1;
+      if (item.createdAt > existing.lastAt) existing.lastAt = item.createdAt;
+      if (item.patternName) existing.patternNames.add(item.patternName);
+    } else {
+      tally.set(key, {
+        count: 1,
+        lastAt: item.createdAt,
+        patternNames: new Set(item.patternName ? [item.patternName] : []),
+      });
+    }
+  }
+
+  // Only phases seen more than once are "recurring" — that's the point.
+  const recurring = Array.from(tally.entries())
+    .filter(([, v]) => v.count >= 2)
+    .sort((a, b) => b[1].count - a[1].count);
+
+  // Need at least 3 total readings AND at least one recurring phase to
+  // be worth showing. Below that, the digest would be noise.
+  if (history.length < 3 || recurring.length === 0) return null;
+
+  const topPhase = recurring[0];
+  const totalReadings = history.length;
+
+  return (
+    <div
+      style={{
+        padding: "18px 18px",
+        background: "linear-gradient(135deg, rgba(167,139,250,0.07), rgba(251,191,36,0.04))",
+        border: "1px solid rgba(167,139,250,0.18)",
+        borderRadius: T.radiusSm,
+        marginBottom: "16px",
+      }}
+    >
+      <div
+        style={{
+          fontFamily: T.fontMono,
+          fontSize: "9px",
+          letterSpacing: "2px",
+          color: T.gold,
+          textTransform: "uppercase",
+          fontWeight: 700,
+          marginBottom: "10px",
+        }}
+      >
+        ✦ Recurrence
+      </div>
+      <div
+        style={{
+          fontFamily: T.font,
+          fontSize: "15px",
+          color: T.text,
+          lineHeight: 1.5,
+          marginBottom: "14px",
+        }}
+      >
+        Across {totalReadings} readings, the phase that keeps returning is{" "}
+        <span style={{ fontStyle: "italic", color: T.gold }}>{topPhase[0]}</span>
+        {" "}— {topPhase[1].count} times.
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+        {recurring.slice(0, 4).map(([phase, v]) => {
+          const pct = Math.round((v.count / totalReadings) * 100);
+          return (
+            <div key={phase}>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: "3px" }}>
+                <span style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "0.5px", color: T.textDim }}>{phase}</span>
+                <span style={{ fontFamily: T.fontMono, fontSize: "10px", color: T.textMuted }}>{v.count}×</span>
+              </div>
+              <div style={{ height: "4px", background: "rgba(255,255,255,0.06)", borderRadius: "999px", overflow: "hidden" }}>
+                <div style={{ width: `${pct}%`, height: "100%", background: "linear-gradient(90deg, #A78BFA, #FBBF24)", borderRadius: "999px" }} />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      <div
+        style={{
+          fontFamily: T.font,
+          fontSize: "12.5px",
+          fontStyle: "italic",
+          color: T.textMuted,
+          lineHeight: 1.5,
+          marginTop: "12px",
+        }}
+      >
+        A phase that keeps returning is a curriculum that hasn&rsquo;t completed. The lesson is still being offered.
+      </div>
+    </div>
+  );
+}
+
 // ─── The app ─────────────────────────────────────────────────
 export default function ReadAppClient() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reading, setReading] = useState<FullReading | null>(null);
+  // Input type: a waking situation (the default) or a dream. Dream
+  // readings use a dream-tuned prompt and a dream-specific display.
+  const [readingType, setReadingType] = useState<"situation" | "dream">("situation");
+  const [dreamReading, setDreamReading] = useState<DreamResult | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
   const [activeHistoryId, setActiveHistoryId] = useState<string | null>(null);
@@ -1117,6 +1374,7 @@ export default function ReadAppClient() {
     setLoading(true);
     setError(null);
     setReading(null);
+    setDreamReading(null);
     setActiveHistoryId(null);
     setSentAt(null);
     setSendError(null);
@@ -1126,7 +1384,7 @@ export default function ReadAppClient() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           situation: input.trim(),
-          depth: "full",
+          depth: readingType === "dream" ? "dream" : "full",
           clientId: mode === "practitioner" && activeClient ? activeClient.id : undefined,
         }),
       });
@@ -1135,16 +1393,26 @@ export default function ReadAppClient() {
         throw new Error(err.error || "Reading service unavailable");
       }
       const data = await res.json();
-      setReading({
-        summary: data.summary,
-        recognition: data.recognition,
-        teaching: data.teaching,
-        alignment: data.alignment,
-        participation: data.participation,
-        traditions: data.traditions,
-        // legacy field — preserved for backward-compat
-        technical: data.technical,
-      });
+      if (readingType === "dream") {
+        setDreamReading({
+          summary: data.summary,
+          dream: data.dream,
+          teaching: data.teaching,
+          participation: data.participation,
+          traditions: data.traditions,
+        });
+      } else {
+        setReading({
+          summary: data.summary,
+          recognition: data.recognition,
+          teaching: data.teaching,
+          alignment: data.alignment,
+          participation: data.participation,
+          traditions: data.traditions,
+          // legacy field — preserved for backward-compat
+          technical: data.technical,
+        });
+      }
       // Refresh history (mode-aware effect handles the rest)
       try {
         const url =
@@ -1177,7 +1445,31 @@ export default function ReadAppClient() {
       participation?: Participation;
       traditions?: SixTraditions;
       technical?: TechnicalReading;
+      dream?: DreamLayer;
+      kind?: string;
     } | null;
+
+    // Dream readings are tagged kind:"dream" in raw — render the dream display.
+    if (raw && raw.kind === "dream" && raw.summary && raw.dream) {
+      setReadingType("dream");
+      setReading(null);
+      setDreamReading({
+        summary: raw.summary,
+        dream: raw.dream,
+        teaching: raw.teaching,
+        participation: raw.participation,
+        traditions: raw.traditions,
+      });
+      setInput(item.input);
+      setMobileHistoryOpen(false);
+      setSentAt(item.sentToClientAt ?? null);
+      setSendError(null);
+      return;
+    }
+
+    // Non-dream — clear any dream state and render the standard reading.
+    setReadingType("situation");
+    setDreamReading(null);
 
     if (raw && raw.summary) {
       // New v10-parity shape OR legacy with technical/traditions
@@ -1217,6 +1509,7 @@ export default function ReadAppClient() {
 
   function newReading() {
     setReading(null);
+    setDreamReading(null);
     setActiveHistoryId(null);
     setInput("");
     setError(null);
@@ -1926,6 +2219,7 @@ export default function ReadAppClient() {
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  <RecurrenceDigest history={history} />
                   {history.map((item) => (
                     <HistoryCard key={item.id} item={item} onClick={() => selectHistory(item)} active={item.id === activeHistoryId} />
                   ))}
@@ -1958,12 +2252,40 @@ export default function ReadAppClient() {
                     padding: "clamp(20px, 3vw, 28px)",
                   }}
                 >
+                  {/* Input-type toggle: Situation vs Dream */}
+                  {!activeHistoryId && (
+                    <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.04)", border: `1px solid ${T.border}`, borderRadius: "999px", padding: "3px", gap: "2px", marginBottom: "16px" }}>
+                      {(["situation", "dream"] as const).map((rt) => (
+                        <button
+                          key={rt}
+                          onClick={() => { setReadingType(rt); setReading(null); setDreamReading(null); }}
+                          style={{
+                            padding: "6px 16px",
+                            borderRadius: "999px",
+                            fontFamily: T.fontMono,
+                            fontSize: "10px",
+                            letterSpacing: "1px",
+                            textTransform: "uppercase",
+                            background: readingType === rt ? T.gradGold : "transparent",
+                            color: readingType === rt ? "#1a1206" : T.textDim,
+                            border: "none",
+                            cursor: "pointer",
+                            transition: "all 0.25s " + T.ease,
+                          }}
+                        >
+                          {rt === "situation" ? "Situation" : "☾ Dream"}
+                        </button>
+                      ))}
+                    </div>
+                  )}
                   <textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     rows={4}
                     placeholder={
-                      mode === "practitioner"
+                      readingType === "dream"
+                        ? "Describe the dream — the images, the people, the places, what happened, and how it felt. Don't tidy it up; the strange details matter most."
+                        : mode === "practitioner"
                         ? activeClient
                           ? `What is ${activeClient.name} bringing? Describe what they said is repeating, in their voice or yours.`
                           : "Select a client from the sidebar to begin a reading for them."
@@ -1992,7 +2314,9 @@ export default function ReadAppClient() {
                       </Btn>
                     ) : (
                       <Btn variant="gold" onClick={runReading} disabled={loading || !input.trim() || (mode === "practitioner" && !activeClient)}>
-                        {loading ? "Reading the pattern in depth…" : "Read my pattern"}
+                        {loading
+                          ? readingType === "dream" ? "Reading the dream…" : "Reading the pattern in depth…"
+                          : readingType === "dream" ? "Read my dream" : "Read my pattern"}
                       </Btn>
                     )}
                     <span style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "1px", color: T.textMuted }}>
@@ -2022,7 +2346,18 @@ export default function ReadAppClient() {
 
               {/* Reading */}
               <section id="reading-pane">
-                {reading ? (
+                {dreamReading ? (
+                  <div
+                    style={{
+                      background: T.bgCard,
+                      border: `1px solid ${T.border}`,
+                      borderRadius: T.radius,
+                      padding: "clamp(24px, 4vw, 36px)",
+                    }}
+                  >
+                    <DreamDisplay dream={dreamReading} />
+                  </div>
+                ) : reading ? (
                   <>
                     <div
                       style={{

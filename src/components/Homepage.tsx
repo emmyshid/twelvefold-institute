@@ -235,6 +235,28 @@ function TryReading() {
 
 export default function Homepage() {
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // Practitioner detection — show Portal + PatternOS links in the nav
+  // only to cert-paid users. Lightweight client-side check against the
+  // existing /api/me/cert-status endpoint (returns {isCertified}). Until
+  // the response lands, isCertified is false, so the links simply don't
+  // flash in for anonymous/non-cert visitors.
+  const [isCertified, setIsCertified] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/me/cert-status");
+        if (!res.ok) return;
+        const data = (await res.json()) as { isCertified?: boolean };
+        if (!cancelled) setIsCertified(!!data.isCertified);
+      } catch {
+        /* not signed in or check failed — leave links hidden */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const navLinks: [string, string][] = [
     ["Initiation", "/initiation"],
     ["Pattern Literacy", "/pattern-literacy"],
@@ -242,6 +264,10 @@ export default function Homepage() {
     ["Book", "/book"],
     ["Certification", "/certification"],
     ["Institutions", "/institutions"],
+    // Practitioner-only links — appended when the user is cert-paid.
+    ...(isCertified
+      ? ([["Portal", "/portal"], ["PatternOS", "/read/app"]] as [string, string][])
+      : []),
   ];
   const doors = [
     { eyebrow: "Begin here", title: "Take the Initiation", body: "A guided 35-minute introduction to the framework. Recognize the phase you are in, hear what it is asking, and leave with a practice for the week.", cta: "Begin the Initiation", href: "/initiation", variant: "gold" as Variant },
