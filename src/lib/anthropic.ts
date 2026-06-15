@@ -496,3 +496,105 @@ export async function readTransit(phaseLabel: string, phaseId: string, phaseTeac
   if (lastError instanceof ReadingError) throw lastError;
   throw new ReadingError("The transit service is unavailable right now. Try again in a moment.", lastError);
 }
+
+// ─── Coordinate reading (the 60 Reality Coordinates) ─────────
+// Two-axis diagnosis: 12 phases × 5 layers = 60 coordinates.
+// The engine does the two-step the framework describes: locate the
+// phase, then discriminate WHICH LAYER is actually changing, then name
+// the coordinate (e.g. AR-8) and what it requires.
+//
+// Layers (5): Intelligent Order (IO), Architecture (AR), Pattern (PA),
+// Rhythm (RH), Events (EV). "Architecture" is the framework's name for
+// the structure/systems layer — distinct from the Capricorn PHASE
+// "Structure", to avoid collision.
+export type CoordinateReading = {
+  situation_summary: string;
+  symptom: { code: string; layer: string; layer_code: string; phase: string; phase_number: number };
+  root: { code: string; layer: string; layer_code: string; phase: string; phase_number: number };
+  coordinate_title: string;     // e.g. "Architecture in Transformation"
+  symptom_line: string;         // what everyone sees (the surface layer)
+  root_line: string;            // the layer the reading found beneath it
+  teaching: string;
+  what_it_asks: string;
+  what_to_avoid: string;
+};
+
+function buildCoordinatePrompt(situation: string): string {
+  return `You are the coordinate reader of Twelvefold Institute.
+
+Reality can be located on two axes at once:
+
+THE 5 LAYERS (what level of reality is changing):
+  IO — Intelligent Order: purpose, meaning, governing intelligence
+  AR — Architecture: structure, laws, systems, how a thing is organized
+  PA — Pattern: recurring forms and arrangements
+  RH — Rhythm: cycles, timing, movement
+  EV — Events: manifestations, the visible symptoms and experiences
+
+THE 12 PHASES (where in the developmental cycle):
+  1 Ignition (Aries) — emergence
+  2 Foundation (Taurus) — stabilization
+  3 Intelligence (Gemini) — learning
+  4 Inner Root (Cancer) — identity formation
+  5 Authority (Leo) — expression
+  6 Correction (Virgo) — refinement
+  7 Balance (Libra) — relationship
+  8 Transformation (Scorpio) — death / rebirth
+  9 Expansion (Sagittarius) — growth
+  10 Structure (Capricorn) — responsibility
+  11 Liberation (Aquarius) — service
+  12 Dissolution (Pisces) — completion
+
+A coordinate is LAYER-PHASE, e.g. AR-8 = Architecture at Transformation.
+
+THE DIAGNOSTIC MOVE (this is the whole point):
+Most people read only the EVENTS layer — the visible symptom. Your job is to find the LAYER BENEATH the symptom where the real movement is. The event is downstream of a deeper coordinate. Locate BOTH: the visible symptom coordinate (almost always on the EV or a surface layer), AND the root coordinate (the layer where change actually originates).
+
+Example: a church loses half its members. The symptom is EV-8 (crisis event). But the root may be AR-8 (the architecture no longer supports the mission) or IO-8 (the purpose itself is evolving). The exodus is the symptom; the structure is the root.
+
+Rules:
+- Both coordinates share the SAME phase number (the situation is in one phase; the layers differ).
+- The root layer must be DIFFERENT from and DEEPER than the symptom layer (IO is deepest, then AR, PA, RH, then EV at the surface).
+- Speak with wisdom-gravity, never therapeutic flatness. This is a navigation instrument, not a comfort.
+- Be concrete. Name the actual structure/purpose/pattern/rhythm at work.
+
+Their situation: "${situation}"
+
+Respond with ONLY a JSON object, no preamble, no markdown fences:
+{
+  "situation_summary": "one sentence restating the situation neutrally",
+  "symptom": { "code": "EV-8", "layer": "Events", "layer_code": "EV", "phase": "Transformation", "phase_number": 8 },
+  "root": { "code": "AR-8", "layer": "Architecture", "layer_code": "AR", "phase": "Transformation", "phase_number": 8 },
+  "coordinate_title": "Short title for the ROOT coordinate, e.g. 'Architecture in Transformation'",
+  "symptom_line": "1-2 sentences: what everyone sees — the surface coordinate.",
+  "root_line": "2-3 sentences: the deeper coordinate the reading locates, and why the symptom is downstream of it.",
+  "teaching": "2-3 sentences: what this root coordinate is teaching. Wisdom voice.",
+  "what_it_asks": "2-3 sentences: the concrete aligned action this coordinate requires.",
+  "what_to_avoid": "1-2 sentences: the mistake of treating only the symptom layer."
+}`;
+}
+
+export async function readCoordinate(situation: string): Promise<CoordinateReading> {
+  const prompt = buildCoordinatePrompt(situation);
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await client.messages.create({
+        model: MODEL,
+        max_tokens: 2500,
+        messages: [{ role: "user", content: prompt }],
+      });
+      const text = res.content.map((b) => (b.type === "text" ? b.text : "")).join("");
+      const parsed = salvageJson<CoordinateReading>(text);
+      if (!parsed.root?.code || !parsed.symptom?.code || !parsed.teaching) {
+        throw new ReadingError("The coordinate reading came back incomplete. Try again.");
+      }
+      return parsed;
+    } catch (err) {
+      lastError = err;
+      if (err instanceof Anthropic.APIError && err.status && err.status < 500 && err.status !== 429) break;
+    }
+  }
+  if (lastError instanceof ReadingError) throw lastError;
+  throw new ReadingError("The coordinate service is unavailable right now. Try again in a moment.", lastError);
+}

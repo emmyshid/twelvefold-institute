@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import PatternMastery from "./PatternMastery";
+import CoordinateReading from "@/components/CoordinateReading";
 
 // ════════════════════════════════════════════════════════════════
 // PATTERN LITERACY CERTIFICATION APP v1
@@ -1038,6 +1040,8 @@ const Sidebar = ({ view, setView, progress, mobileOpen, onClose }) => {
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: "◈" },
     { id: "diagnostic", label: "Diagnostic", icon: "◎" },
+    { id: "coordinate", label: "Coordinate Reading", icon: "⊹" },
+    { id: "mastery", label: "Pattern Mastery", icon: "✸" },
     { id: "client-readings", label: "Client Readings", icon: "✦", external: "/read/app?mode=master" },
     { id: "tools", label: "Practitioner Tools", icon: "◆" },
   ];
@@ -1223,6 +1227,18 @@ export default function CertificationApp() {
 
     // Diagnostic
     if (view === "diagnostic") return <DiagnosticEngine onBack={() => setView("dashboard")} />;
+
+    // Pattern Mastery — the v4 self-contained training app
+    if (view === "mastery") return <PatternMastery />;
+
+    // Coordinate Reading — the 60 Reality Coordinates diagnostic
+    if (view === "coordinate") {
+      return (
+        <div style={{ maxWidth: 820, margin: "0 auto" }}>
+          <CoordinateReading />
+        </div>
+      );
+    }
 
     // Tools
     if (view === "tools") return <PractitionerTools onBack={() => setView("dashboard")} onDiagnostic={() => setView("diagnostic")} />;

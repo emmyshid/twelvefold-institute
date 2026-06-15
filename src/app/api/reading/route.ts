@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { readPattern, readFullPattern, readDream, ReadingError } from "@/lib/anthropic";
+import { readPattern, readFullPattern, readDream, readCoordinate, ReadingError } from "@/lib/anthropic";
 import { rateLimit } from "@/lib/rateLimit";
 import { db } from "@/lib/db";
 import { readings, payments } from "@/lib/db/schema";
@@ -36,15 +36,14 @@ export async function POST(req: NextRequest) {
 
   const situation = String((body as { situation?: unknown })?.situation ?? "").trim();
   const depthInput = String((body as { depth?: unknown })?.depth ?? "summary");
-  const depth: "summary" | "full" | "dream" =
-    depthInput === "full" ? "full" : depthInput === "dream" ? "dream" : "summary";
+  const depth: "summary" | "full" | "dream" | "coordinate" =
+    depthInput === "full" ? "full" : depthInput === "dream" ? "dream" : depthInput === "coordinate" ? "coordinate" : "summary";
 
-  // ─── Practitioner gate for full + dream readings ───────────
-  // Both full and dream are deep, practitioner-only readings. They
-  // require a signed-in user with a succeeded certification payment.
-  // Anonymous requests are rejected; signed-in non-practitioners get a
-  // friendly message pointing them at the homepage try-it.
-  if (depth === "full" || depth === "dream") {
+  // ─── Practitioner gate for deep readings ───────────────────
+  // full, dream, and coordinate are all deep, practitioner-only
+  // readings. They require a signed-in user with a succeeded
+  // certification payment.
+  if (depth === "full" || depth === "dream" || depth === "coordinate") {
     if (!userId) {
       return NextResponse.json(
         { error: "Deep readings require sign-in as a certified practitioner." },
@@ -87,8 +86,8 @@ export async function POST(req: NextRequest) {
   const clientIdRaw = (body as { clientId?: unknown })?.clientId;
   const clientId = typeof clientIdRaw === "string" && clientIdRaw.length >= 32 ? clientIdRaw : null;
 
-  // Rate limits differ by depth — deep readings (full, dream) cost more.
-  const isDeep = depth === "full" || depth === "dream";
+  // Rate limits differ by depth — deep readings (full, dream, coordinate) cost more.
+  const isDeep = depth === "full" || depth === "dream" || depth === "coordinate";
   const limit = userId ? (isDeep ? 20 : 60) : (isDeep ? 2 : 5);
   const rl = rateLimit(`reading:${depth}:${key}`, limit, 60_000);
   if (!rl.ok) {
@@ -142,6 +141,25 @@ export async function POST(req: NextRequest) {
         });
       }
       return NextResponse.json(dreamReading);
+    }
+
+    if (depth === "coordinate") {
+      const coord = await readCoordinate(situation);
+      if (userId) {
+        await db.insert(readings).values({
+          clerkUserId: userId,
+          clientId: verifiedClientId,
+          input: situation,
+          patternName: coord.coordinate_title,
+          phase: coord.root?.phase ?? null,
+          microState: coord.root?.layer ?? null, // store the root LAYER here
+          curriculum: coord.teaching ?? null,
+          activeLesson: coord.what_it_asks ?? null,
+          recommendedParticipation: coord.what_it_asks ?? null,
+          raw: { ...coord, kind: "coordinate" },
+        });
+      }
+      return NextResponse.json(coord);
     }
 
     if (depth === "full") {

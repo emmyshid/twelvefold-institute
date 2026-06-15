@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useMemo, Fragment } from "react";
 import type { CSSProperties, ReactNode } from "react";
 import { UserButton } from "@clerk/nextjs";
+import CoordinateReading from "@/components/CoordinateReading";
 
 // ════════════════════════════════════════════════════════════════
 // PatternOS — the actual reading app, behind Clerk auth.
@@ -1121,7 +1122,7 @@ export default function ReadAppClient() {
   const [reading, setReading] = useState<FullReading | null>(null);
   // Input type: a waking situation (the default) or a dream. Dream
   // readings use a dream-tuned prompt and a dream-specific display.
-  const [readingType, setReadingType] = useState<"situation" | "dream">("situation");
+  const [readingType, setReadingType] = useState<"situation" | "dream" | "coordinate">("situation");
   const [dreamReading, setDreamReading] = useState<DreamResult | null>(null);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [historyLoading, setHistoryLoading] = useState(true);
@@ -2252,10 +2253,10 @@ export default function ReadAppClient() {
                     padding: "clamp(20px, 3vw, 28px)",
                   }}
                 >
-                  {/* Input-type toggle: Situation vs Dream */}
+                  {/* Input-type toggle: Situation / Dream / Coordinate */}
                   {!activeHistoryId && (
-                    <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.04)", border: `1px solid ${T.border}`, borderRadius: "999px", padding: "3px", gap: "2px", marginBottom: "16px" }}>
-                      {(["situation", "dream"] as const).map((rt) => (
+                    <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.04)", border: `1px solid ${T.border}`, borderRadius: "999px", padding: "3px", gap: "2px", marginBottom: "16px", flexWrap: "wrap" }}>
+                      {(["situation", "dream", "coordinate"] as const).map((rt) => (
                         <button
                           key={rt}
                           onClick={() => { setReadingType(rt); setReading(null); setDreamReading(null); }}
@@ -2273,11 +2274,15 @@ export default function ReadAppClient() {
                             transition: "all 0.25s " + T.ease,
                           }}
                         >
-                          {rt === "situation" ? "Situation" : "☾ Dream"}
+                          {rt === "situation" ? "Situation" : rt === "dream" ? "☾ Dream" : "⊹ Coordinate"}
                         </button>
                       ))}
                     </div>
                   )}
+                  {readingType === "coordinate" && !activeHistoryId ? (
+                    <CoordinateReading embedded />
+                  ) : (
+                  <>
                   <textarea
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
@@ -2340,6 +2345,8 @@ export default function ReadAppClient() {
                     >
                       {error}
                     </div>
+                  )}
+                  </>
                   )}
                 </div>
               </section>
