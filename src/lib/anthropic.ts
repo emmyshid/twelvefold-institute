@@ -421,3 +421,78 @@ export async function readDream(dream: string): Promise<DreamReading> {
   if (lastError instanceof ReadingError) throw lastError;
   throw new ReadingError("The reading service is unavailable right now. Try again in a moment.", lastError);
 }
+
+// ─── Transit reading ─────────────────────────────────────────
+// Reads the current phase (the "season") and generates three nested
+// timing teachings — daily, weekly, monthly — in two lenses: for the
+// individual, and for an organization. Timing as curriculum, not
+// prediction. The phase is passed in (computed from the date on the
+// server); the engine writes the teachings.
+export type TransitLensTeaching = {
+  daily: string;
+  weekly: string;
+  monthly: string;
+};
+export type TransitReading = {
+  phase: string;        // e.g. "Taurus (Foundation)"
+  phase_id: string;     // e.g. "taurus"
+  season_teaching: string; // the one-line teaching of the season
+  self: TransitLensTeaching;
+  org: TransitLensTeaching;
+};
+
+function buildTransitPrompt(phaseLabel: string, phaseTeaching: string): string {
+  return `You are the transit reader of Twelvefold Institute.
+
+A transit is timing read as curriculum — never prediction, never prophecy. The 12 zodiac names are borrowed labels for the 12 phases of Intelligent Order. Right now the season is in this phase:
+
+PHASE: ${phaseLabel}
+THE SEASON'S CORE TEACHING: ${phaseTeaching}
+
+Write three nested timing teachings, each in TWO lenses — one for an individual, one for an organization/leader. The same phase, read at three time-scales:
+- DAILY = the rhythm of the day (small, immediate, what today is for)
+- WEEKLY = the movement of the pattern through this week (the arc, the shift underway)
+- MONTHLY = the dominant lesson of the whole season (the deep teaching)
+
+VOICE: wisdom language, grounded, never mystical-vague, never therapeutic-flat. Speak with gravity. For the organizational lens, speak to teams, launches, leadership decisions, and institutional seasons concretely.
+
+Respond with ONLY a JSON object, no preamble, no markdown fences:
+{
+  "season_teaching": "one-line teaching of this season (you may refine the given one)",
+  "self": {
+    "daily": "2-3 sentences: what today's rhythm asks of an individual in this phase",
+    "weekly": "2-3 sentences: how the pattern moves through this person's week",
+    "monthly": "2-3 sentences: the dominant lesson of the season for this person"
+  },
+  "org": {
+    "daily": "2-3 sentences: what today asks of a team/leader in this phase — concrete (standups, shipping, hiring, decisions)",
+    "weekly": "2-3 sentences: how the pattern moves through an organization's week",
+    "monthly": "2-3 sentences: the dominant lesson of the season for an organization — concrete (strategy, consolidation, pivots, launches)"
+  }
+}`;
+}
+
+export async function readTransit(phaseLabel: string, phaseId: string, phaseTeaching: string): Promise<TransitReading> {
+  const prompt = buildTransitPrompt(phaseLabel, phaseTeaching);
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await client.messages.create({
+        model: MODEL,
+        max_tokens: 2000,
+        messages: [{ role: "user", content: prompt }],
+      });
+      const text = res.content.map((b) => (b.type === "text" ? b.text : "")).join("");
+      const parsed = salvageJson<Omit<TransitReading, "phase" | "phase_id">>(text);
+      if (!parsed.self?.daily || !parsed.org?.daily) {
+        throw new ReadingError("The transit came back incomplete. Try again.");
+      }
+      return { phase: phaseLabel, phase_id: phaseId, ...parsed };
+    } catch (err) {
+      lastError = err;
+      if (err instanceof Anthropic.APIError && err.status && err.status < 500 && err.status !== 429) break;
+    }
+  }
+  if (lastError instanceof ReadingError) throw lastError;
+  throw new ReadingError("The transit service is unavailable right now. Try again in a moment.", lastError);
+}

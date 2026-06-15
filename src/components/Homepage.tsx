@@ -603,7 +603,7 @@ export default function Homepage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "18px" }}>
             <div style={{ fontFamily: T.fontMono, fontSize: "13px", letterSpacing: "1px" }}><span style={{ color: T.text }}>Twelvefold</span> <span style={{ color: T.accent }}>Institute</span></div>
             <div style={{ display: "flex", gap: "22px", flexWrap: "wrap" }}>
-              {([["Initiation", "/initiation"], ["Rhythms", "/rhythms"], ["Community", "/community"], ["Pattern Literacy", "/pattern-literacy"], ["Read", "/read"], ["Book", "/book"], ["Certification", "/certification"], ["Institutions", "/institutions"], ["Method", "/method"], ["Research", "/research"], ["About", "/about"]] as [string, string][]).map(([label, href]) => {
+              {([["Initiation", "/initiation"], ["Rhythms", "/rhythms"], ["Transits", "/transits"], ["Community", "/community"], ["Pattern Literacy", "/pattern-literacy"], ["Read", "/read"], ["Book", "/book"], ["Certification", "/certification"], ["Institutions", "/institutions"], ["Method", "/method"], ["Research", "/research"], ["About", "/about"]] as [string, string][]).map(([label, href]) => {
                 const handle = (e: React.MouseEvent<HTMLAnchorElement>) => {
                   if (href.startsWith("#")) {
                     e.preventDefault();
