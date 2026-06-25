@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import PatternMastery from "./PatternMastery";
+import UniversalStructures from "./UniversalStructures";
 import CoordinateReading from "@/components/CoordinateReading";
 
 // ════════════════════════════════════════════════════════════════
@@ -1041,6 +1042,7 @@ const Sidebar = ({ view, setView, progress, mobileOpen, onClose }) => {
     { id: "dashboard", label: "Dashboard", icon: "◈" },
     { id: "diagnostic", label: "Diagnostic", icon: "◎" },
     { id: "coordinate", label: "Coordinate Reading", icon: "⊹" },
+    { id: "structures", label: "Universal Structures", icon: "❖" },
     { id: "mastery", label: "Pattern Mastery", icon: "✸" },
     { id: "client-readings", label: "Client Readings", icon: "✦", external: "/read/app?mode=master" },
     { id: "tools", label: "Practitioner Tools", icon: "◆" },
@@ -1230,6 +1232,9 @@ export default function CertificationApp() {
 
     // Pattern Mastery — the v4 self-contained training app
     if (view === "mastery") return <PatternMastery />;
+
+    // Universal Structures — the 60-coordinate structure library
+    if (view === "structures") return <UniversalStructures />;
 
     // Coordinate Reading — the 60 Reality Coordinates diagnostic
     if (view === "coordinate") {
