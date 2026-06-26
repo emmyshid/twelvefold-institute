@@ -1692,7 +1692,7 @@ Respond ONLY with minified JSON: {"invocation":[{"layer":"Intelligent Order|Stru
     const rec = { id: Date.now(), ts: new Date().toISOString(), intention: intention.trim(), domain, symbolId, symbolName: symbol.name, register, powerWords: [...picked], lines: invocation.length ? invocation : buildInvocation(symbol, register, picked, intention), action: action || localActionFor(symbol, domain) };
     addInvocation(rec); showToast('✦ Invocation saved to your Journal.');
   }
-  function resetAll() { audio.stopBed(); setStage('attune'); setIntention(''); setPicked([]); setInvocation([]); setAction(''); setFreq(0); setScriptIdx(0); setNote(''); }
+  function resetAll() { setStage('attune'); setIntention(''); setPicked([]); setInvocation([]); setAction(''); setFreq(0); setScriptIdx(0); setNote(''); }
 
   const taStyle = { width: '100%', boxSizing: 'border-box', marginTop: '16px', padding: '14px 16px', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--chip)', color: 'var(--text)', fontFamily: FONT.body, fontSize: '16px', lineHeight: 1.5, outline: 'none', resize: 'vertical' };
   const h2s = { fontFamily: FONT.head, fontSize: 'clamp(22px,3.4vw,30px)', fontWeight: 500, color: 'var(--text)', margin: '8px 0 0', letterSpacing: '-0.4px' };
@@ -1826,6 +1826,7 @@ Respond ONLY with minified JSON: {"invocation":[{"layer":"Intelligent Order|Stru
             <GoldBtn onClick={saveIt}><Icon name="Check" size={15} color="#1A150A" /> Save to Journal</GoldBtn>
             <GhostBtn onClick={() => setStage('invoke')}>Return to invocation</GhostBtn>
             <GhostBtn color={ACCENT.Structure} onClick={resetAll}>New invocation</GhostBtn>
+            {audio.tone && <GhostBtn onClick={audio.stopBed}><Icon name="Square" size={13} color="var(--muted)" /> Stop coherence bed</GhostBtn>}
           </div>
           <p style={{ fontFamily: FONT.body, fontSize: '12.5px', fontStyle: 'italic', color: 'var(--dim)', textAlign: 'center', marginTop: '22px', maxWidth: '500px', marginLeft: 'auto', marginRight: 'auto' }}>The invocation aligns and commits you. What appears in the physical follows through the action you now take.</p>
         </Section>
@@ -1927,7 +1928,11 @@ export default function UniversalStructures() {
     }).catch(() => {}); // silent — localStorage already updated
   };
 
-  useEffect(() => { syncToServer(studied, applications, invocations); }, [studied, applications, invocations]); // eslint-disable-line react-hooks/exhaustive-deps
+  const syncMounted = useRef(false);
+  useEffect(() => {
+    if (!syncMounted.current) { syncMounted.current = true; return; }
+    syncToServer(studied, applications, invocations);
+  }, [studied, applications, invocations]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openApply = (s) => { setApplyId(s.id); setSelected(null); setTab('apply'); };
   const addInvocation = (r) => setInvocations((xs) => [...xs, r]);
