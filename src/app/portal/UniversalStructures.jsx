@@ -1,5 +1,5 @@
 "use client";
-     
+
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
 // ── Local data (60 structures · five-layer mappings) ──
@@ -1921,11 +1921,11 @@ export default function UniversalStructures() {
         '--card': 'rgba(255,255,255,0.025)',
         '--border': 'rgba(255,255,255,0.08)', '--chip': 'rgba(255,255,255,0.04)',
         '--nav': 'rgba(6,6,15,0.75)', '--ring': '#06060F', '--selbg': '#0E0E1A' }
-    : { '--bg': 'radial-gradient(1100px 600px at 78% -8%, rgba(124,58,237,0.10), transparent 60%), radial-gradient(900px 500px at 12% 4%, rgba(224,182,92,0.12), transparent 60%), #F6F3EC',
-        '--text': '#2A2622', '--muted': '#6B6459', '--dim': '#9A9388',
-        '--card': 'linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.42))',
-        '--border': 'rgba(40,30,60,0.10)', '--chip': 'rgba(255,255,255,0.55)',
-        '--nav': 'rgba(246,243,236,0.82)', '--ring': '#EFEAE0', '--selbg': '#FFFFFF' };
+    : { '--bg': 'radial-gradient(1100px 600px at 78% -8%, rgba(124,58,237,0.12), transparent 60%), radial-gradient(900px 500px at 12% 4%, rgba(251,191,36,0.05), transparent 60%), #0E0E1A',
+        '--text': '#EDE9F5', '--muted': 'rgba(237,233,245,0.55)', '--dim': 'rgba(237,233,245,0.32)',
+        '--card': 'rgba(255,255,255,0.04)',
+        '--border': 'rgba(255,255,255,0.10)', '--chip': 'rgba(255,255,255,0.06)',
+        '--nav': 'rgba(14,14,26,0.80)', '--ring': '#0E0E1A', '--selbg': '#16162A' };
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', color: 'var(--text)', fontFamily: FONT.sans, ...vars }}>
@@ -1934,7 +1934,7 @@ export default function UniversalStructures() {
         {/* module header */}
         <div style={{ padding: '24px 0 18px', borderBottom: '1px solid var(--border)', marginBottom: '22px' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px' }}>
-            <span style={mono({ letterSpacing: '2px' })}>Attuned Community · Module</span>
+            <span style={mono({ letterSpacing: '2px' })}>Twelvefold Institute · Universal Structure</span>
             <button onClick={() => setDark((d) => !d)} aria-label="Toggle theme" style={{ border: '1px solid var(--border)', background: 'var(--chip)', borderRadius: '10px', padding: '8px', cursor: 'pointer', display: 'flex' }}>
               <Icon name={dark ? 'Sun' : 'Moon'} size={16} color="var(--muted)" />
             </button>
