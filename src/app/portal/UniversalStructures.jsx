@@ -2,7 +2,7 @@
      
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
-// ── Local data (50 structures · five-layer mappings) ──
+// ── Local data (60 structures · five-layer mappings) ──
 // ── The five framework layers ─────────────────────────────────
 const FRAMEWORK_LAYERS = [
   {
@@ -194,6 +194,147 @@ const STRUCTURES = [
       pattern: 'One rule applied again and again across changing scales.',
       rhythm: 'Iteration — the rule re-run until detail fills the form.',
       events: 'Efficiency, richness, and unity between the small and the vast.',
+    },
+  },
+
+  {
+    id: 'goldenRatio', name: 'Golden Ratio', category: 'universal', icon: 'goldenRatio',
+    principle: 'Proportion that grows in harmony',
+    description: 'A single ratio (about 1.618) that lets a thing grow larger while keeping the same balanced form.',
+    physicalExample: 'Nautilus shells, sunflower seed heads, pinecones, spiral galaxies.',
+    primaryLayer: 'Pattern',
+    mapping: {
+      intelligentOrder: 'Growth can enlarge a thing without distorting what it is.',
+      structure: 'Each part relates to the whole as the whole relates to the larger.',
+      pattern: 'The same proportion repeated at every scale of growth.',
+      rhythm: 'Increase that adds without ever needing to start over.',
+      events: 'Forms that feel balanced, efficient, and quietly beautiful.',
+    },
+  },
+  {
+    id: 'tessellation', name: 'Tessellation', category: 'universal', icon: 'tessellation',
+    principle: 'Filling space without gaps',
+    description: 'Shapes repeated edge to edge to cover a whole surface, leaving nothing wasted.',
+    physicalExample: 'Honeycomb, turtle shells, cracked mud, basalt columns, scales.',
+    primaryLayer: 'Pattern',
+    mapping: {
+      intelligentOrder: 'A whole can be filled completely by faithful repetition of a part.',
+      structure: 'Identical units meeting edge to edge with no overlap or gap.',
+      pattern: 'One shape repeated to tile an entire surface.',
+      rhythm: 'Built outward, unit by unit, until the field is whole.',
+      events: 'Strength, economy, and complete coverage from simple parts.',
+    },
+  },
+  {
+    id: 'vortex', name: 'Vortex', category: 'universal', icon: 'vortex',
+    principle: 'Energy gathered toward a center',
+    description: 'A spinning flow that draws everything inward and concentrates its force at the core.',
+    physicalExample: 'Whirlpools, tornadoes, draining water, hurricanes, galaxies.',
+    primaryLayer: 'Rhythm',
+    mapping: {
+      intelligentOrder: 'Scattered energy becomes powerful when it turns around one center.',
+      structure: 'A spiral flow narrowing toward a still, central axis.',
+      pattern: 'Rotation that pulls the surrounding inward as it turns.',
+      rhythm: 'Self-sustaining spin, fed by what it draws in.',
+      events: 'Concentrated force, movement, and rapid transport.',
+    },
+  },
+  {
+    id: 'torus', name: 'Torus', category: 'universal', icon: 'torus',
+    principle: 'Self-returning circulation',
+    description: 'A ring-shaped flow that pours out at the top, wraps around, and feeds back into itself.',
+    physicalExample: 'Smoke rings, magnetic fields, apples, whirlpools, the heart\u2019s field.',
+    primaryLayer: 'Structure',
+    mapping: {
+      intelligentOrder: 'What circulates back to its source can sustain itself.',
+      structure: 'A doughnut form whose flow loops continuously through the center.',
+      pattern: 'Output returning to become input, around and through.',
+      rhythm: 'Endless circulation with no true beginning or end.',
+      events: 'Stable fields, self-renewal, and balanced exchange.',
+    },
+  },
+  {
+    id: 'catenary', name: 'Catenary & Arch', category: 'universal', icon: 'catenary',
+    principle: 'Strength found in the curve',
+    description: 'The natural curve a chain makes when it hangs — and, inverted, the strongest way to stand.',
+    physicalExample: 'Hanging chains, spider silk, eggshells, arches, suspension bridges.',
+    primaryLayer: 'Structure',
+    mapping: {
+      intelligentOrder: 'There is a shape that carries weight with the least strain.',
+      structure: 'A curve that channels load smoothly along its whole length.',
+      pattern: 'Tension and compression distributed evenly, never concentrated.',
+      rhythm: 'A form that holds steady under continuous load.',
+      events: 'Bridges, domes, and shells that stand far beyond their weight.',
+    },
+  },
+  {
+    id: 'gradient', name: 'Gradient', category: 'universal', icon: 'gradient',
+    principle: 'Order expressed as transition',
+    description: 'A smooth grading from one state to another that drives flow and makes exchange possible.',
+    physicalExample: 'Atmospheres, ocean depths, temperature, color, dawn and dusk.',
+    primaryLayer: 'Pattern',
+    mapping: {
+      intelligentOrder: 'Difference, gently graded, is what sets everything in motion.',
+      structure: 'A graded slope between two unlike states.',
+      pattern: 'Continuous change rather than an abrupt edge.',
+      rhythm: 'Flow that moves steadily from more toward less.',
+      events: 'Wind, current, diffusion, and the meeting of habitats.',
+    },
+  },
+  {
+    id: 'foam', name: 'Foam', category: 'universal', icon: 'foam',
+    principle: 'Partition with the least material',
+    description: 'Many cells packed together, sharing walls in the most economical possible arrangement.',
+    physicalExample: 'Soap foam, living tissue, bone interiors, basalt, bubble clusters.',
+    primaryLayer: 'Structure',
+    mapping: {
+      intelligentOrder: 'Many can be held apart and together with the least between them.',
+      structure: 'Cells meeting along shared walls of minimal surface.',
+      pattern: 'Walls that settle into the most efficient possible junctions.',
+      rhythm: 'Cells rearranging until tension is balanced everywhere.',
+      events: 'Lightness, insulation, and strength for very little material.',
+    },
+  },
+  {
+    id: 'threshold', name: 'Threshold', category: 'universal', icon: 'threshold',
+    principle: 'The point where one state becomes another',
+    description: 'A critical line at which gradual change tips suddenly into a wholly new state.',
+    physicalExample: 'Freezing and boiling, ice to water, dawn, a seed sprouting, tipping points.',
+    primaryLayer: 'Events',
+    mapping: {
+      intelligentOrder: 'Slow change accumulates until a single point transforms everything.',
+      structure: 'A boundary between two stable states of a system.',
+      pattern: 'Pressure building quietly until a sudden reordering.',
+      rhythm: 'Long approach, then an abrupt crossing.',
+      events: 'Phase changes, breakthroughs, and irreversible turns.',
+    },
+  },
+  {
+    id: 'feedbackLoop', name: 'Feedback Loop', category: 'universal', icon: 'feedbackLoop',
+    principle: 'Self-regulation through return',
+    description: 'A circle of cause and effect in which the output of a system bends back to steer it.',
+    physicalExample: 'Body temperature, predator and prey, thermostats, hormones, climate.',
+    primaryLayer: 'Rhythm',
+    mapping: {
+      intelligentOrder: 'A system can govern itself when its results inform its next move.',
+      structure: 'A loop where effect returns to adjust its own cause.',
+      pattern: 'Correction that pulls a wandering system back toward balance.',
+      rhythm: 'Continuous sensing and adjusting over time.',
+      events: 'Stability, homeostasis, and resilience to disturbance.',
+    },
+  },
+  {
+    id: 'lattice', name: 'Lattice', category: 'universal', icon: 'lattice',
+    principle: 'A framework that distributes order',
+    description: 'A regular network of nodes and links that spreads load and order evenly across a whole.',
+    physicalExample: 'Crystal lattices, scaffolding, graphene, leaf veins, trusses.',
+    primaryLayer: 'Structure',
+    mapping: {
+      intelligentOrder: 'Order held in a repeating framework can bear far more than its parts.',
+      structure: 'Nodes joined by links in a regular, repeating grid.',
+      pattern: 'The same connective unit repeated through space.',
+      rhythm: 'Built up unit by unit, sharing every load it meets.',
+      events: 'Rigidity, lightness, and strength spread across the whole.',
     },
   },
 
@@ -777,7 +918,7 @@ const STRUCTURE_BY_ID = Object.fromEntries(
 
 // ═══════════════════════════════════════════════════════════════
 // UNIVERSAL STRUCTURES — Study & Application module
-// Universal Structures module · Twelvefold Institute
+// Universal Structures module v4 · Twelvefold Institute
 // ───────────────────────────────────────────────────────────────
 // Study the forms of creation; apply the order they reveal.
 // Tabs: Overview · Explore · Mapping · Apply · Journal
@@ -791,11 +932,11 @@ const STRUCTURE_BY_ID = Object.fromEntries(
 // ═══════════════════════════════════════════════════════════════
 
 const ACCENT = {
-  'Intelligent Order': '#E0B65C', Structure: '#9B8FC7', Pattern: '#7BA0C4', Rhythm: '#7FB39A', Events: '#D98C7A',
+  'Intelligent Order': '#FBBF24', Structure: '#9B8FC7', Pattern: '#7BA0C4', Rhythm: '#7FB39A', Events: '#D98C7A',
 };
 const FONT = {
-  head: "'Fraunces', Georgia, serif", body: "'Spectral', Georgia, serif",
-  sans: "'Hanken Grotesk', system-ui, sans-serif", mono: "'Space Mono', monospace",
+  head: "'Crimson Text', Georgia, serif", body: "'Crimson Text', Georgia, serif",
+  sans: "'Crimson Text', Georgia, serif", mono: "'Space Mono', 'Courier New', monospace",
 };
 const ICON_NAME = {
   circle:'Circle', sphere:'Globe', spiral:'Tornado', branching:'GitBranch', network:'Network',
@@ -810,6 +951,8 @@ const ICON_NAME = {
   birdMigration:'Bird',
   snowflake:'Snowflake', crystal:'Gem', lightning:'CloudLightning', rainbow:'Rainbow', fire:'Flame',
   waterPh:'Droplet', wind:'Wind',
+  goldenRatio:'Shell', tessellation:'Grid3x3', vortex:'RotateCw', torus:'Donut', catenary:'Cable',
+  gradient:'Blend', foam:'Grip', threshold:'DoorOpen', feedbackLoop:'IterationCw', lattice:'Grid2x2',
 };
 const DOMAINS = ['Life', 'Leadership', 'Body', 'Family', 'Community'];
 const LAYER_PROMPTS = {
@@ -820,8 +963,6 @@ const LAYER_PROMPTS = {
   Events: 'What outcomes does it produce?',
 };
 
-// Glyph map — replaces lucide-react (the rest of the site is icon-library-free).
-// Keyed by the lucide names ICON_NAME already produces, so callers are unchanged.
 const GLYPH = {
   Circle:'○', Globe:'◐', Tornado:'⧗', GitBranch:'⎇', Network:'⛓',
   Spline:'〰', Waves:'〰', RefreshCcw:'↻', Shapes:'◈', Hexagon:'⬢',
@@ -831,7 +972,8 @@ const GLYPH = {
   Shield:'⛨', TreePine:'⚘', Leaf:'⚘', Flower2:'⚘', Apple:'●',
   Cherry:'●', Feather:'✐', Bug:'⁂', Fish:'⧖', Bird:'⋀',
   Snowflake:'❄', Gem:'◈', CloudLightning:'⛈', Rainbow:'◜', Flame:'☲',
-  Droplet:'∵', Wind:'↝',
+  Droplet:'∵', Wind:'↝', Compass:'⌖', Layers:'☰', Zap:'↯',
+  Eye:'◉', Link:'⛓', Target:'◎', Sun:'☉', Infinity:'∞',
 };
 function Icon({ name, size = 20, color, style }) {
   const g = (name && GLYPH[name]) || '○';
@@ -852,6 +994,121 @@ function salvageJSON(raw) {
 function fallbackApplication(s, domain) {
   return `Bring the principle of ${s.name.toLowerCase()} — ${s.principle.toLowerCase()} — into your ${domain.toLowerCase()} this week. Choose one concrete place where this should change how you act, and take a single visible step there.`;
 }
+
+// ── Invocation Chamber helpers ────────────────────────────────
+const lower1 = (s) => (s ? s.charAt(0).toLowerCase() + s.slice(1) : s);
+const glyphOf = (s) => ICON_NAME[s.icon] || 'Circle';
+const QUICK_SYMBOLS = ['circle', 'spiral', 'helix', 'roots', 'honeycomb', 'mountains', 'seeds', 'orbit'];
+const FIVE = ['Intelligent Order', 'Structure', 'Pattern', 'Rhythm', 'Events'];
+const POWER_WORDS = [
+  { w: 'ORDER', layer: 'Intelligent Order' }, { w: 'ALIGN', layer: 'Intelligent Order' },
+  { w: 'SEE', layer: 'Pattern' }, { w: 'ROOT', layer: 'Structure' }, { w: 'BUILD', layer: 'Structure' },
+  { w: 'STEWARD', layer: 'Structure' }, { w: 'RELEASE', layer: 'Rhythm' }, { w: 'RENEW', layer: 'Rhythm' },
+  { w: 'RISE', layer: 'Events' }, { w: 'BEGIN', layer: 'Events' },
+];
+const FREQ_STEPS = [
+  { name: 'Beta', hz: '14–30 Hz' }, { name: 'Alpha', hz: '8–12 Hz' }, { name: 'Theta', hz: '4–8 Hz' },
+];
+const DESCENT_SCRIPT = [
+  'Let your shoulders drop. Soften the jaw.', 'Let the breath slow on its own — no force.',
+  'Rest your gaze on the symbol. Let it hold you.', 'With each exhale, settle one layer deeper.',
+  'Beta loosens. The thinking quiets.', 'Alpha opens — calm, unhurried, wide.',
+  'You arrive in theta: still, receptive, awake.',
+];
+const KEYWORDS = {
+  circle: ['whole', 'unity', 'complete', 'closure', 'belong', 'together', 'oneness'],
+  sphere: ['stable', 'contain', 'complete', 'whole', 'balanced', 'self'],
+  spiral: ['grow', 'growth', 'evolve', 'transform', 'progress', 'develop', 'unfold', 'change', 'expand'],
+  branching: ['distribute', 'spread', 'scale', 'multiply', 'delegate', 'reach', 'expand'],
+  network: ['connect', 'connection', 'relationship', 'collaborate', 'team', 'network', 'support', 'community'],
+  helix: ['identity', 'legacy', 'continuity', 'inherit', 'carry', 'preserve', 'information'],
+  wave: ['communicate', 'message', 'influence', 'transmit', 'reach', 'signal', 'resonate'],
+  cycle: ['renew', 'renewal', 'restart', 'recover', 'reset', 'repeat', 'habit', 'rhythm'],
+  symmetry: ['balance', 'fairness', 'harmony', 'coherence', 'proportion', 'justice', 'beauty'],
+  fractal: ['consistency', 'integrity', 'align', 'detail', 'pattern', 'whole'],
+  galaxy: ['vision', 'scale', 'vast', 'expansion', 'order', 'big'],
+  solarSystem: ['harmony', 'roles', 'coordinate', 'relationship', 'balance', 'team'],
+  orbit: ['discipline', 'consistency', 'routine', 'faithful', 'reliable', 'commit', 'steady', 'habit'],
+  planet: ['stability', 'home', 'steward', 'responsibility', 'ground', 'provide'],
+  moon: ['reflect', 'cycle', 'emotion', 'intuition', 'rest', 'quiet', 'phase'],
+  stars: ['guidance', 'purpose', 'light', 'lead', 'inspire', 'direction', 'navigate'],
+  mountains: ['stability', 'endure', 'strong', 'steady', 'permanent', 'ground', 'resilience', 'immovable', 'patience'],
+  rivers: ['flow', 'adapt', 'flexible', 'persist', 'move', 'yield'],
+  oceans: ['depth', 'abundance', 'emotion', 'vast', 'calm', 'deep'],
+  forests: ['interdependence', 'community', 'ecosystem', 'together', 'support', 'collaborate'],
+  soil: ['prepare', 'foundation', 'hidden', 'patience', 'ground', 'nourish', 'humble'],
+  seasons: ['timing', 'season', 'transition', 'change', 'rest', 'cycle', 'patience', 'wait'],
+  brain: ['integrate', 'focus', 'clarity', 'think', 'decide', 'learn', 'understand'],
+  heartOrgan: ['sustain', 'endurance', 'service', 'steady', 'care', 'consistency', 'love'],
+  lungs: ['exchange', 'balance', 'breathe', 'give', 'receive', 'rest', 'recover'],
+  skeleton: ['support', 'structure', 'strength', 'framework', 'backbone', 'discipline'],
+  bloodVessels: ['distribute', 'provide', 'supply', 'nourish', 'reach', 'resource'],
+  nervousSystem: ['communicate', 'coordinate', 'sense', 'respond', 'awareness', 'feedback'],
+  dna: ['identity', 'values', 'core', 'authenticity', 'legacy', 'self', 'continuity'],
+  skin: ['boundary', 'protect', 'limit', 'protection', 'contact'],
+  roots: ['foundation', 'ground', 'anchor', 'stability', 'depth', 'security', 'base', 'grounded', 'stable'],
+  trunk: ['strength', 'backbone', 'endure', 'support', 'core', 'longevity'],
+  branchesPlant: ['expand', 'reach', 'grow', 'opportunity', 'spread'],
+  leaves: ['receive', 'presence', 'nourish', 'attention', 'gather', 'open'],
+  flowers: ['beauty', 'attract', 'express', 'create', 'invite', 'vulnerability'],
+  fruit: ['result', 'harvest', 'generosity', 'give', 'share', 'multiply', 'outcome'],
+  seeds: ['potential', 'begin', 'start', 'future', 'possibility', 'plant', 'patience', 'new', 'beginning'],
+  wings: ['freedom', 'rise', 'lift', 'escape', 'release', 'fly', 'elevate'],
+  honeycomb: ['cooperate', 'efficiency', 'community', 'build', 'collaborate', 'organize'],
+  spiderWeb: ['precision', 'sensitivity', 'patience', 'detail', 'craft', 'attention'],
+  antColony: ['organize', 'teamwork', 'collective', 'collaborate', 'community', 'order'],
+  fishSchool: ['coordinate', 'unity', 'together', 'sync', 'team'],
+  birdMigration: ['timing', 'journey', 'season', 'direction', 'transition'],
+  snowflake: ['unique', 'individuality', 'identity', 'authentic', 'distinct'],
+  crystal: ['order', 'clarity', 'integrity', 'focus', 'structure', 'clear', 'discipline'],
+  lightning: ['breakthrough', 'sudden', 'decisive', 'release', 'transform', 'act', 'bold'],
+  rainbow: ['integrate', 'diversity', 'hope', 'reconcile', 'unite', 'harmony'],
+  fire: ['transform', 'energy', 'passion', 'change', 'purify', 'clear', 'renew'],
+  waterPh: ['adapt', 'flexible', 'flow', 'soft', 'yield', 'persist', 'adaptable'],
+  wind: ['influence', 'unseen', 'change', 'subtle', 'move', 'breath'],
+};
+function scoreStructure(s, tokens) {
+  let score = 0;
+  const hay = (s.name + ' ' + s.principle + ' ' + s.description + ' ' + Object.values(s.mapping).join(' ') + ' ' + catLabel(s.category)).toLowerCase();
+  tokens.forEach((t) => { if (t.length > 3 && hay.includes(t)) score += 2; });
+  (KEYWORDS[s.id] || []).forEach((k) => { tokens.forEach((t) => { if (t.length > 3 && (t.includes(k) || k.includes(t))) score += 3; }); });
+  return score;
+}
+function bestSymbol(intention) {
+  const tokens = (intention || '').toLowerCase().split(/[^a-z]+/).filter(Boolean);
+  if (!tokens.length) return null;
+  let best = null, bs = 0;
+  STRUCTURES.forEach((s) => { const sc = scoreStructure(s, tokens); if (sc > bs) { bs = sc; best = s; } });
+  return best ? best.id : null;
+}
+const reasonFor = (s) => `Auto-matched · resonant with \u201C${lower1(s.principle)}\u201D`;
+function renderCaps(line) {
+  return line.split(/(\b[A-Z]{2,}\b)/g).map((p, i) => /^[A-Z]{2,}$/.test(p)
+    ? <span key={i} style={{ color: ACCENT['Intelligent Order'], fontWeight: 600, letterSpacing: '0.5px' }}>{p}</span>
+    : <span key={i}>{p}</span>);
+}
+function buildInvocation(symbol, register, picked, intention) {
+  const m = symbol.mapping;
+  const caps = picked.length ? picked.join(', ') : 'ORDER, ALIGN';
+  const sacred = register === 'sacred';
+  const head = sacred
+    ? (intention.trim() ? `By the ${symbol.name}, I align with the Order beneath ${lower1(intention.trim())}.` : `By the ${symbol.name}, I enter the Order it reveals.`)
+    : (intention.trim() ? `Through the ${symbol.name}, I align with the order beneath ${lower1(intention.trim())}.` : `I align with the order already at work.`);
+  const wrap = sacred
+    ? { io: 'Beneath it, an order I trust:', st: 'I take its form:', pa: 'I move by its pattern:', rh: 'I keep its rhythm:', ev: 'And so it takes form:' }
+    : { io: 'The order here:', st: 'Its form:', pa: 'Its pattern:', rh: 'Its rhythm:', ev: 'Its fruit, made real:' };
+  const close = sacred ? `By ${caps}, I align — and I act. So it is.` : `${caps}: I align, and I act. This pattern is teaching me.`;
+  return [
+    { layer: null, text: head },
+    { layer: 'Intelligent Order', text: `${wrap.io} ${lower1(m.intelligentOrder)}` },
+    { layer: 'Structure', text: `${wrap.st} ${lower1(m.structure)}` },
+    { layer: 'Pattern', text: `${wrap.pa} ${lower1(m.pattern)}` },
+    { layer: 'Rhythm', text: `${wrap.rh} ${lower1(m.rhythm)}` },
+    { layer: 'Events', text: `${wrap.ev} ${lower1(m.events)}` },
+    { layer: null, text: close },
+  ];
+}
+const localActionFor = (symbol, domain) => `Carry the ${symbol.name} into your ${domain.toLowerCase()}: take one concrete step today that embodies "${lower1(symbol.principle)}".`;
 
 // ── Shared bits ───────────────────────────────────────────────
 function Heading({ eyebrow, title, sub }) {
@@ -876,10 +1133,25 @@ function GoldBtn({ children, onClick, disabled, style }) {
   const [h, setH] = useState(false);
   return (
     <button onClick={onClick} disabled={disabled} onMouseEnter={() => setH(true)} onMouseLeave={() => setH(false)}
-      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', borderRadius: '10px', border: 'none', background: disabled ? 'rgba(224,182,92,0.3)' : h ? '#EAC274' : '#E0B65C', color: '#1A150A', fontFamily: FONT.sans, fontSize: '13.5px', fontWeight: 600, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.6 : 1, transition: 'all 0.2s ease', boxShadow: disabled ? 'none' : '0 2px 12px rgba(224,182,92,0.18)', ...style }}>
+      style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 22px', borderRadius: '10px', border: 'none', background: disabled ? 'rgba(224,182,92,0.3)' : h ? '#F59E0B' : '#FBBF24', color: '#1A150A', fontFamily: FONT.sans, fontSize: '13.5px', fontWeight: 600, cursor: disabled ? 'not-allowed' : 'pointer', opacity: disabled ? 0.6 : 1, transition: 'all 0.2s ease', boxShadow: disabled ? 'none' : '0 2px 12px rgba(224,182,92,0.18)', ...style }}>
       {children}
     </button>
   );
+}
+
+function Section({ children }) { return <div style={{ animation: 'fadeUp 0.4s ease both' }}>{children}</div>; }
+function Eyebrow({ children, center }) { return <p style={{ ...mono(), textAlign: center ? 'center' : 'left', margin: 0 }}>{children}</p>; }
+function Chip({ children, on, color, onClick }) { return <button onClick={onClick} style={{ padding: '8px 15px', borderRadius: '999px', cursor: 'pointer', fontFamily: FONT.sans, fontSize: '12.5px', fontWeight: on ? 600 : 500, border: `1px solid ${on ? color : 'var(--border)'}`, background: on ? color + '1A' : 'transparent', color: on ? color : 'var(--muted)' }}>{children}</button>; }
+function Segmented({ value, onChange, options }) {
+  return (
+    <div style={{ display: 'inline-flex', padding: '3px', borderRadius: '999px', border: '1px solid var(--border)', background: 'var(--chip)' }}>
+      {options.map(([v, label]) => { const on = value === v; return <button key={v} onClick={() => onChange(v)} style={{ padding: '6px 14px', borderRadius: '999px', border: 'none', cursor: 'pointer', fontFamily: FONT.sans, fontSize: '12px', fontWeight: 600, background: on ? ACCENT['Intelligent Order'] : 'transparent', color: on ? '#1A150A' : 'var(--muted)' }}>{label}</button>; })}
+    </div>
+  );
+}
+function Stepper({ stage }) {
+  const order = ['attune', 'descend', 'invoke', 'seal']; const idx = order.indexOf(stage);
+  return <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>{order.map((s, i) => <span key={s} style={{ width: i === idx ? '22px' : '8px', height: '8px', borderRadius: '999px', background: i <= idx ? ACCENT['Intelligent Order'] : 'var(--border)', transition: 'all 0.3s ease' }} />)}</div>;
 }
 
 // ── Framework flow ────────────────────────────────────────────
@@ -927,7 +1199,7 @@ function Card({ s, onOpen, studied }) {
 }
 
 // ── Detail modal ──────────────────────────────────────────────
-function Modal({ s, onClose, studied, onToggleStudied, onApply }) {
+function Modal({ s, onClose, studied, onToggleStudied, onApply, onInvoke }) {
   useEffect(() => {
     if (!s) return;
     const onKey = (e) => e.key === 'Escape' && onClose();
@@ -990,6 +1262,7 @@ function Modal({ s, onClose, studied, onToggleStudied, onApply }) {
           </div>
           <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '18px' }}>
             <GoldBtn onClick={() => onApply(s)}><Icon name="PenLine" size={15} color="#1A150A" /> Apply this principle</GoldBtn>
+            <GhostBtn color={ACCENT['Intelligent Order']} onClick={() => onInvoke(s)}><Icon name="Flame" size={15} color={ACCENT['Intelligent Order']} /> Invoke with this</GhostBtn>
             <GhostBtn color={ACCENT.Rhythm} onClick={() => onToggleStudied(s.id)}>
               {isStudied ? '✓ Studied' : 'Mark as studied'}
             </GhostBtn>
@@ -1066,8 +1339,6 @@ The student is applying it to the domain of ${domain}.
 Propose one concrete Recommended Participation: a specific, grounded action or practice they can take in their ${domain.toLowerCase()} in the coming week, true to the principle. Keep it to 1-2 sentences, practical and non-mystical — no references to the universe, manifesting, fate, or the divine.
 Respond ONLY with minified JSON, no preamble: {"application":"..."}`;
     try {
-      // Routed through the server proxy — the API key never reaches the
-      // browser. /api/org-diagnostic returns parsed JSON directly.
       const res = await fetch('/api/org-diagnostic', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
@@ -1146,7 +1417,7 @@ Respond ONLY with minified JSON, no preamble: {"application":"..."}`;
 }
 
 // ── Journal ───────────────────────────────────────────────────
-function JournalPanel({ applications, removeApplication, studiedCount, goExplore, goApply }) {
+function JournalPanel({ applications, removeApplication, invocations, removeInvocation, audio, studiedCount, goExplore, goApply, goInvoke }) {
   const domainCounts = {};
   DOMAINS.forEach((d) => (domainCounts[d] = 0));
   applications.forEach((ap) => { domainCounts[ap.domain] = (domainCounts[ap.domain] || 0) + 1; });
@@ -1190,6 +1461,50 @@ function JournalPanel({ applications, removeApplication, studiedCount, goExplore
         </div>
       </div>
 
+      {/* Invocations */}
+      <div style={{ marginBottom: '26px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+          <h3 style={{ fontFamily: FONT.head, fontSize: '18px', fontWeight: 500, color: 'var(--text)', margin: 0 }}>Invocations</h3>
+          <GhostBtn color={ACCENT['Intelligent Order']} onClick={goInvoke}>+ New invocation</GhostBtn>
+        </div>
+        {invocations.length === 0 ? (
+          <div style={{ ...glass, borderRadius: '16px', padding: '28px 22px', textAlign: 'center' }}>
+            <Icon name="Flame" size={24} color="var(--dim)" />
+            <p style={{ fontFamily: FONT.body, fontSize: '14.5px', color: 'var(--muted)', margin: '10px 0 0' }}>No invocations yet. Enter the Invoke chamber, then seal a rite to keep it here.</p>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {[...invocations].reverse().map((r) => {
+              const s = STRUCTURE_BY_ID[r.symbolId]; const a = s ? ACCENT[s.primaryLayer] : ACCENT['Intelligent Order'];
+              const playing = audio.tone && audio.audioSource === r.id;
+              return (
+                <div key={r.id} style={{ ...glass, borderRadius: '16px', padding: '18px 20px', borderLeft: `3px solid ${a}` }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>{s && <Icon name={glyphOf(s)} size={16} color={a} />}<span style={{ fontFamily: FONT.head, fontSize: '15px', color: 'var(--text)' }}>{r.symbolName}</span></span>
+                    <span style={{ padding: '2px 9px', borderRadius: '999px', background: ACCENT['Intelligent Order'] + '14', border: `1px solid ${ACCENT['Intelligent Order']}33`, ...mono({ color: ACCENT['Intelligent Order'], fontSize: '9px' }) }}>{r.register}</span>
+                    <span style={{ padding: '2px 9px', borderRadius: '999px', background: ACCENT.Rhythm + '14', border: `1px solid ${ACCENT.Rhythm}33`, ...mono({ color: ACCENT.Rhythm, fontSize: '9px' }) }}>{r.domain}</span>
+                    <span style={{ fontFamily: FONT.mono, fontSize: '10px', color: 'var(--dim)', marginLeft: 'auto' }}>{fmt(r.ts)}</span>
+                  </div>
+                  {r.intention && <p style={{ fontFamily: FONT.body, fontSize: '13px', fontStyle: 'italic', color: 'var(--muted)', margin: '0 0 10px' }}>“{r.intention}”</p>}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                    {r.lines.map((l, i) => { const tx = typeof l === 'string' ? l : l.text; const lay = typeof l === 'string' ? null : l.layer; return <p key={i} style={{ fontFamily: FONT.head, fontSize: '14.5px', color: 'var(--text)', margin: 0, lineHeight: 1.5 }}>{lay && <span style={{ color: ACCENT[lay], fontFamily: FONT.mono, fontSize: '9px', marginRight: '6px' }}>{'\u25B8'}</span>}{renderCaps(tx)}</p>; })}
+                  </div>
+                  <div style={{ marginTop: '12px', borderRadius: '10px', background: ACCENT.Rhythm + '0C', border: `1px solid ${ACCENT.Rhythm}26`, padding: '10px 12px' }}>
+                    <span style={mono({ color: ACCENT.Rhythm, fontSize: '9px' })}>Sealed action</span>
+                    <p style={{ fontFamily: FONT.body, fontSize: '13.5px', color: 'var(--text)', margin: '4px 0 0', lineHeight: 1.5 }}>{r.action}</p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center', marginTop: '10px' }}>
+                    <GhostBtn color={ACCENT['Intelligent Order']} onClick={() => (playing ? audio.stopBed() : audio.startBed(r.id))} style={{ padding: '6px 12px' }}><Icon name={playing ? 'Square' : 'Headphones'} size={13} color={ACCENT['Intelligent Order']} /> {playing ? 'Stop bed' : 'Play coherence bed'}</GhostBtn>
+                    <GhostBtn color={ACCENT.Events} onClick={() => removeInvocation(r.id)} style={{ padding: '6px 12px' }}>Delete</GhostBtn>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <h3 style={{ fontFamily: FONT.head, fontSize: '18px', fontWeight: 500, color: 'var(--text)', margin: '0 0 14px' }}>Applications</h3>
       {applications.length === 0 ? (
         <div style={{ ...glass, borderRadius: '16px', padding: '48px 24px', textAlign: 'center' }}>
           <Icon name="NotebookPen" size={30} color="var(--dim)" />
@@ -1291,54 +1606,308 @@ function Overview({ goExplore, goApply, onOpen, studiedCount, appsCount }) {
 
 const fmt = (ts) => { try { return new Date(ts).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }); } catch { return ''; } };
 
+// ═══ INVOKE PANEL (Invocation Chamber) ════════════════════════
+function InvokePanel({ seed, clearSeed, addInvocation, showToast, audio }) {
+  const [stage, setStage] = useState('attune');
+  const [register, setRegister] = useState('sacred');
+  const [intention, setIntention] = useState('');
+  const [domain, setDomain] = useState('Life');
+  const [symbolId, setSymbolId] = useState(seed || 'circle');
+  const [symbolAuto, setSymbolAuto] = useState(!seed);
+  const [matchReason, setMatchReason] = useState(seed ? 'Carried from your study.' : '');
+  const [matching, setMatching] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [picked, setPicked] = useState([]);
+  const [freq, setFreq] = useState(0);
+  const [breath, setBreath] = useState('in');
+  const [scriptIdx, setScriptIdx] = useState(0);
+  const [invocation, setInvocation] = useState([]);
+  const [action, setAction] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState('');
+  const symbol = STRUCTURE_BY_ID[symbolId];
+  const sA = ACCENT[symbol.primaryLayer];
+  const bedOn = audio.tone && audio.audioSource === 'chamber';
+
+  useEffect(() => { if (seed) { setSymbolId(seed); setSymbolAuto(false); setMatchReason('Carried from your study.'); setStage('attune'); clearSeed(); } /* eslint-disable-next-line */ }, [seed]);
+  useEffect(() => { if (!symbolAuto) return; const t = setTimeout(() => { const id = bestSymbol(intention); if (id) { setSymbolId(id); setMatchReason(reasonFor(STRUCTURE_BY_ID[id])); } }, 350); return () => clearTimeout(t); }, [intention, symbolAuto]);
+  useEffect(() => {
+    if (stage !== 'descend') return;
+    const b = setInterval(() => setBreath((p) => (p === 'in' ? 'out' : 'in')), 4000);
+    const f = setInterval(() => setFreq((p) => Math.min(p + 1, FREQ_STEPS.length - 1)), 9000);
+    const s = setInterval(() => setScriptIdx((p) => Math.min(p + 1, DESCENT_SCRIPT.length - 1)), 5200);
+    return () => { clearInterval(b); clearInterval(f); clearInterval(s); };
+  }, [stage]);
+
+  const togglePick = (w) => setPicked((ps) => (ps.includes(w) ? ps.filter((x) => x !== w) : ps.length < 3 ? [...ps, w] : ps));
+
+  async function aiAttune() {
+    if (!intention.trim()) return;
+    setMatching(true); setNote('');
+    const list = STRUCTURES.map((s) => `${s.id}: ${s.name} — ${s.principle}`).join('\n');
+    const prompt = `A practitioner seeks to align with: "${intention.trim()}". From this list of universal structures, choose the ONE whose principle best resonates as a symbol to focus on while invoking. Reply ONLY as minified JSON {"id":"<id>","reason":"<reason, max 12 words>"}.\n${list}`;
+    try {
+      const res = await fetch('/api/org-diagnostic', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) });
+      if (!res.ok) throw new Error('x');
+      const parsed = await res.json();
+      if (!parsed || !STRUCTURE_BY_ID[parsed.id]) throw new Error('x');
+      setSymbolAuto(true); setSymbolId(parsed.id); setMatchReason('Attuned by the system · ' + (parsed.reason || 'resonant with your intention'));
+    } catch { const id = bestSymbol(intention); if (id) { setSymbolId(id); setMatchReason(reasonFor(STRUCTURE_BY_ID[id])); } }
+    finally { setMatching(false); }
+  }
+
+  async function forge() {
+    setBusy(true); setNote('');
+    const words = picked.length ? picked.join(', ') : 'ORDER, ALIGN';
+    const tone_ = register === 'sacred' ? 'Tone: sacred script — elevated, reverent, liturgical, like a spoken rite.' : 'Tone: grounded and direct — plain, potent, unembellished.';
+    const m = symbol.mapping;
+    const prompt = `You are composing an Invocation for a practitioner of the Cosmic Reality Framework, spoken aloud from a calm, receptive (theta) state. It MUST be structured as a descent through the five layers of the framework, personalized to the practitioner's intention and the symbol they resonate with.
+Intention: "${intention.trim() || 'to align with intelligent order'}"
+Domain: ${domain}
+Symbol: ${symbol.name} — principle: "${symbol.principle}"
+Five layers of the symbol:
+- Intelligent Order: ${m.intelligentOrder}
+- Structure: ${m.structure}
+- Pattern: ${m.pattern}
+- Rhythm: ${m.rhythm}
+- Events: ${m.events}
+Power words to weave in CAPS: ${words}
+${tone_}
+Provide ONE first-person, present-tense line for EACH of the five layers, drawing on the symbol's quality and the intention, weaving a power word in CAPS where natural. Add a short opening line (layer null) naming the intention and symbol, and a short closing line (layer null) that seals it. The Events line speaks to it taking form in the physical. Honesty: the words align and commit the speaker; they do NOT promise instantaneous supernatural manifestation — the physical completes through aligned action.
+Then "action": one concrete Recommended Participation in their ${domain.toLowerCase()} that carries it into the physical.
+Respond ONLY with minified JSON: {"invocation":[{"layer":"Intelligent Order|Structure|Pattern|Rhythm|Events|null","text":"..."}],"action":"..."}`;
+    try {
+      const res = await fetch('/api/org-diagnostic', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) });
+      if (!res.ok) throw new Error('x');
+      const parsed = await res.json();
+      if (!parsed || !Array.isArray(parsed.invocation)) throw new Error('x');
+      const norm = parsed.invocation.map((it) => (typeof it === 'string' ? { layer: null, text: it } : { layer: ACCENT[it.layer] ? it.layer : null, text: it.text || '' })).filter((it) => it.text);
+      setInvocation(norm.length ? norm : buildInvocation(symbol, register, picked, intention)); setAction(parsed.action || localActionFor(symbol, domain));
+    } catch { setNote('Live forge unavailable — composed from the symbol, the framework, and your power words.'); setInvocation(buildInvocation(symbol, register, picked, intention)); setAction(localActionFor(symbol, domain)); }
+    finally { setBusy(false); }
+  }
+
+  function enterInvoke() { if (!invocation.length) { setInvocation(buildInvocation(symbol, register, picked, intention)); setAction(localActionFor(symbol, domain)); } setStage('invoke'); }
+  function saveIt() {
+    const rec = { id: Date.now(), ts: new Date().toISOString(), intention: intention.trim(), domain, symbolId, symbolName: symbol.name, register, powerWords: [...picked], lines: invocation.length ? invocation : buildInvocation(symbol, register, picked, intention), action: action || localActionFor(symbol, domain) };
+    addInvocation(rec); showToast('✦ Invocation saved to your Journal.');
+  }
+  function resetAll() { audio.stopBed(); setStage('attune'); setIntention(''); setPicked([]); setInvocation([]); setAction(''); setFreq(0); setScriptIdx(0); setNote(''); }
+
+  const taStyle = { width: '100%', boxSizing: 'border-box', marginTop: '16px', padding: '14px 16px', borderRadius: '12px', border: '1px solid var(--border)', background: 'var(--chip)', color: 'var(--text)', fontFamily: FONT.body, fontSize: '16px', lineHeight: 1.5, outline: 'none', resize: 'vertical' };
+  const h2s = { fontFamily: FONT.head, fontSize: 'clamp(22px,3.4vw,30px)', fontWeight: 500, color: 'var(--text)', margin: '8px 0 0', letterSpacing: '-0.4px' };
+  const subs = { fontFamily: FONT.body, fontSize: '15px', color: 'var(--muted)', lineHeight: 1.55, margin: '10px 0 0' };
+
+  return (
+    <div style={{ maxWidth: '720px', margin: '0 auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '22px' }}>
+        <Stepper stage={stage} />
+        <Segmented value={register} onChange={setRegister} options={[['sacred', 'Sacred'], ['grounded', 'Grounded']]} />
+      </div>
+
+      {/* ATTUNE */}
+      {stage === 'attune' && (
+        <Section>
+          <Eyebrow>Set the intention</Eyebrow>
+          <h2 style={h2s}>What do you seek to align with?</h2>
+          <p style={subs}>Name what you are bringing into order. A structure is auto-attuned to your words — the symbol your mind rests on to resonate with the Order it expresses.</p>
+          <textarea value={intention} onChange={(e) => setIntention(e.target.value)} rows={3} placeholder="e.g. to lead my team through this transition without losing myself" style={taStyle} />
+          <div style={{ ...mono(), marginTop: '18px', marginBottom: '8px' }}>Domain</div>
+          <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap' }}>{DOMAINS.map((d) => <Chip key={d} on={domain === d} color={ACCENT.Rhythm} onClick={() => setDomain(d)}>{d}</Chip>)}</div>
+
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px', marginTop: '22px', marginBottom: '10px' }}>
+            <span style={mono()}>Your symbol — attuned to your intention</span>
+            <div style={{ display: 'flex', gap: '7px' }}>
+              <GhostBtn color={ACCENT['Intelligent Order']} onClick={aiAttune}>{matching ? 'Attuning…' : '✦ Attune with AI'}</GhostBtn>
+              {!symbolAuto && <GhostBtn onClick={() => setSymbolAuto(true)}>↻ Auto</GhostBtn>}
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center', borderRadius: '16px', border: `1px solid ${sA}33`, background: sA + '0E', padding: '18px', marginBottom: '12px' }}>
+            <div style={{ width: '60px', height: '60px', flexShrink: 0, borderRadius: '14px', background: sA + '1A', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `inset 0 0 0 1px ${sA}44` }}><Icon name={glyphOf(symbol)} size={30} color={sA} /></div>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <span style={{ fontFamily: FONT.head, fontSize: '18px', color: 'var(--text)' }}>{symbol.name}</span>
+                <span style={{ ...mono(), color: sA }}>{symbol.primaryLayer}</span>
+                {symbolAuto && <span style={{ padding: '2px 8px', borderRadius: '999px', background: ACCENT['Intelligent Order'] + '14', border: `1px solid ${ACCENT['Intelligent Order']}33`, ...mono({ color: ACCENT['Intelligent Order'], fontSize: '8.5px' }) }}>auto</span>}
+              </div>
+              <p style={{ fontFamily: FONT.body, fontSize: '14px', color: 'var(--muted)', margin: '4px 0 0', lineHeight: 1.5 }}>{symbol.mapping.intelligentOrder}</p>
+              {matchReason && <p style={{ fontFamily: FONT.body, fontSize: '12px', fontStyle: 'italic', color: sA, margin: '6px 0 0' }}>{matchReason}</p>}
+            </div>
+          </div>
+          <button onClick={() => setManualOpen((o) => !o)} style={{ border: 'none', background: 'transparent', color: 'var(--muted)', fontFamily: FONT.sans, fontSize: '12px', cursor: 'pointer', padding: '4px 0' }}>{manualOpen ? '▾ Hide manual choice' : '▸ Choose a different symbol'}</button>
+          {manualOpen && (
+            <div style={{ marginTop: '10px' }}>
+              <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                {QUICK_SYMBOLS.map((id) => { const s = STRUCTURE_BY_ID[id]; const on = symbolId === id; const a = ACCENT[s.primaryLayer]; return <button key={id} onClick={() => { setSymbolAuto(false); setSymbolId(id); setMatchReason('Chosen by you.'); }} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '7px 13px', borderRadius: '999px', cursor: 'pointer', border: `1px solid ${on ? a : 'var(--border)'}`, background: on ? a + '18' : 'transparent', color: on ? a : 'var(--muted)', fontFamily: FONT.sans, fontSize: '12px', fontWeight: on ? 600 : 500 }}><Icon name={glyphOf(s)} size={14} color={on ? a : 'var(--muted)'} />{s.name}</button>; })}
+              </div>
+              <select value={symbolId} onChange={(e) => { setSymbolAuto(false); setSymbolId(e.target.value); setMatchReason('Chosen by you.'); }} style={{ width: '100%', padding: '11px 14px', borderRadius: '11px', border: '1px solid var(--border)', background: 'var(--selbg)', color: 'var(--text)', fontFamily: FONT.sans, fontSize: '13.5px', cursor: 'pointer' }}>
+                {STRUCTURES.map((o) => <option key={o.id} value={o.id} style={{ background: 'var(--selbg)' }}>{o.name} — {o.principle}</option>)}
+              </select>
+            </div>
+          )}
+          <div style={{ marginTop: '24px' }}><GoldBtn onClick={() => { setFreq(0); setScriptIdx(0); setStage('descend'); }} disabled={!intention.trim()}>Enter the Chamber <Icon name="ArrowRight" size={15} color="#1A150A" /></GoldBtn></div>
+        </Section>
+      )}
+
+      {/* DESCEND */}
+      {stage === 'descend' && (
+        <Section>
+          <Eyebrow>Descend into theta</Eyebrow>
+          <h2 style={h2s}>Rest on the symbol; breathe down</h2>
+          <p style={subs}>Let the {symbol.name} hold your attention. Follow the breath into theta (4–8 Hz) — the calm, receptive band.</p>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '24px 0' }}>
+            <div style={{ position: 'relative', width: '230px', height: '230px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div style={{ position: 'absolute', width: '230px', height: '230px', borderRadius: '50%', background: `radial-gradient(circle, ${sA}26, transparent 70%)`, transform: breath === 'in' ? 'scale(1.12)' : 'scale(0.82)', transition: 'transform 4s ease-in-out' }} />
+              <div style={{ width: '150px', height: '150px', borderRadius: '50%', border: `1px solid ${sA}55`, background: `radial-gradient(circle, ${sA}1A, transparent)`, transform: breath === 'in' ? 'scale(1.18)' : 'scale(0.88)', transition: 'transform 4s ease-in-out', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name={glyphOf(symbol)} size={62} color={sA} /></div>
+            </div>
+            <span style={{ fontFamily: FONT.head, fontSize: '15px', color: sA, marginTop: '14px' }}>{breath === 'in' ? 'Breathe in' : 'Breathe out'}</span>
+            <p style={{ fontFamily: FONT.body, fontSize: '15px', fontStyle: 'italic', color: 'var(--muted)', marginTop: '10px', minHeight: '22px', textAlign: 'center' }}>{DESCENT_SCRIPT[scriptIdx]}</p>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+              {FREQ_STEPS.map((s, i) => { const on = i === freq, passed = i < freq; return <div key={s.name} style={{ textAlign: 'center', padding: '9px 13px', borderRadius: '11px', border: `1px solid ${on ? ACCENT['Intelligent Order'] + '66' : 'var(--border)'}`, background: on ? ACCENT['Intelligent Order'] + '12' : 'transparent', opacity: passed ? 0.5 : 1, minWidth: '88px' }}><div style={{ fontFamily: FONT.head, fontSize: '14px', color: on ? ACCENT['Intelligent Order'] : 'var(--muted)' }}>{s.name}</div><div style={{ fontFamily: FONT.mono, fontSize: '9px', color: 'var(--dim)', marginTop: '2px' }}>{s.hz}</div></div>; })}
+            </div>
+            <button onClick={() => (bedOn ? audio.stopBed() : audio.startBed('chamber'))} style={{ marginTop: '18px', display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '9px 16px', borderRadius: '999px', cursor: 'pointer', border: `1px solid ${bedOn ? ACCENT['Intelligent Order'] + '66' : 'var(--border)'}`, background: bedOn ? ACCENT['Intelligent Order'] + '14' : 'transparent', color: bedOn ? ACCENT['Intelligent Order'] : 'var(--muted)', fontFamily: FONT.sans, fontSize: '12.5px', fontWeight: 500 }}>
+              <Icon name={bedOn ? 'Volume2' : 'Headphones'} size={15} color={bedOn ? ACCENT['Intelligent Order'] : 'var(--muted)'} />{bedOn ? 'Coherence bed playing — tap to stop' : 'Begin the coherence bed'}
+            </button>
+            <span style={{ fontFamily: FONT.mono, fontSize: '9px', color: 'var(--dim)', marginTop: '6px', letterSpacing: '0.5px', textAlign: 'center' }}>ambient pad + 6 Hz binaural beat · eases left &amp; right hemispheres toward coherence · use headphones</span>
+          </div>
+          <Eyebrow>Carry up to three power words</Eyebrow>
+          <p style={{ ...subs, marginTop: '4px' }}>Resonant words for the {symbol.name} are marked.</p>
+          <div style={{ display: 'flex', gap: '7px', flexWrap: 'wrap', marginTop: '12px' }}>
+            {POWER_WORDS.map((p) => { const on = picked.includes(p.w); const res = p.layer === symbol.primaryLayer; return <button key={p.w} onClick={() => togglePick(p.w)} style={{ padding: '8px 14px', borderRadius: '999px', cursor: 'pointer', fontFamily: FONT.mono, fontSize: '12px', letterSpacing: '1px', border: `1px solid ${on ? ACCENT[p.layer] : res ? ACCENT[p.layer] + '55' : 'var(--border)'}`, background: on ? ACCENT[p.layer] + '1A' : 'transparent', color: on ? ACCENT[p.layer] : res ? ACCENT[p.layer] : 'var(--muted)' }}>{p.w}{res && <span style={{ marginLeft: '6px', fontSize: '8px', opacity: 0.8 }}>✦</span>}</button>; })}
+          </div>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', marginTop: '26px' }}>
+            <GoldBtn onClick={enterInvoke}>I am centered — Invoke <Icon name="Sparkles" size={15} color="#1A150A" /></GoldBtn>
+            <GhostBtn onClick={() => setStage('attune')}>Back</GhostBtn>
+          </div>
+        </Section>
+      )}
+
+      {/* INVOKE */}
+      {stage === 'invoke' && (
+        <Section>
+          <Eyebrow>Speak the invocation</Eyebrow>
+          <h2 style={h2s}>{register === 'sacred' ? 'Pronounce the rite, slowly' : 'Declare it aloud, slowly'}</h2>
+          <p style={subs}>The invocation descends the five layers of the Cosmic Order — from Intelligent Order to its taking form — shaped to what you seek and to the {symbol.name}.</p>
+          <div style={{ borderRadius: '18px', border: `1px solid ${ACCENT['Intelligent Order']}2A`, background: `linear-gradient(160deg, ${ACCENT['Intelligent Order']}0E, ${sA}08)`, padding: '30px 26px', margin: '20px 0', position: 'relative', overflow: 'hidden' }}>
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', opacity: 0.05, pointerEvents: 'none' }}><Icon name={glyphOf(symbol)} size={220} color={sA} /></div>
+            <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '13px' }}>
+              {invocation.map((ln, i) => (
+                <div key={i} style={{ textAlign: 'center', animation: `riseIn 0.5s ease ${i * 0.22}s both` }}>
+                  {ln.layer && <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '3px' }}><span style={{ width: '6px', height: '6px', borderRadius: '50%', background: ACCENT[ln.layer] }} /><span style={{ fontFamily: FONT.mono, fontSize: '8.5px', letterSpacing: '1.5px', textTransform: 'uppercase', color: ACCENT[ln.layer] }}>{ln.layer}</span></div>}
+                  <p style={{ fontFamily: FONT.head, fontSize: ln.layer ? '18px' : '20px', fontWeight: 400, lineHeight: 1.5, color: 'var(--text)', margin: 0 }}>{renderCaps(ln.text)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+          {note && <p style={{ fontFamily: FONT.sans, fontSize: '12px', color: ACCENT.Events, textAlign: 'center', margin: '0 0 12px' }}>{note}</p>}
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <GoldBtn onClick={() => setStage('seal')}>Seal in action <Icon name="ArrowRight" size={15} color="#1A150A" /></GoldBtn>
+            <GhostBtn color={ACCENT['Intelligent Order']} onClick={forge}>{busy ? 'Forging…' : '✦ Forge with AI'}</GhostBtn>
+            <GhostBtn onClick={() => setInvocation(buildInvocation(symbol, register, picked, intention))}>Recompose</GhostBtn>
+            <GhostBtn onClick={() => setStage('descend')}>Back</GhostBtn>
+          </div>
+        </Section>
+      )}
+
+      {/* SEAL */}
+      {stage === 'seal' && (
+        <Section>
+          <div style={{ textAlign: 'center' }}>
+            <div style={{ width: '54px', height: '54px', borderRadius: '50%', margin: '0 auto 14px', border: `1px solid ${ACCENT.Rhythm}4D`, background: ACCENT.Rhythm + '14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}><Icon name="Sprout" size={24} color={ACCENT.Rhythm} /></div>
+            <Eyebrow center>Seal it in the physical</Eyebrow>
+            <h2 style={{ ...h2s, textAlign: 'center' }}>The word becomes real through action</h2>
+            <p style={{ ...subs, textAlign: 'center', maxWidth: '520px', margin: '10px auto 0' }}>Intelligent Order reaches the physical — the Events layer — through structure and aligned action. This is where the invocation lands.</p>
+          </div>
+          <div style={{ borderRadius: '16px', borderLeft: `3px solid ${ACCENT.Rhythm}`, border: `1px solid ${ACCENT.Rhythm}33`, background: ACCENT.Rhythm + '0C', padding: '20px 22px', margin: '22px 0' }}>
+            <div style={{ ...mono({ color: ACCENT.Rhythm }), marginBottom: '8px' }}>Recommended Participation · {domain}</div>
+            <p style={{ fontFamily: FONT.body, fontSize: '16px', lineHeight: 1.6, color: 'var(--text)', margin: 0 }}>{action || localActionFor(symbol, domain)}</p>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+            <GoldBtn onClick={saveIt}><Icon name="Check" size={15} color="#1A150A" /> Save to Journal</GoldBtn>
+            <GhostBtn onClick={() => setStage('invoke')}>Return to invocation</GhostBtn>
+            <GhostBtn color={ACCENT.Structure} onClick={resetAll}>New invocation</GhostBtn>
+          </div>
+          <p style={{ fontFamily: FONT.body, fontSize: '12.5px', fontStyle: 'italic', color: 'var(--dim)', textAlign: 'center', marginTop: '22px', maxWidth: '500px', marginLeft: 'auto', marginRight: 'auto' }}>The invocation aligns and commits you. What appears in the physical follows through the action you now take.</p>
+        </Section>
+      )}
+    </div>
+  );
+}
+
 // ═══ ROOT MODULE ══════════════════════════════════════════════
 const NAV = [
   { id: 'overview', label: 'Overview', icon: 'Compass' },
   { id: 'explore', label: 'Explore', icon: 'LayoutGrid' },
   { id: 'mapping', label: 'Mapping', icon: 'Workflow' },
   { id: 'apply', label: 'Apply', icon: 'PenLine' },
+  { id: 'invoke', label: 'Invoke', icon: 'Flame' },
   { id: 'journal', label: 'Journal', icon: 'NotebookPen' },
 ];
 
 export default function UniversalStructures() {
-  // persistence effects added below
-  const [dark, setDark] = useState(true);
+  const [dark, setDark] = useState(true); // site is dark-only
   const [tab, setTab] = useState('overview');
   const [category, setCategory] = useState('all');
   const [query, setQuery] = useState('');
   const [selected, setSelected] = useState(null);
-  const [studied, setStudied] = useState(() => {
-    try { const v = typeof window !== 'undefined' && localStorage.getItem('tfi-usio-studied'); return v ? new Set(JSON.parse(v)) : new Set(); } catch { return new Set(); }
-  });
-  const [applications, setApplications] = useState(() => {
-    try { const v = typeof window !== 'undefined' && localStorage.getItem('tfi-usio-applications'); return v ? JSON.parse(v) : []; } catch { return []; }
-  });
+  const [studied, setStudied] = useState(() => { try { const v = typeof window!=='undefined' && localStorage.getItem('tfi-usio-studied'); return v ? new Set(JSON.parse(v)) : new Set(); } catch { return new Set(); } }); // live: ac-usio-studied
+  const [applications, setApplications] = useState(() => { try { const v = typeof window!=='undefined' && localStorage.getItem('tfi-usio-applications'); return v ? JSON.parse(v) : []; } catch { return []; } });     // live: ac-usio-applications
   const [applyId, setApplyId] = useState(null);
   const [toast, setToast] = useState(null);
   const toastTimer = useRef(null);
-
-  // Persist progress to localStorage so it survives refresh and returns.
-  useEffect(() => {
-    try { localStorage.setItem('tfi-usio-studied', JSON.stringify([...studied])); } catch {}
-  }, [studied]);
-  useEffect(() => {
-    try { localStorage.setItem('tfi-usio-applications', JSON.stringify(applications)); } catch {}
-  }, [applications]);
+  const [invocations, setInvocations] = useState([]); // live build: ac-invocations
+  const [invokeSeed, setInvokeSeed] = useState(null);
+  const [tone, setTone] = useState(false);
+  const [vol, setVol] = useState(50);
+  const [audioSource, setAudioSource] = useState(null);
+  const audioRef = useRef(null);
 
   useEffect(() => {
     const id = 'usio-fonts';
     if (!document.getElementById(id)) {
       const link = document.createElement('link'); link.id = id; link.rel = 'stylesheet';
-      link.href = 'https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Spectral:ital,wght@0,400;0,500;1,400&family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono&display=swap';
+      link.href = 'https://fonts.googleapis.com/css2?family=Crimson+Text:ital,wght@0,400;0,600;1,400;1,600&family=Space+Mono:wght@400;700&display=swap';
       document.head.appendChild(link);
     }
   }, []);
+
+  useEffect(() => { const a = audioRef.current; if (a && a.ctx) { try { a.master.gain.setTargetAtTime((vol / 100) * 0.2, a.ctx.currentTime, 0.08); } catch {} } }, [vol]);
+  useEffect(() => () => { const a = audioRef.current; if (a && a.ctx) { try { a.oscs.forEach((o) => { try { o.stop(); } catch {} }); a.ctx.close(); } catch {} } }, []);
 
   const showToast = (m) => { setToast(m); clearTimeout(toastTimer.current); toastTimer.current = setTimeout(() => setToast(null), 2600); };
   const toggleStudied = (id) => setStudied((set) => { const n = new Set(set); n.has(id) ? n.delete(id) : n.add(id); return n; });
   const addApplication = (a) => setApplications((xs) => [...xs, a]);
   const removeApplication = (id) => setApplications((xs) => xs.filter((x) => x.id !== id));
+
+  // Persist progress to localStorage so it survives refresh.
+  useEffect(() => { try { localStorage.setItem('tfi-usio-studied', JSON.stringify([...studied])); } catch {} }, [studied]);
+  useEffect(() => { try { localStorage.setItem('tfi-usio-applications', JSON.stringify(applications)); } catch {} }, [applications]);
   const openApply = (s) => { setApplyId(s.id); setSelected(null); setTab('apply'); };
+  const addInvocation = (r) => setInvocations((xs) => [...xs, r]);
+  const removeInvocation = (id) => setInvocations((xs) => xs.filter((x) => x.id !== id));
+  const openInvoke = (s) => { setInvokeSeed(s.id); setSelected(null); setTab('invoke'); };
+
+  function buildBed() {
+    try {
+      const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+      const ctx = new AC();
+      const master = ctx.createGain(); master.gain.value = 0; master.connect(ctx.destination);
+      const filter = ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 700; filter.Q.value = 0.6;
+      const padGain = ctx.createGain(); padGain.gain.value = 0.5; padGain.connect(filter); filter.connect(master);
+      const oscs = [];
+      [136.1, 204.2, 272.2, 163.3].forEach((f) => { [-2.5, 0, 2.5].forEach((det) => { const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = f; o.detune.value = det; const g = ctx.createGain(); g.gain.value = 0.05; o.connect(g); g.connect(padGain); o.start(); oscs.push(o); }); });
+      const lfo = ctx.createOscillator(); lfo.frequency.value = 0.05; const lfoG = ctx.createGain(); lfoG.gain.value = 220; lfo.connect(lfoG); lfoG.connect(filter.frequency); lfo.start(); oscs.push(lfo);
+      const beatGain = ctx.createGain(); beatGain.gain.value = 0.3; beatGain.connect(master);
+      const mkBin = (freqHz, pan) => { const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = freqHz; if (ctx.createStereoPanner) { const p = ctx.createStereoPanner(); p.pan.value = pan; o.connect(p); p.connect(beatGain); } else o.connect(beatGain); o.start(); return o; };
+      oscs.push(mkBin(200, -1), mkBin(206, 1));
+      master.gain.linearRampToValueAtTime((vol / 100) * 0.2, ctx.currentTime + 2.5);
+      return { ctx, master, oscs };
+    } catch { return null; }
+  }
+  function teardown(a) { if (!a || !a.ctx) return; try { a.master.gain.linearRampToValueAtTime(0, a.ctx.currentTime + 0.5); setTimeout(() => { try { a.oscs.forEach((o) => { try { o.stop(); } catch {} }); a.ctx.close(); } catch {} }, 600); } catch {} }
+  function startBed(src) { const prev = audioRef.current; if (prev) teardown(prev); const bed = buildBed(); if (!bed) { audioRef.current = null; setTone(false); setAudioSource(null); return; } audioRef.current = bed; setTone(true); setAudioSource(src); }
+  function stopBed() { const a = audioRef.current; audioRef.current = null; teardown(a); setTone(false); setAudioSource(null); }
+  const audio = { tone, vol, setVol, startBed, stopBed, audioSource };
 
   const q = query.trim().toLowerCase();
   const match = (s) => !q || [s.name, s.principle, s.description, s.category, s.primaryLayer, catLabel(s.category)].some((v) => v.toLowerCase().includes(q));
@@ -1347,11 +1916,11 @@ export default function UniversalStructures() {
   const tabs = [{ id: 'all', label: 'All' }, ...CATEGORIES.map((c) => ({ id: c.id, label: c.label }))];
 
   const vars = dark
-    ? { '--bg': 'radial-gradient(1100px 600px at 78% -8%, rgba(155,143,199,0.16), transparent 60%), radial-gradient(900px 500px at 12% 4%, rgba(224,182,92,0.07), transparent 60%), #0B0A12',
-        '--text': '#ECE7DD', '--muted': '#9C968B', '--dim': '#615C54',
-        '--card': 'linear-gradient(180deg, rgba(236,231,221,0.045), rgba(236,231,221,0.015))',
-        '--border': 'rgba(236,231,221,0.09)', '--chip': 'rgba(236,231,221,0.05)',
-        '--nav': 'rgba(11,10,18,0.75)', '--ring': '#0B0A12', '--selbg': '#14121E' }
+    ? { '--bg': 'radial-gradient(1100px 600px at 78% -8%, rgba(124,58,237,0.16), transparent 60%), radial-gradient(900px 500px at 12% 4%, rgba(251,191,36,0.07), transparent 60%), #06060F',
+        '--text': '#EDE9F5', '--muted': 'rgba(237,233,245,0.66)', '--dim': 'rgba(237,233,245,0.40)',
+        '--card': 'rgba(255,255,255,0.025)',
+        '--border': 'rgba(255,255,255,0.08)', '--chip': 'rgba(255,255,255,0.04)',
+        '--nav': 'rgba(6,6,15,0.75)', '--ring': '#06060F', '--selbg': '#0E0E1A' }
     : { '--bg': 'radial-gradient(1100px 600px at 78% -8%, rgba(124,58,237,0.10), transparent 60%), radial-gradient(900px 500px at 12% 4%, rgba(224,182,92,0.12), transparent 60%), #F6F3EC',
         '--text': '#2A2622', '--muted': '#6B6459', '--dim': '#9A9388',
         '--card': 'linear-gradient(180deg, rgba(255,255,255,0.72), rgba(255,255,255,0.42))',
@@ -1444,11 +2013,22 @@ export default function UniversalStructures() {
 
           {tab === 'mapping' && <MappingPanel />}
           {tab === 'apply' && <ApplyPanel applyId={applyId} setApplyId={setApplyId} addApplication={addApplication} showToast={showToast} goJournal={() => setTab('journal')} />}
-          {tab === 'journal' && <JournalPanel applications={applications} removeApplication={removeApplication} studiedCount={studied.size} goExplore={() => setTab('explore')} goApply={() => setTab('apply')} />}
+          {tab === 'invoke' && <InvokePanel seed={invokeSeed} clearSeed={() => setInvokeSeed(null)} addInvocation={addInvocation} showToast={showToast} audio={audio} />}
+          {tab === 'journal' && <JournalPanel applications={applications} removeApplication={removeApplication} invocations={invocations} removeInvocation={removeInvocation} audio={audio} studiedCount={studied.size} goExplore={() => setTab('explore')} goApply={() => setTab('apply')} goInvoke={() => setTab('invoke')} />}
         </div>
       </div>
 
-      <Modal s={selected} onClose={() => setSelected(null)} studied={studied} onToggleStudied={toggleStudied} onApply={openApply} />
+      <Modal s={selected} onClose={() => setSelected(null)} studied={studied} onToggleStudied={toggleStudied} onApply={openApply} onInvoke={openInvoke} />
+
+      {tone && (
+        <div style={{ position: 'fixed', bottom: '24px', left: '24px', display: 'flex', alignItems: 'center', gap: '10px', padding: '9px 14px', borderRadius: '999px', background: 'rgba(20,18,30,0.92)', border: `1px solid ${ACCENT['Intelligent Order']}33`, boxShadow: '0 8px 30px rgba(0,0,0,0.5)', backdropFilter: 'blur(10px)', zIndex: 65 }}>
+          <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: ACCENT['Intelligent Order'], animation: 'pulseDot 1.6s ease-in-out infinite' }} />
+          <span style={{ fontFamily: FONT.mono, fontSize: '9px', letterSpacing: '1px', textTransform: 'uppercase', color: ACCENT['Intelligent Order'] }}>{audioSource === 'chamber' ? 'coherence bed' : 'coherence bed · journal'}</span>
+          <input type="range" min="0" max="100" value={vol} onChange={(e) => setVol(Number(e.target.value))} style={{ width: '84px', accentColor: ACCENT['Intelligent Order'] }} />
+          <button onClick={stopBed} aria-label="Stop" style={{ border: 'none', background: 'transparent', cursor: 'pointer', display: 'flex' }}><Icon name="Square" size={12} color="var(--muted)" /></button>
+        </div>
+      )}
+      <style>{`@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}@keyframes riseIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}@keyframes pulseDot{0%,100%{opacity:0.4}50%{opacity:1}}`}</style>
 
       {toast && <div style={{ position: 'fixed', bottom: '26px', left: '50%', transform: 'translateX(-50%)', padding: '12px 22px', borderRadius: '11px', background: 'rgba(20,18,30,0.96)', border: `1px solid ${ACCENT['Intelligent Order']}44`, boxShadow: '0 10px 40px rgba(0,0,0,0.5)', fontFamily: FONT.sans, fontSize: '13.5px', color: '#ECE7DD', zIndex: 70, backdropFilter: 'blur(12px)' }}>{toast}</div>}
     </div>
