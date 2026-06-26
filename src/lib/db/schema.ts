@@ -184,3 +184,23 @@ export const initiationCompletions = pgTable("initiation_completions", {
 
 export type InitiationCompletion = typeof initiationCompletions.$inferSelect;
 export type NewInitiationCompletion = typeof initiationCompletions.$inferInsert;
+
+// Universal Structures journal — hybrid localStorage + Supabase sync.
+// Three data types stored per user:
+//   studied      → set of coordinate IDs the user has marked studied
+//   applications → application entries saved from the Apply tab
+//   invocations  → sealed invocation records from the Invoke chamber
+// All three are stored as JSONB blobs to avoid schema churn as the
+// module evolves. One row per user, upserted on every sync.
+export const universalStructuresJournal = pgTable("universal_structures_journal", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  clerkUserId: text("clerk_user_id").notNull().unique(),
+  studied: jsonb("studied").notNull().default([]),       // string[]
+  applications: jsonb("applications").notNull().default([]), // ApplicationRecord[]
+  invocations: jsonb("invocations").notNull().default([]),   // InvocationRecord[]
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type UniversalStructuresJournal = typeof universalStructuresJournal.$inferSelect;
+export type NewUniversalStructuresJournal = typeof universalStructuresJournal.$inferInsert;

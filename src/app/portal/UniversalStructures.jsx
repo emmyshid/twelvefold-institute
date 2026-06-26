@@ -1879,9 +1879,56 @@ export default function UniversalStructures() {
   const addApplication = (a) => setApplications((xs) => [...xs, a]);
   const removeApplication = (id) => setApplications((xs) => xs.filter((x) => x.id !== id));
 
-  // Persist progress to localStorage so it survives refresh.
-  useEffect(() => { try { localStorage.setItem('tfi-usio-studied', JSON.stringify([...studied])); } catch {} }, [studied]);
-  useEffect(() => { try { localStorage.setItem('tfi-usio-applications', JSON.stringify(applications)); } catch {} }, [applications]);
+  // ── Hybrid sync: localStorage (instant) + Supabase (cross-device) ──
+  // On mount: read localStorage first so the UI is instant, then pull from
+  // Supabase in the background and merge (server wins on conflict).
+  useEffect(() => {
+    async function pullFromServer() {
+      try {
+        const res = await fetch('/api/universal-structures/journal');
+        if (!res.ok) return; // signed out or server error — localStorage stands
+        const data = await res.json();
+        // Merge: union studied sets, concat non-duplicate applications/invocations
+        if (Array.isArray(data.studied) && data.studied.length > 0) {
+          setStudied(prev => {
+            const merged = new Set([...prev, ...data.studied]);
+            try { localStorage.setItem('tfi-usio-studied', JSON.stringify([...merged])); } catch {}
+            return merged;
+          });
+        }
+        if (Array.isArray(data.applications) && data.applications.length > 0) {
+          setApplications(prev => {
+            const existingIds = new Set(prev.map(a => a.id));
+            const incoming = data.applications.filter(a => !existingIds.has(a.id));
+            const merged = [...prev, ...incoming];
+            try { localStorage.setItem('tfi-usio-applications', JSON.stringify(merged)); } catch {}
+            return merged;
+          });
+        }
+        if (Array.isArray(data.invocations) && data.invocations.length > 0) {
+          setInvocations(prev => {
+            const existingIds = new Set(prev.map(i => i.id));
+            return [...prev, ...data.invocations.filter(i => !existingIds.has(i.id))];
+          });
+        }
+      } catch {} // silent — offline or unauthenticated
+    }
+    pullFromServer();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // On every state change: write localStorage immediately, then sync to server async.
+  const syncToServer = (studiedSet, apps, invocs) => {
+    try { localStorage.setItem('tfi-usio-studied', JSON.stringify([...studiedSet])); } catch {}
+    try { localStorage.setItem('tfi-usio-applications', JSON.stringify(apps)); } catch {}
+    fetch('/api/universal-structures/journal', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ studied: [...studiedSet], applications: apps, invocations: invocs }),
+    }).catch(() => {}); // silent — localStorage already updated
+  };
+
+  useEffect(() => { syncToServer(studied, applications, invocations); }, [studied, applications, invocations]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const openApply = (s) => { setApplyId(s.id); setSelected(null); setTab('apply'); };
   const addInvocation = (r) => setInvocations((xs) => [...xs, r]);
   const removeInvocation = (id) => setInvocations((xs) => xs.filter((x) => x.id !== id));
