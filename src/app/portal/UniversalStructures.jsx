@@ -1815,6 +1815,94 @@ const LAYER_PROMPTS = {
   Events: 'What outcomes does it produce?',
 };
 
+// ── Layer active questions ────────────────────────────────────
+const LAYER_QUESTIONS = {
+  'Intelligent Order': 'Where in your life right now is this invisible law operating — shaping outcomes without being seen?',
+  'Structure': 'What in your current situation takes this form — what arrangement, boundary, or framework mirrors this structure?',
+  'Pattern': 'What relationship or tendency repeats for you in this way — what keeps returning in this shape?',
+  'Rhythm': 'How does this timing or movement show up in your work, health, or creative cycle?',
+  'Events': 'What outcomes or experiences in your life match what this layer predicts — what results do you recognize?',
+};
+
+// ── Recognition signals per structure ────────────────────────
+// 3-4 signals that a given structure is active in a life situation
+const RECOGNITION_SIGNALS = {
+  circle: ["You keep returning to the same theme no matter how you approach it", "Something that left is coming back around", "You feel the pull to close something that has been left open", "A group or community feels like it's finding or losing its center"],
+  sphere: ["You're being asked to hold more than feels possible", "A boundary is being tested from many directions at once", "Something needs to be protected or contained before it can develop", "You feel pressure from all sides and need to find internal stability"],
+  spiral: ["You're back in a familiar place but at a different level than before", "Growth is happening but it doesn't feel like straight-line progress", "Something from your past is re-emerging in a more mature form", "You can see the pattern from the last cycle — and you're doing it differently this time"],
+  branching: ["A single decision is about to multiply into many consequences", "Resources or attention need to reach more people than before", "Something central is feeding many endpoints — and one is being neglected", "You're being asked to extend reach without losing connection to the source"],
+  network: ["The strength of a relationship or system depends on its connections, not its size", "Something broke because it was too centralized", "A community or team is learning to coordinate without a single leader", "Value is being created in the relationships between things, not in the things themselves"],
+  helix: ["Something is encoding or transmitting across time — a pattern being passed on", "You're carrying something forward from the past that you didn't choose", "A message or identity needs to survive a long journey intact", "You're winding upward — the same shape, but higher each turn"],
+  wave: ["Your influence is moving further than you can see", "Something is propagating through a medium — culture, a team, a relationship", "The effect arrives long after the cause", "Things are moving in undulations — high and low — not in a straight line"],
+  cycle: ["Something is completing — whether you're ready or not", "You're in the middle of a phase that feels endless but has a defined end", "Something old is dying so something new can be seeded", "A pattern is repeating and you're deciding whether to interrupt it"],
+  symmetry: ["Two sides of a situation, person, or relationship need to be brought into balance", "Something feels off and you can't locate why — look for the asymmetry", "You're holding a center while two opposing forces pull", "A beautiful or right arrangement is asking to be found"],
+  fractal: ["The same problem appears at every scale — personal, team, organizational", "A small behavior is encoding a large pattern", "Understanding one level reveals all the others", "What's true in the micro is also true in the macro"],
+  goldenRatio: ["Something that was forced feels wrong — the right proportion hasn't been found yet", "Growth is happening faster or slower than the underlying structure can support", "You're looking for the ratio that lets both parts thrive", "Beauty and function are not yet aligned — one is being sacrificed for the other"],
+  tessellation: ["Many domains or responsibilities need to fit together without overlap", "Boundaries between roles, spaces, or people are unclear or contested", "Something needs to cover everything without any gap", "A system is wasting energy on redundancy or leaving important areas uncovered"],
+  vortex: ["Energy is being gathered toward a single point — or should be", "Distraction is preventing the concentration that a situation requires", "You're being pulled in — either toward an opportunity or a problem you can't avoid", "Something is intensifying and approaching a decision point"],
+  torus: ["Your output is depleting you because it isn't looping back to feed you", "A system is burning itself out — there's no return path", "Energy is leaking outward without cycling back to the source", "Something generous is also unsustainable — the giving needs to return something to the giver"],
+  catenary: ["You're carrying a load that needs to be distributed, not held at one point", "Something is hanging between two supports and finding its natural shape", "A structure is stronger than it looks because of how the tension is arranged", "The most efficient form here is curved, not straight"],
+  gradient: ["Something is changing gradually rather than all at once — and that's the point", "You're navigating between two extremes by finding the band where you thrive", "A transition needs to happen slowly enough to remain coherent", "You're being pulled toward a concentration of something — follow the gradient"],
+  foam: ["Many small domains are sharing borders and resources", "A space is being divided efficiently — or should be", "Shared walls are both connection and boundary", "Many things are held together with minimal separating material"],
+  threshold: ["You're at a point of no return — and you know it", "What you're facing cannot be solved; it can only be crossed", "Something must be released before the next form can emerge", "You've been trying to manage a transition that is actually a passage"],
+  feedbackLoop: ["A system is self-reinforcing — for better or worse", "A small signal is being amplified through repetition", "You're waiting for feedback you need to correct course", "Something that was working has stopped because the feedback loop broke"],
+  lattice: ["A framework is distributing load across many points", "A structure is strong because it's regular — and any irregularity weakens the whole", "Something needs to be within reach of every node — no point should be isolated", "You're building something that needs to hold in all directions at once"],
+  galaxy: ["You're operating at a scale where the organizing center matters more than the edges", "A system has its own gravity — it's pulling things toward its center", "Something vast is organized around a hidden principle you haven't named yet", "The largest pattern here is only visible from a very long distance"],
+  solarSystem: ["Many different things are orbiting the same center — consciously or not", "The health of a system depends on the strength of its center, not its parts", "Something is acting as a gravitational anchor for everything else around it", "A protective mass is absorbing impacts that would otherwise reach the core"],
+  orbit: ["A commitment is being tested by the pull to drift or abandon it", "Something faithful keeps returning — a pattern, a person, a theme", "You're in a cycle that has a defined period — know where you are in it", "The distance from the center determines the speed of the cycle"],
+  planet: ["You're maintaining conditions for something to live — and it takes constant work", "A system needs regulation, not just resources", "The feedback loops that keep things stable are invisible until they break", "You're part of an ecosystem you don't fully see"],
+  moon: ["Your role right now is to reflect, not originate", "A reflected light is not lesser than the source — it reaches where the source cannot", "Something is pulling the tides in your situation — find the gravitational source", "You're completing a cycle that has a precise rhythm — where are you in it?"],
+  stars: ["Something is providing orientation across a long distance", "A fixed point is needed — something that doesn't move while everything else does", "You're producing light, not reflecting it — from your own source", "An influence is radiating outward in all directions simultaneously"],
+  mountains: ["Something is being tested for endurance, not speed", "The height you've reached was formed by pressure over a long time", "A high-altitude perspective is available — you'll need to ascend to access it", "What looks like an obstacle is actually a formation that took centuries"],
+  rivers: ["The path forward isn't blocked — it's just finding its way around", "Something that has been forced is softening into flow", "A resource or influence needs to be channeled, not contained", "The current is stronger than it looks from the surface"],
+  oceans: ["The depth here is greater than the surface suggests", "A vast, unseen ecosystem is operating beneath the visible level", "Something needs to go deep before it can be understood", "The rhythmic pull of something large is moving the situation — find what's driving the tides"],
+  forests: ["The health of the whole depends on the diversity of the parts", "Something invisible is connecting individuals who seem separate", "The system is more resilient than any single part of it", "Something is being sustained by a network of relationships you haven't fully mapped"],
+  soil: ["The most important work is happening beneath the surface, invisibly", "Something that ended is becoming the ground for what's next", "Slow, invisible preparation is making future growth possible", "What looks like nothing is actually the most fertile phase"],
+  seasons: ["You're in a season — and trying to act like it's a different one", "Something needs to be released before the next thing can be seeded", "A cycle has a phase you can't skip, only survive", "The current restriction is not permanent — it's seasonal"],
+  brain: ["Many different types of information need to be integrated into one coherent understanding", "An insight is close — a connection between things not yet linked", "Something needs to be processed before it can be acted on", "A decision requires the integration of what you know, feel, and sense — not just logic"],
+  heart: ["Something needs to be given without calculation", "A relationship or commitment is asking for the kind of presence that doesn't require return", "The center of a situation is relational, not structural — who is it really about?", "Something is either closing or opening — the work is to know which"],
+  lungs: ["Exchange has slowed or stopped — something isn't getting through", "The rhythm of giving and receiving needs to be restored", "Something needs to breathe — space, time, air, pause", "You're holding your breath in a situation that needs exhale"],
+  skeleton: ["The framework that holds everything else is being tested", "Something needs depth and structure before anything else can be built on it", "What looks strong on the surface needs stronger bones underneath", "You're being asked to carry more than you've built the capacity for"],
+  bloodVessels: ["Something important isn't reaching all parts of a system", "Supply is being blocked somewhere between the source and the edge", "The distribution network matters as much as what's being distributed", "A part of yourself or your work is being starved of what it needs"],
+  nervousSystem: ["A signal is being sent but not received — somewhere in the chain there's a break", "A system has been stressed enough that its signaling has become unreliable", "Fast, accurate communication between parts is what's missing", "An overreaction or underreaction is showing that calibration is off"],
+  dna: ["Something essential is being encoded and passed on — or it's not", "A pattern from before you chose it is operating in your life", "What's fundamental about you hasn't yet been given the right conditions to express", "Something is dormant — waiting for conditions that will allow it to activate"],
+  skin: ["A boundary is too porous or too defended — neither is working", "Something needs a surface that is sensitive and permeable but not without limits", "What you're experiencing is right on the edge between inside and outside", "A layer that protects is also the layer through which you make contact — both functions matter"],
+  roots: ["Something visible needs to be anchored by something invisible", "The reach above ground is only safe if the depth below matches it", "The ground for the next phase is being prepared — underground, out of sight", "Nourishment needs to be drawn from a deeper source than what's currently being accessed"],
+  trunk: ["The central column of something needs to be strengthened before extension is safe", "Strength is being built ring by ring — you can't rush it", "Everything else grows from a center that must hold", "The height of what can be reached depends entirely on the integrity of what anchors it"],
+  branchesPlant: ["Something central is ready to extend — the trunk is strong enough now", "Reach is multiplying from a single source — each branch a new direction", "What is being extended needs to stay connected to the trunk or it dies", "A branch has grown beyond what the main structure can support — pruning may be needed"],
+  leaves: ["Something is in a receiving phase — the right posture is open, not extending", "Light is available — the question is whether you're positioned to receive it", "Something is being taken in and needs to be processed before it can be used", "A surface is available for contact — what's making contact with you right now?"],
+  flowers: ["A phase of full expression is either approaching or being held back", "Something beautiful is serving a functional purpose — the beauty and the function are the same", "A partnership of mutual necessity is either forming or absent", "Something is in bloom and the window is finite — what is the season asking of you?"],
+  fruit: ["Something has ripened — the effort is complete and the output is ready", "What you've produced contains the seeds of the next phase", "A harvest needs to be released, not held — hoarding ripened fruit rots it", "What you give away is what gets dispersed and plants the next generation"],
+  seeds: ["Something is encoded and waiting — the conditions for germination haven't arrived yet", "What looks like nothing is actually the most complete form of something", "The dormant phase is not failure — it's the necessary preparation", "A potential is protected and held — the ground will come"],
+  wings: ["Something is ready to move through a different medium than before", "Lift requires a different relationship with resistance than walking does", "The conditions for departure either exist or they don't — forcing flight before lift is ready breaks things", "Something is riding a current rather than generating its own thrust"],
+  honeycomb: ["The most efficient arrangement hasn't been found yet — or it has, and it's hexagonal", "Many units are cooperating to create a structure no single unit could build", "What looks redundant is actually load-sharing", "A community is building something that will outlast any individual in it"],
+  spiderWeb: ["A network is built — the posture now is to wait, not to chase", "Everything that touches the network is felt at the center", "The structure needs to be rebuilt regularly — that's not failure, it's the rhythm", "What needs to be caught is not being pursued; it's being drawn in"],
+  antColony: ["Many small, local decisions are generating a complex collective result", "A system is running on simple rules that produce sophisticated behavior", "No single individual understands the whole — and that's by design", "The colony outlasts any individual in it; what you're building should too"],
+  fishSchool: ["A group is moving together without explicit coordination", "Safety and intelligence are emerging from the collective, not from a leader", "The coherence of a group depends on how closely each member tracks the others", "A school of thought, community, or team is either in formation or in disarray"],
+  birdMigration: ["A signal is saying it's time to move — and you're deciding whether to follow it", "The journey has defined stages: departure, migration, arrival, return", "The conditions for the journey are either right or wrong — check before departing", "Something is being carried across a long distance by instinct, not by map"],
+  snowflake: ["Your current situation is producing a unique form from universal conditions", "No two expressions of this pattern are identical — yours is your own", "The conditions you've moved through have determined the form you're taking", "A universal law is expressing uniquely through your particular circumstances"],
+  crystal: ["An inner order is beginning to show itself in outer form", "What's inside is becoming legible on the outside", "A structure is forming — slowly, precisely, one layer at a time", "Clarity is coming — the hidden geometry is becoming visible"],
+  lightning: ["Something has been building to a release point", "A sudden, irreversible discharge is coming — or it just happened", "The path of least resistance is about to be revealed", "Something is being transformed — completely and in an instant"],
+  rainbow: ["What seemed like one thing is actually many", "A hidden spectrum is becoming visible when conditions are right", "What appeared divided is actually a refraction of one source", "Different aspects are not in conflict — they're the same light through different angles"],
+  fire: ["Something is being transformed — not changed, but fundamentally converted", "What has been is being consumed to make way for what's next", "The heat of pressure, conflict, or difficulty is doing necessary work", "Something unsustainable is burning away — what comes after the fire?"],
+  waterPh: ["The path of least resistance is showing itself — follow it or fight it", "Something is taking the shape of its container — what container is it in?", "A flow has been blocked and is finding its way around", "The deepest principle here is yielding — not weakness, but intelligent softness"],
+  wind: ["Something invisible is moving through — you can see it in what it moves", "An influence is traveling further than its source", "A direction shift is happening without warning or apology", "Something is being carried without being pushed — what current is available?"],
+};
+
+// ── Domain-specific application questions per structure ───────
+const DOMAIN_QUESTIONS = (structureId, domain) => {
+  const domainMap = {
+    Life: "How is this pattern shaping your personal direction, relationships, or inner life right now?",
+    Work: "Where do you see this structure operating in your work, team, or organization?",
+    Body: "How does this principle appear in your physical health, energy, or embodied experience?",
+    Relationships: "Which of your relationships is expressing or missing this pattern?",
+    Creativity: "How is this structure alive or absent in what you're building or making?",
+    Spirit: "Where does this principle touch your sense of purpose, meaning, or orientation?",
+  };
+  return domainMap[domain] || "Where in your life do you recognize this structure operating right now?";
+};
+
+
 const GLYPH = {
   Circle:'○', Globe:'◐', Tornado:'⧗', GitBranch:'⎇', Network:'⛓',
   Spline:'〰', Waves:'〰', RefreshCcw:'↻', Shapes:'◈', Hexagon:'⬢',
@@ -2185,52 +2273,108 @@ function Modal({ s, onClose, studied, onToggleStudied, onApply, onInvoke, pinned
           })}
         </div>
         <div style={{ padding: '24px' }}>
-          {modalTab === 'overview' && (
-            <>
-              <p style={mono({ letterSpacing: '2px', marginBottom: '16px' })}>Cosmic Reality Framework mapping</p>
-              <div style={{ position: 'relative', paddingLeft: '28px' }}>
-                <span style={{ position: 'absolute', left: '9px', top: '8px', bottom: '8px', width: '1.5px', background: `linear-gradient(180deg, ${ACCENT['Intelligent Order']}, ${ACCENT.Pattern}, ${ACCENT.Events})`, opacity: 0.5 }} />
-                {rows.map(([layer, val]) => (
-                  <div key={layer} style={{ position: 'relative', marginBottom: '10px' }}>
-                    <span style={{ position: 'absolute', left: '-26px', top: '6px', width: '12px', height: '12px', borderRadius: '50%', background: ACCENT[layer], boxShadow: '0 0 0 4px var(--ring)' }} />
-                    <div style={{ borderRadius: '12px', border: `1px solid ${ACCENT[layer]}44`, background: ACCENT[layer] + '12', padding: '12px 16px' }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'baseline' }}>
-                        <span style={{ fontFamily: FONT.head, fontSize: '14px', fontWeight: 500, color: ACCENT[layer] }}>{layer}</span>
-                        <span style={{ fontFamily: FONT.body, fontSize: '11px', fontStyle: 'italic', color: 'var(--dim)' }}>{LAYER_PROMPTS[layer]}</span>
+          {modalTab === 'overview' && (() => {
+            const signals = RECOGNITION_SIGNALS[s.id] || [];
+            return (
+              <>
+                {/* What this reveals */}
+                <div style={{ borderRadius: '14px', border: `1px solid ${a}33`, background: a + '0C', padding: '18px 20px', marginBottom: '18px' }}>
+                  <div style={{ ...mono({ color: a, fontSize: '9px', letterSpacing: '2px', marginBottom: '8px' }) }}>WHAT THIS REVEALS</div>
+                  <p style={{ fontFamily: FONT.head, fontSize: '17px', fontWeight: 400, lineHeight: 1.55, color: 'var(--text)', margin: 0 }}>{s.mapping.intelligentOrder}</p>
+                </div>
+
+                {/* Recognition signals */}
+                {signals.length > 0 && (
+                  <div style={{ marginBottom: '18px' }}>
+                    <div style={{ ...mono({ fontSize: '9px', letterSpacing: '2px', color: 'var(--muted)', marginBottom: '10px' }) }}>RECOGNITION — THIS STRUCTURE IS ACTIVE WHEN</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '7px' }}>
+                      {signals.map((sig, i) => (
+                        <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '10px 14px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--chip)' }}>
+                          <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: a, marginTop: '6px', flexShrink: 0 }} />
+                          <p style={{ fontFamily: FONT.body, fontSize: '14px', color: 'var(--muted)', margin: 0, lineHeight: 1.5 }}>{sig}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Descent summary — principle across layers */}
+                <div style={{ marginBottom: '18px' }}>
+                  <div style={{ ...mono({ fontSize: '9px', letterSpacing: '2px', color: 'var(--muted)', marginBottom: '10px' }) }}>HOW THE PRINCIPLE DESCENDS</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {rows.map(([layer, val]) => (
+                      <div key={layer} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', minWidth: '120px', paddingTop: '2px' }}>
+                          <span style={{ width: '5px', height: '5px', borderRadius: '50%', background: ACCENT[layer], flexShrink: 0 }} />
+                          <span style={{ fontFamily: FONT.mono, fontSize: '8.5px', letterSpacing: '1px', color: ACCENT[layer], textTransform: 'uppercase' }}>{layer}</span>
+                        </div>
+                        <p style={{ fontFamily: FONT.body, fontSize: '13.5px', color: 'var(--muted)', margin: 0, lineHeight: 1.5, flex: 1 }}>{val}</p>
                       </div>
-                      <p style={{ fontFamily: FONT.body, fontSize: '14px', color: 'var(--text)', lineHeight: 1.5, margin: '4px 0 0' }}>{val}</p>
-                    </div>
+                    ))}
                   </div>
-                ))}
-              </div>
-              <div style={{ marginTop: '20px', borderRadius: '16px', border: `1px solid ${ACCENT['Intelligent Order']}4D`, background: ACCENT['Intelligent Order'] + '10', padding: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                  <Icon name="Sparkles" size={16} color={ACCENT['Intelligent Order']} />
-                  <span style={mono({ color: ACCENT['Intelligent Order'], letterSpacing: '2px' })}>Reflection</span>
                 </div>
-                <p style={{ fontFamily: FONT.body, fontSize: '16px', fontStyle: 'italic', color: 'var(--text)', lineHeight: 1.6, margin: 0 }}>
-                  How can this principle be applied to your life, leadership, body, family, or community?
+
+                {/* Reflection prompt */}
+                <div style={{ borderRadius: '14px', border: `1px solid ${ACCENT['Intelligent Order']}33`, background: ACCENT['Intelligent Order'] + '08', padding: '18px 20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+                    <Icon name="Sparkles" size={15} color={ACCENT['Intelligent Order']} />
+                    <span style={mono({ color: ACCENT['Intelligent Order'], fontSize: '9px', letterSpacing: '2px' })}>YOUR SITUATION</span>
+                  </div>
+                  <p style={{ fontFamily: FONT.body, fontSize: '15px', fontStyle: 'italic', color: 'var(--text)', lineHeight: 1.65, margin: '0 0 10px' }}>
+                    Where in your life right now do you recognize this structure operating? What situation, relationship, or challenge is shaped by this principle?
+                  </p>
+                  <p style={{ fontFamily: FONT.body, fontSize: '13px', color: 'var(--dim)', margin: 0 }}>
+                    Open the <strong style={{ color: 'var(--muted)' }}>Five Layers</strong> tab to read how the principle descends into specific forms and outcomes — then Apply or Invoke to bring it into practice.
+                  </p>
+                </div>
+              </>
+            );
+          })()}
+          {modalTab === 'mapping' && (() => {
+            const relatedStructures = STRUCTURES.filter(st => st.primaryLayer === s.primaryLayer && st.id !== s.id).slice(0, 3);
+            return (
+              <div>
+                <p style={{ fontFamily: FONT.body, fontSize: '14px', color: 'var(--dim)', lineHeight: 1.6, margin: '0 0 18px' }}>
+                  Read from top to bottom — each layer explains how the one above it takes form. <em>Intelligent Order</em> is the invisible law; <em>Events</em> is what that law produces in your physical experience.
                 </p>
-              </div>
-            </>
-          )}
-          {modalTab === 'mapping' && (
-            <div style={{ position: 'relative', paddingLeft: '28px' }}>
-              <span style={{ position: 'absolute', left: '9px', top: '8px', bottom: '8px', width: '1.5px', background: `linear-gradient(180deg, ${ACCENT['Intelligent Order']}, ${ACCENT.Pattern}, ${ACCENT.Events})`, opacity: 0.5 }} />
-              {rows.map(([layer, val]) => (
-                <div key={layer} style={{ position: 'relative', marginBottom: '10px' }}>
-                  <span style={{ position: 'absolute', left: '-26px', top: '6px', width: '12px', height: '12px', borderRadius: '50%', background: ACCENT[layer], boxShadow: '0 0 0 4px var(--ring)' }} />
-                  <div style={{ borderRadius: '12px', border: `1px solid ${ACCENT[layer]}44`, background: ACCENT[layer] + '12', padding: '12px 16px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'baseline' }}>
-                      <span style={{ fontFamily: FONT.head, fontSize: '14px', fontWeight: 500, color: ACCENT[layer] }}>{layer}</span>
-                      <span style={{ fontFamily: FONT.body, fontSize: '11px', fontStyle: 'italic', color: 'var(--dim)' }}>{LAYER_PROMPTS[layer]}</span>
+                <div style={{ position: 'relative', paddingLeft: '28px' }}>
+                  <span style={{ position: 'absolute', left: '9px', top: '8px', bottom: '8px', width: '1.5px', background: `linear-gradient(180deg, ${ACCENT['Intelligent Order']}, ${ACCENT.Pattern}, ${ACCENT.Events})`, opacity: 0.5 }} />
+                  {rows.map(([layer, val]) => (
+                    <div key={layer} style={{ position: 'relative', marginBottom: '12px' }}>
+                      <span style={{ position: 'absolute', left: '-26px', top: '14px', width: '12px', height: '12px', borderRadius: '50%', background: ACCENT[layer], boxShadow: '0 0 0 4px var(--ring)' }} />
+                      <div style={{ borderRadius: '12px', border: `1px solid ${ACCENT[layer]}44`, background: ACCENT[layer] + '12', padding: '14px 16px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '8px', alignItems: 'baseline', marginBottom: '6px' }}>
+                          <span style={{ fontFamily: FONT.head, fontSize: '14px', fontWeight: 500, color: ACCENT[layer] }}>{layer}</span>
+                          <span style={{ fontFamily: FONT.body, fontSize: '11px', fontStyle: 'italic', color: 'var(--dim)' }}>{LAYER_PROMPTS[layer]}</span>
+                        </div>
+                        <p style={{ fontFamily: FONT.body, fontSize: '14px', color: 'var(--text)', lineHeight: 1.5, margin: '0 0 10px' }}>{val}</p>
+                        <p style={{ fontFamily: FONT.body, fontSize: '12.5px', fontStyle: 'italic', color: ACCENT[layer], margin: 0, opacity: 0.85 }}>↳ {LAYER_QUESTIONS[layer]}</p>
+                      </div>
                     </div>
-                    <p style={{ fontFamily: FONT.body, fontSize: '14px', color: 'var(--text)', lineHeight: 1.5, margin: '4px 0 0' }}>{val}</p>
-                  </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+                {relatedStructures.length > 0 && (
+                  <div style={{ marginTop: '20px', borderTop: '1px solid var(--border)', paddingTop: '16px' }}>
+                    <div style={{ ...mono({ fontSize: '9px', letterSpacing: '2px', color: 'var(--dim)', marginBottom: '10px' }) }}>SHARES THE {s.primaryLayer.toUpperCase()} LAYER WITH</div>
+                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                      {relatedStructures.map(rs => {
+                        const ra = ACCENT[rs.primaryLayer];
+                        return (
+                          <div key={rs.id} style={{ display: 'inline-flex', alignItems: 'center', gap: '7px', padding: '6px 12px', borderRadius: '10px', border: `1px solid ${ra}33`, background: ra + '0A' }}>
+                            <StructIcon k={rs.icon} size={14} color={ra} />
+                            <div>
+                              <div style={{ fontFamily: FONT.head, fontSize: '13px', color: 'var(--text)' }}>{rs.name}</div>
+                              <div style={{ fontFamily: FONT.mono, fontSize: '8px', color: 'var(--dim)' }}>{rs.principle}</div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })()}
           {modalTab === 'allies' && (
             <NaturalAlliesPanel
               structureId={s.id}
@@ -2302,7 +2446,7 @@ function MappingPanel() {
 }
 
 // ── Apply workspace ───────────────────────────────────────────
-function ApplyPanel({ applyId, setApplyId, addApplication, showToast, goJournal }) {
+function ApplyPanel({ applyId, setApplyId, addApplication, showToast, goJournal, applications }) {
   const [id, setId] = useState(applyId || 'roots');
   const [domain, setDomain] = useState('Life');
   const [text, setText] = useState('');
@@ -2312,13 +2456,18 @@ function ApplyPanel({ applyId, setApplyId, addApplication, showToast, goJournal 
   const s = STRUCTURE_BY_ID[id];
   const a = ACCENT[s.primaryLayer];
 
+  const prevApps = applications.filter(a => a.structureId === s.id);
+
   async function draw() {
     setBusy(true); setErr('');
+    const historyLine = prevApps.length > 0
+      ? `\nThe student has applied this structure before. Previous applications:\n${prevApps.slice(-3).map((a, i) => `${i + 1}. [${a.domain}] ${a.text}`).join('\n')}\nBuild on what they have learned — offer a deeper, more specific, or different angle than what they have already practiced.`
+      : '';
     const prompt = `You help a student of the Cosmic Reality Framework apply a structural principle to real life.
 Structure: ${s.name} — principle: ${s.principle}.
 Its intelligent order: ${s.mapping.intelligentOrder}
 Its pattern: ${s.mapping.pattern}
-The student is applying it to the domain of ${domain}.
+The student is applying it to the domain of ${domain}.${historyLine}
 Propose one concrete Recommended Participation: a specific, grounded action or practice they can take in their ${domain.toLowerCase()} in the coming week, true to the principle. Keep it to 1-2 sentences, practical and non-mystical — no references to the universe, manifesting, fate, or the divine.
 Respond ONLY with minified JSON, no preamble: {"application":"..."}`;
     try {
@@ -2377,8 +2526,26 @@ Respond ONLY with minified JSON, no preamble: {"application":"..."}`;
           })}
         </div>
 
+        {/* previous applications for this structure */}
+        {prevApps.length > 0 && (
+          <div style={{ marginBottom: '18px' }}>
+            <div style={{ ...mono({ marginBottom: '8px', color: ACCENT.Structure }) }}>Previous applications of {s.name}</div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '7px', maxHeight: '160px', overflowY: 'auto' }}>
+              {[...prevApps].reverse().slice(0, 4).map((pa) => (
+                <div key={pa.id} style={{ borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--chip)', padding: '10px 13px' }}>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '4px' }}>
+                    <span style={{ ...mono({ color: ACCENT.Rhythm, fontSize: '8px' }) }}>{pa.domain}</span>
+                    <span style={{ fontFamily: FONT.mono, fontSize: '8px', color: 'var(--dim)' }}>{fmt(pa.ts)}</span>
+                  </div>
+                  <p style={{ fontFamily: FONT.body, fontSize: '13px', color: 'var(--muted)', margin: 0, lineHeight: 1.5 }}>{pa.text}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* application text */}
-        <div style={{ ...mono({ marginBottom: '8px' }) }}>Your Recommended Participation</div>
+        <div style={{ ...mono({ marginBottom: '8px' }) }}>Your Recommended Participation{prevApps.length > 0 ? ' — next layer' : ''}</div>
         <textarea value={text} onChange={(e) => setText(e.target.value)} rows={4}
           placeholder={`How does "${s.principle.toLowerCase()}" change one concrete thing in your ${domain.toLowerCase()} this week?`}
           style={{ width: '100%', boxSizing: 'border-box', padding: '13px 15px', borderRadius: '11px', border: '1px solid var(--border)', background: 'var(--chip)', color: 'var(--text)', fontFamily: FONT.body, fontSize: '15px', lineHeight: 1.55, outline: 'none', resize: 'vertical' }} />
@@ -2400,41 +2567,137 @@ Respond ONLY with minified JSON, no preamble: {"application":"..."}`;
 }
 
 // ── Journal ───────────────────────────────────────────────────
-function JournalPanel({ applications, removeApplication, invocations, removeInvocation, audio, studiedCount, goExplore, goApply, goInvoke }) {
+function JournalPanel({ applications, removeApplication, invocations, removeInvocation, audio, studiedCount, goExplore, goApply, goInvoke, invocationReflections, addReflection, allyPractices, addAllyPractice, pinnedAlly, patternSynthesis, setPatternSynthesis, studied }) {
+  const [journalTab, setJournalTab] = useState('practice');
+  const [expandedReflect, setExpandedReflect] = useState({});
+  const [reflectText, setReflectText] = useState({});
+  const [seasonBusy, setSeasonBusy] = useState(false);
+  const [seasonalReview, setSeasonalReview] = useState(null);
+  const [allyObservation, setAllyObservation] = useState('');
+  const [allyAction, setAllyAction] = useState('');
+  const [allyReflection, setAllyReflection] = useState('');
+  const [patternBusy, setPatternBusy] = useState(false);
+
+  const now = Date.now();
+  const dayMs = 86400000;
+
+  // Auto-generate pattern synthesis on mount if we have enough data and no cached synthesis
+  useEffect(() => {
+    if (patternSynthesis || (applications.length + invocations.length < 3)) return;
+    synthesizePatterns();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  async function synthesizePatterns() {
+    if (patternBusy) return;
+    setPatternBusy(true);
+    const appSummary = applications.slice(-8).map(a => `[${a.domain}] ${a.structureName}: ${a.text}`).join('\n');
+    const invSummary = invocations.slice(-5).map(r => `${r.symbolName} (${r.domain}): "${r.intention || ''}"`).join('\n');
+    const studiedList = [...studied].slice(-10).map(id => STRUCTURE_BY_ID[id]?.name).filter(Boolean).join(', ');
+    const prompt = `You are a pattern reader for a student of the Cosmic Reality Framework. Based on their recent practice, identify what they are genuinely working on — the deeper pattern beneath the surface activities.\n\nStructures recently studied: ${studiedList || 'none yet'}\n\nRecent applications:\n${appSummary || 'none yet'}\n\nRecent invocations:\n${invSummary || 'none yet'}\n\nWrite a 2-3 sentence synthesis that:\n1. Names the core pattern or life theme they appear to be working with\n2. Identifies what's trying to emerge or resolve\n3. Suggests one structure or principle they haven't worked with that might deepen the current work\n\nBe honest and grounded — no flattery, no mystical promises. Speak directly about what the practice record reveals.\nRespond ONLY with minified JSON: {"synthesis":"...", "suggestedStructure":"<id from structures>", "suggestedReason":"<one sentence>"}`;
+    try {
+      const res = await fetch('/api/org-diagnostic', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) });
+      if (!res.ok) throw new Error('x');
+      const parsed = await res.json();
+      if (parsed && parsed.synthesis) {
+        setPatternSynthesis({ synthesis: parsed.synthesis, suggestedStructure: parsed.suggestedStructure, suggestedReason: parsed.suggestedReason, ts: new Date().toISOString() });
+      }
+    } catch {}
+    finally { setPatternBusy(false); }
+  }
+
+  async function generateSeasonalReview() {
+    setSeasonBusy(true);
+    const appSummary = applications.map(a => `[${a.domain}] ${a.structureName}: ${a.text}`).join('\n');
+    const invSummary = invocations.map(r => `${r.symbolName} (${r.register}, ${r.domain}): "${r.intention || ''}" → Action: ${r.action}`).join('\n');
+    const studiedList = [...studied].map(id => STRUCTURE_BY_ID[id]?.name).filter(Boolean).join(', ');
+    const reflections = invocations.map(r => {
+      const refs = (invocationReflections[r.id] || []);
+      return refs.length ? `${r.symbolName}: ${refs.map(rf => rf.text).join(' | ')}` : null;
+    }).filter(Boolean).join('\n');
+    const prompt = `You are generating a Seasonal Practice Review for a student of the Cosmic Reality Framework.\n\nStructures studied: ${studiedList || 'none'}\nApplications made:\n${appSummary || 'none'}\nInvocations sealed:\n${invSummary || 'none'}\nPost-invocation reflections:\n${reflections || 'none'}\n\nGenerate a structured seasonal review with these sections:\n1. What I was working on (the core pattern or theme)\n2. Key structures that showed up and what they revealed\n3. What shifted or moved\n4. What remains unresolved or is still being worked\n5. What wants to emerge next\n\nBe honest, grounded, specific to what the record shows. No flattery. 2-4 sentences per section.\nRespond ONLY with minified JSON: {"working_on":"...","structures_revealed":"...","what_shifted":"...","unresolved":"...","emerging":"..."}`;
+    try {
+      const res = await fetch('/api/org-diagnostic', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ prompt }) });
+      if (!res.ok) throw new Error('x');
+      const parsed = await res.json();
+      if (parsed && parsed.working_on) setSeasonalReview(parsed);
+    } catch { setSeasonalReview({ working_on: 'Unable to generate — try again when connected.', structures_revealed: '', what_shifted: '', unresolved: '', emerging: '' }); }
+    finally { setSeasonBusy(false); }
+  }
+
+  function saveReflection(invId, prompt) {
+    const text = reflectText[`${invId}-${prompt}`] || '';
+    if (!text.trim()) return;
+    addReflection(invId, { prompt, text: text.trim(), ts: new Date().toISOString() });
+    setReflectText(prev => ({ ...prev, [`${invId}-${prompt}`]: '' }));
+  }
+
+  function saveAllyPractice() {
+    if (!pinnedAlly || (!allyObservation.trim() && !allyAction.trim())) return;
+    addAllyPractice({ id: Date.now(), ts: new Date().toISOString(), ally: pinnedAlly, observation: allyObservation.trim(), action: allyAction.trim(), reflection: allyReflection.trim() });
+    setAllyObservation(''); setAllyAction(''); setAllyReflection('');
+  }
+
   const domainCounts = {};
-  DOMAINS.forEach((d) => (domainCounts[d] = 0));
-  applications.forEach((ap) => { domainCounts[ap.domain] = (domainCounts[ap.domain] || 0) + 1; });
+  DOMAINS.forEach(d => (domainCounts[d] = 0));
+  applications.forEach(ap => { domainCounts[ap.domain] = (domainCounts[ap.domain] || 0) + 1; });
   const maxD = Math.max(1, ...Object.values(domainCounts));
+
+  const structureCounts = {};
+  [...applications, ...invocations].forEach(r => {
+    const sid = r.structureId || r.symbolId;
+    if (sid) structureCounts[sid] = (structureCounts[sid] || 0) + 1;
+  });
+  const topStructures = Object.entries(structureCounts).sort((a, b) => b[1] - a[1]).slice(0, 4);
+
+  const pinnedAllyData = pinnedAlly ? (() => {
+    const [type, ...nameParts] = pinnedAlly.split(':');
+    const name = nameParts.join(':');
+    const structureAllies = Object.values(NATURAL_ALLIES).flatMap(sa => (sa[type + 's'] || []).map(a => ({ ...a, type })));
+    return structureAllies.find(a => a.name === name) || null;
+  })() : null;
+
+  const JOURNAL_TABS = [
+    { id: 'practice', label: 'Practice' },
+    { id: 'patterns', label: 'Patterns' },
+    { id: 'seasonal', label: 'Seasonal Review' },
+  ];
+
+  const taBase = { width: '100%', boxSizing: 'border-box', padding: '11px 13px', borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--chip)', color: 'var(--text)', fontFamily: FONT.body, fontSize: '14px', lineHeight: 1.5, outline: 'none', resize: 'vertical' };
 
   return (
     <div>
       <Heading eyebrow="Journal" title="Your Study & Practice"
-        sub="A record of what you have studied and the principles you have put into practice." />
+        sub="A record of what you have studied, applied, invoked, and reflected on." />
 
-      {/* progress */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '14px', marginBottom: '22px' }}>
+      {/* summary stats */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '14px', marginBottom: '24px' }}>
         <div style={{ ...glass, borderRadius: '16px', padding: '18px' }}>
           <span style={mono()}>Structures studied</span>
           <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px', marginTop: '6px' }}>
             <span style={{ fontFamily: FONT.head, fontSize: '30px', color: ACCENT.Rhythm }}>{studiedCount}</span>
             <span style={{ fontFamily: FONT.sans, fontSize: '13px', color: 'var(--dim)' }}>/ {STRUCTURES.length}</span>
           </div>
-          <div style={{ height: '7px', borderRadius: '4px', background: 'var(--chip)', overflow: 'hidden', marginTop: '10px' }}>
-            <div style={{ height: '100%', width: `${(studiedCount / STRUCTURES.length) * 100}%`, background: ACCENT.Rhythm, opacity: 0.85, transition: 'width 0.4s ease' }} />
+          <div style={{ height: '6px', borderRadius: '3px', background: 'var(--chip)', overflow: 'hidden', marginTop: '10px' }}>
+            <div style={{ height: '100%', width: `${(studiedCount / STRUCTURES.length) * 100}%`, background: ACCENT.Rhythm, opacity: 0.85, transition: 'width 0.4s' }} />
           </div>
         </div>
         <div style={{ ...glass, borderRadius: '16px', padding: '18px' }}>
           <span style={mono()}>Applications</span>
           <div style={{ fontFamily: FONT.head, fontSize: '30px', color: ACCENT['Intelligent Order'], marginTop: '6px' }}>{applications.length}</div>
-          <p style={{ fontFamily: FONT.body, fontSize: '12.5px', color: 'var(--dim)', margin: '6px 0 0' }}>principles put into practice</p>
+          <p style={{ fontFamily: FONT.body, fontSize: '12px', color: 'var(--dim)', margin: '6px 0 0' }}>principles put into practice</p>
+        </div>
+        <div style={{ ...glass, borderRadius: '16px', padding: '18px' }}>
+          <span style={mono()}>Invocations</span>
+          <div style={{ fontFamily: FONT.head, fontSize: '30px', color: ACCENT.Structure, marginTop: '6px' }}>{invocations.length}</div>
+          <p style={{ fontFamily: FONT.body, fontSize: '12px', color: 'var(--dim)', margin: '6px 0 0' }}>sealed in action</p>
         </div>
         <div style={{ ...glass, borderRadius: '16px', padding: '18px' }}>
           <span style={mono()}>By domain</span>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', marginTop: '10px' }}>
-            {DOMAINS.map((d) => (
+            {DOMAINS.map(d => (
               <div key={d} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span style={{ fontFamily: FONT.sans, fontSize: '11px', color: 'var(--muted)', width: '74px' }}>{d}</span>
-                <div style={{ flex: 1, height: '6px', borderRadius: '3px', background: 'var(--chip)', overflow: 'hidden' }}>
+                <div style={{ flex: 1, height: '5px', borderRadius: '3px', background: 'var(--chip)', overflow: 'hidden' }}>
                   <div style={{ height: '100%', width: `${(domainCounts[d] / maxD) * 100}%`, background: ACCENT.Structure, opacity: 0.8 }} />
                 </div>
                 <span style={{ fontFamily: FONT.mono, fontSize: '10px', color: 'var(--dim)', width: '16px', textAlign: 'right' }}>{domainCounts[d]}</span>
@@ -2444,90 +2707,347 @@ function JournalPanel({ applications, removeApplication, invocations, removeInvo
         </div>
       </div>
 
-      {/* Invocations */}
-      <div style={{ marginBottom: '26px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
-          <h3 style={{ fontFamily: FONT.head, fontSize: '18px', fontWeight: 500, color: 'var(--text)', margin: 0 }}>Invocations</h3>
-          <GhostBtn color={ACCENT['Intelligent Order']} onClick={goInvoke}>+ New invocation</GhostBtn>
-        </div>
-        {invocations.length === 0 ? (
-          <div style={{ ...glass, borderRadius: '16px', padding: '28px 22px', textAlign: 'center' }}>
-            <Icon name="Flame" size={24} color="var(--dim)" />
-            <p style={{ fontFamily: FONT.body, fontSize: '14.5px', color: 'var(--muted)', margin: '10px 0 0' }}>No invocations yet. Enter the Invoke chamber, then seal a rite to keep it here.</p>
-          </div>
-        ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            {[...invocations].reverse().map((r) => {
-              const s = STRUCTURE_BY_ID[r.symbolId]; const a = s ? ACCENT[s.primaryLayer] : ACCENT['Intelligent Order'];
-              const playing = audio.tone && audio.audioSource === r.id;
-              return (
-                <div key={r.id} style={{ ...glass, borderRadius: '16px', padding: '18px 20px', borderLeft: `3px solid ${a}` }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>{s && <Icon name={glyphOf(s)} size={16} color={a} />}<span style={{ fontFamily: FONT.head, fontSize: '15px', color: 'var(--text)' }}>{r.symbolName}</span></span>
-                    <span style={{ padding: '2px 9px', borderRadius: '999px', background: ACCENT['Intelligent Order'] + '14', border: `1px solid ${ACCENT['Intelligent Order']}33`, ...mono({ color: ACCENT['Intelligent Order'], fontSize: '9px' }) }}>{r.register}</span>
-                    <span style={{ padding: '2px 9px', borderRadius: '999px', background: ACCENT.Rhythm + '14', border: `1px solid ${ACCENT.Rhythm}33`, ...mono({ color: ACCENT.Rhythm, fontSize: '9px' }) }}>{r.domain}</span>
-                    <span style={{ fontFamily: FONT.mono, fontSize: '10px', color: 'var(--dim)', marginLeft: 'auto' }}>{fmt(r.ts)}</span>
-                  </div>
-                  {r.intention && <p style={{ fontFamily: FONT.body, fontSize: '13px', fontStyle: 'italic', color: 'var(--muted)', margin: '0 0 10px' }}>“{r.intention}”</p>}
-                  {r.ally && (
-                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '999px', border: `1px solid ${ALLY_TYPE_COLOR[r.ally.type || 'planet']}33`, background: ALLY_TYPE_COLOR[r.ally.type || 'planet'] + '10', marginBottom: '10px' }}>
-                      <span style={{ fontSize: '14px' }}>{r.ally.glyph}</span>
-                      <span style={{ fontFamily: FONT.mono, fontSize: '8.5px', letterSpacing: '1px', color: ALLY_TYPE_COLOR[r.ally.type || 'planet'] }}>{r.ally.name}</span>
-                      <span style={{ fontFamily: FONT.mono, fontSize: '8px', color: 'var(--dim)' }}> · {r.ally.role}</span>
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                    {r.lines.map((l, i) => { const tx = typeof l === 'string' ? l : l.text; const lay = typeof l === 'string' ? null : l.layer; return <p key={i} style={{ fontFamily: FONT.head, fontSize: '14.5px', color: 'var(--text)', margin: 0, lineHeight: 1.5 }}>{lay && <span style={{ color: ACCENT[lay], fontFamily: FONT.mono, fontSize: '9px', marginRight: '6px' }}>{'\u25B8'}</span>}{renderCaps(tx)}</p>; })}
-                  </div>
-                  <div style={{ marginTop: '12px', borderRadius: '10px', background: ACCENT.Rhythm + '0C', border: `1px solid ${ACCENT.Rhythm}26`, padding: '10px 12px' }}>
-                    <span style={mono({ color: ACCENT.Rhythm, fontSize: '9px' })}>Sealed action</span>
-                    <p style={{ fontFamily: FONT.body, fontSize: '13.5px', color: 'var(--text)', margin: '4px 0 0', lineHeight: 1.5 }}>{r.action}</p>
-                  </div>
-                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center', marginTop: '10px' }}>
-                    <GhostBtn color={ACCENT['Intelligent Order']} onClick={() => (playing ? audio.stopBed() : audio.startBed(r.id))} style={{ padding: '6px 12px' }}><Icon name={playing ? 'Square' : 'Headphones'} size={13} color={ACCENT['Intelligent Order']} /> {playing ? 'Stop bed' : 'Play coherence bed'}</GhostBtn>
-                    <GhostBtn color={ACCENT.Events} onClick={() => removeInvocation(r.id)} style={{ padding: '6px 12px' }}>Delete</GhostBtn>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+      {/* journal sub-tabs */}
+      <div style={{ display: 'flex', gap: '6px', marginBottom: '24px', borderBottom: '1px solid var(--border)', paddingBottom: '0' }}>
+        {JOURNAL_TABS.map(t => {
+          const on = journalTab === t.id;
+          return (
+            <button key={t.id} onClick={() => setJournalTab(t.id)} style={{ padding: '9px 16px', background: 'none', border: 'none', cursor: 'pointer', fontFamily: FONT.mono, fontSize: '10px', letterSpacing: '1.5px', textTransform: 'uppercase', color: on ? ACCENT['Intelligent Order'] : 'var(--dim)', borderBottom: on ? `2px solid ${ACCENT['Intelligent Order']}` : '2px solid transparent', marginBottom: '-1px' }}>
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
-      <h3 style={{ fontFamily: FONT.head, fontSize: '18px', fontWeight: 500, color: 'var(--text)', margin: '0 0 14px' }}>Applications</h3>
-      {applications.length === 0 ? (
-        <div style={{ ...glass, borderRadius: '16px', padding: '48px 24px', textAlign: 'center' }}>
-          <Icon name="NotebookPen" size={30} color="var(--dim)" />
-          <p style={{ fontFamily: FONT.body, fontSize: '16px', color: 'var(--muted)', margin: '12px 0 18px' }}>No applications yet. Study a structure, then translate its principle into a practice.</p>
-          <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
-            <GoldBtn onClick={goExplore}>Explore structures</GoldBtn>
-            <GhostBtn onClick={goApply}>Go to Apply →</GhostBtn>
-          </div>
-        </div>
-      ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          {[...applications].reverse().map((ap) => {
-            const s = STRUCTURE_BY_ID[ap.structureId];
-            const a = s ? ACCENT[s.primaryLayer] : ACCENT.Structure;
-            return (
-              <div key={ap.id} style={{ ...glass, borderRadius: '16px', padding: '18px 20px', borderLeft: `3px solid ${a}` }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                  {s && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}><StructIcon k={s.icon} size={16} color={a} /><span style={{ fontFamily: FONT.head, fontSize: '15px', color: 'var(--text)' }}>{ap.structureName}</span></span>}
-                  <span style={{ padding: '2px 10px', borderRadius: '999px', background: ACCENT.Rhythm + '1A', border: `1px solid ${ACCENT.Rhythm}33`, ...mono({ color: ACCENT.Rhythm, fontSize: '9.5px' }) }}>{ap.domain}</span>
-                  <span style={{ fontFamily: FONT.mono, fontSize: '10px', color: 'var(--dim)', marginLeft: 'auto' }}>{fmt(ap.ts)}</span>
-                </div>
-                <p style={{ fontFamily: FONT.body, fontSize: '14.5px', color: 'var(--text)', lineHeight: 1.55, margin: 0 }}>{ap.text}</p>
-                <div style={{ textAlign: 'right', marginTop: '10px' }}>
-                  <GhostBtn color={ACCENT.Events} onClick={() => removeApplication(ap.id)} style={{ padding: '5px 11px', fontSize: '11.5px' }}>Delete</GhostBtn>
+      {/* ── PRACTICE TAB ── */}
+      {journalTab === 'practice' && (
+        <div>
+          {/* Pinned Ally Practice Card */}
+          {pinnedAllyData && (
+            <div style={{ ...glass, borderRadius: '18px', padding: '22px', marginBottom: '28px', border: `1px solid ${ALLY_TYPE_COLOR[pinnedAllyData.type]}33` }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '14px' }}>
+                <span style={{ fontSize: '24px' }}>{pinnedAllyData.glyph}</span>
+                <div>
+                  <div style={{ fontFamily: FONT.mono, fontSize: '8.5px', letterSpacing: '2px', textTransform: 'uppercase', color: ALLY_TYPE_COLOR[pinnedAllyData.type], marginBottom: '2px' }}>THIS WEEK'S PRACTICE ALLY · {(pinnedAllyData.type || '').toUpperCase()}</div>
+                  <div style={{ fontFamily: FONT.head, fontSize: '17px', color: 'var(--text)' }}>{pinnedAllyData.name}</div>
+                  <div style={{ fontFamily: FONT.mono, fontSize: '9px', color: 'var(--muted)', marginTop: '1px' }}>{pinnedAllyData.role}</div>
                 </div>
               </div>
-            );
-          })}
+              <p style={{ fontFamily: FONT.body, fontSize: '14px', lineHeight: 1.65, color: 'var(--muted)', margin: '0 0 16px', borderTop: '1px solid var(--border)', paddingTop: '14px' }}>{pinnedAllyData.use}</p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div>
+                  <div style={{ ...mono({ marginBottom: '5px', fontSize: '9px', color: ALLY_TYPE_COLOR[pinnedAllyData.type] }) }}>OBSERVATION — Where did you notice this principle today?</div>
+                  <textarea value={allyObservation} onChange={e => setAllyObservation(e.target.value)} rows={2} placeholder={`One place you saw the ${pinnedAllyData.name} principle at work in your life or the world…`} style={taBase} />
+                </div>
+                <div>
+                  <div style={{ ...mono({ marginBottom: '5px', fontSize: '9px', color: ALLY_TYPE_COLOR[pinnedAllyData.type] }) }}>ACTION — How did you apply it?</div>
+                  <textarea value={allyAction} onChange={e => setAllyAction(e.target.value)} rows={2} placeholder={`One concrete thing you did differently because of this ally's principle…`} style={taBase} />
+                </div>
+                <div>
+                  <div style={{ ...mono({ marginBottom: '5px', fontSize: '9px', color: 'var(--dim)' }) }}>REFLECTION (optional) — What shifted?</div>
+                  <textarea value={allyReflection} onChange={e => setAllyReflection(e.target.value)} rows={2} placeholder="What changed, however slightly, in how you see or move?" style={taBase} />
+                </div>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <GoldBtn onClick={saveAllyPractice} disabled={!allyObservation.trim() && !allyAction.trim()}><Icon name="Check" size={14} color="#1A150A" /> Save Practice Entry</GoldBtn>
+                </div>
+              </div>
+              {(allyPractices || []).filter(p => p.ally === pinnedAlly).length > 0 && (
+                <div style={{ marginTop: '16px', borderTop: '1px solid var(--border)', paddingTop: '14px' }}>
+                  <div style={{ ...mono({ marginBottom: '8px', fontSize: '9px', color: 'var(--dim)' }) }}>PREVIOUS ENTRIES WITH THIS ALLY</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto' }}>
+                    {[...(allyPractices || [])].filter(p => p.ally === pinnedAlly).reverse().map(p => (
+                      <div key={p.id} style={{ borderRadius: '10px', border: '1px solid var(--border)', background: 'var(--chip)', padding: '10px 13px' }}>
+                        <div style={{ fontFamily: FONT.mono, fontSize: '8px', color: 'var(--dim)', marginBottom: '5px' }}>{fmt(p.ts)}</div>
+                        {p.observation && <p style={{ fontFamily: FONT.body, fontSize: '13px', color: 'var(--muted)', margin: '0 0 4px' }}>Saw: {p.observation}</p>}
+                        {p.action && <p style={{ fontFamily: FONT.body, fontSize: '13px', color: 'var(--muted)', margin: '0 0 4px' }}>Did: {p.action}</p>}
+                        {p.reflection && <p style={{ fontFamily: FONT.body, fontSize: '13px', fontStyle: 'italic', color: 'var(--dim)', margin: 0 }}>{p.reflection}</p>}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Invocations with reflection system */}
+          <div style={{ marginBottom: '28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '8px', marginBottom: '14px' }}>
+              <h3 style={{ fontFamily: FONT.head, fontSize: '18px', fontWeight: 500, color: 'var(--text)', margin: 0 }}>Invocations</h3>
+              <GhostBtn color={ACCENT['Intelligent Order']} onClick={goInvoke}>+ New invocation</GhostBtn>
+            </div>
+            {invocations.length === 0 ? (
+              <div style={{ ...glass, borderRadius: '16px', padding: '28px 22px', textAlign: 'center' }}>
+                <Icon name="Flame" size={24} color="var(--dim)" />
+                <p style={{ fontFamily: FONT.body, fontSize: '14.5px', color: 'var(--muted)', margin: '10px 0 0' }}>No invocations yet. Enter the Invoke chamber, then seal a rite to keep it here.</p>
+              </div>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                {[...invocations].reverse().map(r => {
+                  const s = STRUCTURE_BY_ID[r.symbolId];
+                  const a = s ? ACCENT[s.primaryLayer] : ACCENT['Intelligent Order'];
+                  const playing = audio.tone && audio.audioSource === r.id;
+                  const daysSince = Math.floor((now - new Date(r.ts).getTime()) / dayMs);
+                  const refs = invocationReflections[r.id] || [];
+                  const has3day = refs.some(rf => rf.prompt === '3day');
+                  const has7day = refs.some(rf => rf.prompt === '7day');
+                  const reflectDue = (daysSince >= 3 && !has3day) || (daysSince >= 7 && !has7day);
+                  const isExpanded = expandedReflect[r.id];
+
+                  return (
+                    <div key={r.id} style={{ ...glass, borderRadius: '16px', padding: '18px 20px', borderLeft: `3px solid ${a}` }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '10px' }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}>{s && <Icon name={glyphOf(s)} size={16} color={a} />}<span style={{ fontFamily: FONT.head, fontSize: '15px', color: 'var(--text)' }}>{r.symbolName}</span></span>
+                        <span style={{ padding: '2px 9px', borderRadius: '999px', background: ACCENT['Intelligent Order'] + '14', border: `1px solid ${ACCENT['Intelligent Order']}33`, ...mono({ color: ACCENT['Intelligent Order'], fontSize: '9px' }) }}>{r.register}</span>
+                        <span style={{ padding: '2px 9px', borderRadius: '999px', background: ACCENT.Rhythm + '14', border: `1px solid ${ACCENT.Rhythm}33`, ...mono({ color: ACCENT.Rhythm, fontSize: '9px' }) }}>{r.domain}</span>
+                        {reflectDue && (
+                          <span style={{ padding: '2px 9px', borderRadius: '999px', background: '#FBBF2418', border: '1px solid #FBBF2444', ...mono({ color: '#FBBF24', fontSize: '9px' }) }}>● reflect due</span>
+                        )}
+                        <span style={{ fontFamily: FONT.mono, fontSize: '10px', color: 'var(--dim)', marginLeft: 'auto' }}>{fmt(r.ts)}</span>
+                      </div>
+                      {r.intention && <p style={{ fontFamily: FONT.body, fontSize: '13px', fontStyle: 'italic', color: 'var(--muted)', margin: '0 0 10px' }}>"{r.intention}"</p>}
+                      {r.ally && (
+                        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '4px 10px', borderRadius: '999px', border: `1px solid ${ALLY_TYPE_COLOR[r.ally.type || 'planet']}33`, background: ALLY_TYPE_COLOR[r.ally.type || 'planet'] + '10', marginBottom: '10px' }}>
+                          <span style={{ fontSize: '14px' }}>{r.ally.glyph}</span>
+                          <span style={{ fontFamily: FONT.mono, fontSize: '8.5px', letterSpacing: '1px', color: ALLY_TYPE_COLOR[r.ally.type || 'planet'] }}>{r.ally.name}</span>
+                          <span style={{ fontFamily: FONT.mono, fontSize: '8px', color: 'var(--dim)' }}> · {r.ally.role}</span>
+                        </div>
+                      )}
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                        {r.lines.map((l, i) => { const tx = typeof l === 'string' ? l : l.text; const lay = typeof l === 'string' ? null : l.layer; return <p key={i} style={{ fontFamily: FONT.head, fontSize: '14.5px', color: 'var(--text)', margin: 0, lineHeight: 1.5 }}>{lay && <span style={{ color: ACCENT[lay], fontFamily: FONT.mono, fontSize: '9px', marginRight: '6px' }}>{'▸'}</span>}{renderCaps(tx)}</p>; })}
+                      </div>
+                      <div style={{ marginTop: '12px', borderRadius: '10px', background: ACCENT.Rhythm + '0C', border: `1px solid ${ACCENT.Rhythm}26`, padding: '10px 12px' }}>
+                        <span style={mono({ color: ACCENT.Rhythm, fontSize: '9px' })}>Sealed action</span>
+                        <p style={{ fontFamily: FONT.body, fontSize: '13.5px', color: 'var(--text)', margin: '4px 0 0', lineHeight: 1.5 }}>{r.action}</p>
+                      </div>
+
+                      {/* saved reflections */}
+                      {refs.length > 0 && (
+                        <div style={{ marginTop: '10px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {refs.map((rf, i) => (
+                            <div key={i} style={{ borderRadius: '9px', border: '1px solid var(--border)', background: 'var(--chip)', padding: '9px 12px' }}>
+                              <div style={{ ...mono({ fontSize: '8px', color: 'var(--dim)', marginBottom: '4px' }) }}>{rf.prompt === '3day' ? '3-DAY REFLECTION' : rf.prompt === '7day' ? '7-DAY REFLECTION' : 'REFLECTION'} · {fmt(rf.ts)}</div>
+                              <p style={{ fontFamily: FONT.body, fontSize: '13px', color: 'var(--muted)', margin: 0, lineHeight: 1.5 }}>{rf.text}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* reflection input */}
+                      {isExpanded && (
+                        <div style={{ marginTop: '12px', padding: '14px', borderRadius: '12px', border: '1px solid rgba(251,191,36,0.2)', background: 'rgba(251,191,36,0.04)' }}>
+                          {daysSince >= 3 && !has3day && (
+                            <div style={{ marginBottom: '12px' }}>
+                              <div style={{ ...mono({ fontSize: '9px', color: '#FBBF24', marginBottom: '6px' }) }}>3-DAY CHECK-IN — Did you take the sealed action? What shifted?</div>
+                              <textarea value={reflectText[`${r.id}-3day`] || ''} onChange={e => setReflectText(prev => ({ ...prev, [`${r.id}-3day`]: e.target.value }))} rows={3} placeholder="Be honest and specific. Even small shifts count." style={{ ...taBase, marginBottom: '8px' }} />
+                              <GoldBtn onClick={() => saveReflection(r.id, '3day')} disabled={!(reflectText[`${r.id}-3day`] || '').trim()}>Save 3-day reflection</GoldBtn>
+                            </div>
+                          )}
+                          {daysSince >= 7 && !has7day && (
+                            <div>
+                              <div style={{ ...mono({ fontSize: '9px', color: '#FBBF24', marginBottom: '6px' }) }}>7-DAY CHECK-IN — How has this principle shown up since you invoked it?</div>
+                              <textarea value={reflectText[`${r.id}-7day`] || ''} onChange={e => setReflectText(prev => ({ ...prev, [`${r.id}-7day`]: e.target.value }))} rows={3} placeholder="What patterns, events, or inner shifts connected to this invocation?" style={{ ...taBase, marginBottom: '8px' }} />
+                              <GoldBtn onClick={() => saveReflection(r.id, '7day')} disabled={!(reflectText[`${r.id}-7day`] || '').trim()}>Save 7-day reflection</GoldBtn>
+                            </div>
+                          )}
+                          {daysSince < 3 && (
+                            <div>
+                              <div style={{ ...mono({ fontSize: '9px', color: '#FBBF24', marginBottom: '6px' }) }}>REFLECTION — Any early movement to note?</div>
+                              <textarea value={reflectText[`${r.id}-early`] || ''} onChange={e => setReflectText(prev => ({ ...prev, [`${r.id}-early`]: e.target.value }))} rows={3} placeholder="Optional — capture any early shifts while they're fresh." style={{ ...taBase, marginBottom: '8px' }} />
+                              <GoldBtn onClick={() => saveReflection(r.id, 'early')} disabled={!(reflectText[`${r.id}-early`] || '').trim()}>Save reflection</GoldBtn>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center', marginTop: '10px', flexWrap: 'wrap' }}>
+                        <GhostBtn color={reflectDue ? '#FBBF24' : 'var(--muted)'} onClick={() => setExpandedReflect(prev => ({ ...prev, [r.id]: !prev[r.id] }))}>
+                          {isExpanded ? 'Close reflection' : (reflectDue ? '✦ Reflect now' : 'Add reflection')}
+                        </GhostBtn>
+                        <GhostBtn color={ACCENT['Intelligent Order']} onClick={() => (playing ? audio.stopBed() : audio.startBed(r.id))}><Icon name={playing ? 'Square' : 'Headphones'} size={13} color={ACCENT['Intelligent Order']} /> {playing ? 'Stop bed' : 'Play bed'}</GhostBtn>
+                        <GhostBtn color={ACCENT.Events} onClick={() => removeInvocation(r.id)}>Delete</GhostBtn>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Applications */}
+          <h3 style={{ fontFamily: FONT.head, fontSize: '18px', fontWeight: 500, color: 'var(--text)', margin: '0 0 14px' }}>Applications</h3>
+          {applications.length === 0 ? (
+            <div style={{ ...glass, borderRadius: '16px', padding: '48px 24px', textAlign: 'center' }}>
+              <Icon name="NotebookPen" size={30} color="var(--dim)" />
+              <p style={{ fontFamily: FONT.body, fontSize: '16px', color: 'var(--muted)', margin: '12px 0 18px' }}>No applications yet. Study a structure, then translate its principle into a practice.</p>
+              <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', flexWrap: 'wrap' }}>
+                <GoldBtn onClick={goExplore}>Explore structures</GoldBtn>
+                <GhostBtn onClick={goApply}>Go to Apply →</GhostBtn>
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              {[...applications].reverse().map(ap => {
+                const s = STRUCTURE_BY_ID[ap.structureId];
+                const a = s ? ACCENT[s.primaryLayer] : ACCENT.Structure;
+                return (
+                  <div key={ap.id} style={{ ...glass, borderRadius: '16px', padding: '18px 20px', borderLeft: `3px solid ${a}` }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', marginBottom: '8px' }}>
+                      {s && <span style={{ display: 'inline-flex', alignItems: 'center', gap: '7px' }}><StructIcon k={s.icon} size={16} color={a} /><span style={{ fontFamily: FONT.head, fontSize: '15px', color: 'var(--text)' }}>{ap.structureName}</span></span>}
+                      <span style={{ padding: '2px 10px', borderRadius: '999px', background: ACCENT.Rhythm + '1A', border: `1px solid ${ACCENT.Rhythm}33`, ...mono({ color: ACCENT.Rhythm, fontSize: '9.5px' }) }}>{ap.domain}</span>
+                      <span style={{ fontFamily: FONT.mono, fontSize: '10px', color: 'var(--dim)', marginLeft: 'auto' }}>{fmt(ap.ts)}</span>
+                    </div>
+                    <p style={{ fontFamily: FONT.body, fontSize: '14.5px', color: 'var(--text)', lineHeight: 1.55, margin: 0 }}>{ap.text}</p>
+                    <div style={{ textAlign: 'right', marginTop: '10px' }}>
+                      <GhostBtn color={ACCENT.Events} onClick={() => removeApplication(ap.id)}>Delete</GhostBtn>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── PATTERNS TAB ── */}
+      {journalTab === 'patterns' && (
+        <div>
+          {(applications.length + invocations.length) < 3 ? (
+            <div style={{ ...glass, borderRadius: '18px', padding: '40px 24px', textAlign: 'center' }}>
+              <Icon name="Sparkles" size={28} color="var(--dim)" />
+              <p style={{ fontFamily: FONT.body, fontSize: '15px', color: 'var(--muted)', margin: '12px auto 0', maxWidth: '400px' }}>
+                Add at least 3 applications or invocations to unlock pattern synthesis. The system reads across your practice to find the deeper thread.
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              {/* AI pattern synthesis */}
+              <div style={{ ...glass, borderRadius: '18px', padding: '24px', border: `1px solid ${ACCENT['Intelligent Order']}22` }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '10px', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Icon name="Sparkles" size={16} color={ACCENT['Intelligent Order']} />
+                    <span style={mono({ color: ACCENT['Intelligent Order'], letterSpacing: '2px' })}>PATTERN SYNTHESIS</span>
+                  </div>
+                  <GhostBtn color={ACCENT['Intelligent Order']} onClick={synthesizePatterns}>{patternBusy ? 'Reading…' : '↻ Refresh'}</GhostBtn>
+                </div>
+                {patternBusy ? (
+                  <p style={{ fontFamily: FONT.body, fontSize: '14px', color: 'var(--dim)', fontStyle: 'italic' }}>Reading across your practice record…</p>
+                ) : patternSynthesis ? (
+                  <div>
+                    <p style={{ fontFamily: FONT.body, fontSize: '16px', lineHeight: 1.7, color: 'var(--text)', margin: '0 0 16px' }}>{patternSynthesis.synthesis}</p>
+                    {patternSynthesis.suggestedStructure && STRUCTURE_BY_ID[patternSynthesis.suggestedStructure] && (
+                      <div style={{ borderRadius: '12px', border: `1px solid ${ACCENT.Structure}33`, background: ACCENT.Structure + '0A', padding: '14px 16px' }}>
+                        <div style={{ ...mono({ color: ACCENT.Structure, fontSize: '9px', marginBottom: '6px' }) }}>SUGGESTED NEXT STRUCTURE</div>
+                        <div style={{ fontFamily: FONT.head, fontSize: '15px', color: 'var(--text)', marginBottom: '4px' }}>{STRUCTURE_BY_ID[patternSynthesis.suggestedStructure].name}</div>
+                        <p style={{ fontFamily: FONT.body, fontSize: '13px', color: 'var(--muted)', margin: 0 }}>{patternSynthesis.suggestedReason}</p>
+                      </div>
+                    )}
+                    <p style={{ fontFamily: FONT.mono, fontSize: '8px', color: 'var(--dim)', margin: '10px 0 0' }}>Synthesized {fmt(patternSynthesis.ts)} · auto-refreshes on Journal open</p>
+                  </div>
+                ) : (
+                  <p style={{ fontFamily: FONT.body, fontSize: '14px', color: 'var(--dim)', fontStyle: 'italic' }}>Synthesis will appear automatically when you open the Journal.</p>
+                )}
+              </div>
+
+              {/* most-used structures */}
+              {topStructures.length > 0 && (
+                <div style={{ ...glass, borderRadius: '18px', padding: '22px' }}>
+                  <span style={mono({ marginBottom: '14px', display: 'block' })}>MOST-USED STRUCTURES</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    {topStructures.map(([sid, count]) => {
+                      const s = STRUCTURE_BY_ID[sid];
+                      if (!s) return null;
+                      const a = ACCENT[s.primaryLayer];
+                      const maxCount = topStructures[0][1];
+                      return (
+                        <div key={sid} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <div style={{ width: '36px', height: '36px', borderRadius: '10px', background: a + '1A', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                            <StructIcon k={s.icon} size={18} color={a} />
+                          </div>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontFamily: FONT.head, fontSize: '14px', color: 'var(--text)' }}>{s.name}</div>
+                            <div style={{ height: '4px', borderRadius: '2px', background: 'var(--chip)', overflow: 'hidden', marginTop: '5px' }}>
+                              <div style={{ height: '100%', width: `${(count / maxCount) * 100}%`, background: a, opacity: 0.8 }} />
+                            </div>
+                          </div>
+                          <span style={{ fontFamily: FONT.mono, fontSize: '11px', color: 'var(--dim)', flexShrink: 0 }}>{count}×</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* ally usage */}
+              {invocations.filter(r => r.ally).length > 0 && (
+                <div style={{ ...glass, borderRadius: '18px', padding: '22px' }}>
+                  <span style={mono({ marginBottom: '14px', display: 'block' })}>ALLIES INVOKED</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {Object.entries(invocations.filter(r => r.ally).reduce((acc, r) => { const k = r.ally.name; acc[k] = (acc[k] || { ...r.ally, count: 0 }); acc[k].count++; return acc; }, {})).map(([name, data]) => (
+                      <span key={name} style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', padding: '5px 12px', borderRadius: '999px', border: `1px solid ${ALLY_TYPE_COLOR[data.type || 'planet']}33`, background: ALLY_TYPE_COLOR[data.type || 'planet'] + '10' }}>
+                        <span style={{ fontSize: '14px' }}>{data.glyph}</span>
+                        <span style={{ fontFamily: FONT.head, fontSize: '13px', color: 'var(--text)' }}>{name}</span>
+                        <span style={{ fontFamily: FONT.mono, fontSize: '9px', color: 'var(--dim)' }}>{data.count}×</span>
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── SEASONAL REVIEW TAB ── */}
+      {journalTab === 'seasonal' && (
+        <div>
+          {(applications.length + invocations.length) < 5 ? (
+            <div style={{ ...glass, borderRadius: '18px', padding: '40px 24px', textAlign: 'center' }}>
+              <Icon name="BookOpen" size={28} color="var(--dim)" />
+              <p style={{ fontFamily: FONT.body, fontSize: '15px', color: 'var(--muted)', margin: '12px auto 0', maxWidth: '420px' }}>
+                A seasonal review needs a full practice record to draw on — at least 5 applications or invocations. Keep working; the review will deepen as your record grows.
+              </p>
+            </div>
+          ) : (
+            <div>
+              <div style={{ ...glass, borderRadius: '18px', padding: '24px', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                  <Icon name="BookOpen" size={16} color={ACCENT.Pattern} />
+                  <span style={mono({ color: ACCENT.Pattern, letterSpacing: '2px' })}>SEASONAL REVIEW</span>
+                </div>
+                <p style={{ fontFamily: FONT.body, fontSize: '14px', lineHeight: 1.65, color: 'var(--muted)', margin: '0 0 16px' }}>
+                  A synthesis of your full practice record — what you've been working on, what shifted, what's unresolved, and what's trying to emerge. Generate it at the end of a season, a project, or whenever a chapter feels complete.
+                </p>
+                <GoldBtn onClick={generateSeasonalReview} disabled={seasonBusy}>
+                  {seasonBusy ? 'Synthesizing…' : seasonalReview ? '↻ Regenerate review' : 'Generate seasonal review'}
+                </GoldBtn>
+              </div>
+              {seasonalReview && (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                  {[
+                    ['What I was working on', seasonalReview.working_on, ACCENT['Intelligent Order']],
+                    ['Structures and what they revealed', seasonalReview.structures_revealed, ACCENT.Structure],
+                    ['What shifted', seasonalReview.what_shifted, ACCENT.Rhythm],
+                    ['What remains unresolved', seasonalReview.unresolved, ACCENT.Pattern],
+                    ['What wants to emerge next', seasonalReview.emerging, ACCENT.Events],
+                  ].filter(([, text]) => text).map(([title, text, color]) => (
+                    <div key={title} style={{ ...glass, borderRadius: '16px', padding: '20px 22px', borderLeft: `3px solid ${color}` }}>
+                      <div style={{ ...mono({ color, fontSize: '9px', marginBottom: '8px', letterSpacing: '2px' }) }}>{title.toUpperCase()}</div>
+                      <p style={{ fontFamily: FONT.body, fontSize: '15px', lineHeight: 1.7, color: 'var(--text)', margin: 0 }}>{text}</p>
+                    </div>
+                  ))}
+                  <p style={{ fontFamily: FONT.body, fontSize: '12px', fontStyle: 'italic', color: 'var(--dim)', textAlign: 'center', margin: '4px 0 0' }}>
+                    This review is generated from your practice record. It reflects what the record shows, not what you hoped would be there.
+                  </p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
+
 
 // ── Overview ──────────────────────────────────────────────────
 function Overview({ goExplore, goApply, onOpen, studiedCount, appsCount }) {
@@ -2887,6 +3407,9 @@ export default function UniversalStructures() {
   const [invokeSeed, setInvokeSeed] = useState(null);
   const [allySeed, setAllySeed] = useState(null); // { name, glyph, role, use, type }
   const [pinnedAlly, setPinnedAlly] = useState(null); // "type:name"
+  const [invocationReflections, setInvocationReflections] = useState(() => { try { const v = typeof window!=='undefined' && localStorage.getItem('tfi-usio-reflections'); return v ? JSON.parse(v) : {}; } catch { return {}; } }); // { invId: [{prompt, text, ts}] }
+  const [allyPractices, setAllyPractices] = useState(() => { try { const v = typeof window!=='undefined' && localStorage.getItem('tfi-usio-ally-practices'); return v ? JSON.parse(v) : []; } catch { return []; } });
+  const [patternSynthesis, setPatternSynthesis] = useState(() => { try { const v = typeof window!=='undefined' && localStorage.getItem('tfi-usio-pattern-synthesis'); return v ? JSON.parse(v) : null; } catch { return null; } });
   const [tone, setTone] = useState(false);
   const [vol, setVol] = useState(50);
   const [audioSource, setAudioSource] = useState(null);
@@ -2950,6 +3473,7 @@ export default function UniversalStructures() {
   const syncToServer = (studiedSet, apps, invocs) => {
     try { localStorage.setItem('tfi-usio-studied', JSON.stringify([...studiedSet])); } catch {}
     try { localStorage.setItem('tfi-usio-applications', JSON.stringify(apps)); } catch {}
+    try { localStorage.setItem('tfi-usio-pattern-synthesis', patternSynthesis ? JSON.stringify(patternSynthesis) : ''); } catch {}
     fetch('/api/universal-structures/journal', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -2964,6 +3488,16 @@ export default function UniversalStructures() {
   }, [studied, applications, invocations]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openApply = (s, ally) => { setApplyId(s.id); setSelected(null); setTab('apply'); };
+  const addReflection = (invId, entry) => setInvocationReflections(prev => {
+    const updated = { ...prev, [invId]: [...(prev[invId] || []), entry] };
+    try { localStorage.setItem('tfi-usio-reflections', JSON.stringify(updated)); } catch {}
+    return updated;
+  });
+  const addAllyPractice = (entry) => setAllyPractices(prev => {
+    const updated = [...prev, entry];
+    try { localStorage.setItem('tfi-usio-ally-practices', JSON.stringify(updated)); } catch {}
+    return updated;
+  });
   const addInvocation = (r) => setInvocations((xs) => [...xs, r]);
   const removeInvocation = (id) => setInvocations((xs) => xs.filter((x) => x.id !== id));
   const openInvoke = (s) => { setInvokeSeed(s.id); setSelected(null); setTab('invoke'); };
@@ -3094,9 +3628,9 @@ export default function UniversalStructures() {
           )}
 
           {tab === 'mapping' && <MappingPanel />}
-          {tab === 'apply' && <ApplyPanel applyId={applyId} setApplyId={setApplyId} addApplication={addApplication} showToast={showToast} goJournal={() => setTab('journal')} />}
+          {tab === 'apply' && <ApplyPanel applyId={applyId} setApplyId={setApplyId} addApplication={addApplication} showToast={showToast} goJournal={() => setTab('journal')} applications={applications} />}
           {tab === 'invoke' && <InvokePanel seed={invokeSeed} clearSeed={() => setInvokeSeed(null)} addInvocation={addInvocation} showToast={showToast} audio={audio} allySeed={allySeed} clearAllySeed={() => setAllySeed(null)} />}
-          {tab === 'journal' && <JournalPanel applications={applications} removeApplication={removeApplication} invocations={invocations} removeInvocation={removeInvocation} audio={audio} studiedCount={studied.size} goExplore={() => setTab('explore')} goApply={() => setTab('apply')} goInvoke={() => setTab('invoke')} />}
+          {tab === 'journal' && <JournalPanel applications={applications} removeApplication={removeApplication} invocations={invocations} removeInvocation={removeInvocation} audio={audio} studiedCount={studied.size} goExplore={() => setTab('explore')} goApply={() => setTab('apply')} goInvoke={() => setTab('invoke')} invocationReflections={invocationReflections} addReflection={addReflection} allyPractices={allyPractices} addAllyPractice={addAllyPractice} pinnedAlly={pinnedAlly} patternSynthesis={patternSynthesis} setPatternSynthesis={setPatternSynthesis} studied={studied} />}
         </div>
       </div>
 
