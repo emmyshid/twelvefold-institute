@@ -78,6 +78,8 @@ export const certApplications = pgTable("cert_applications", {
   name: text("name").notNull(),
   email: text("email").notNull(),
   motivation: text("motivation"),
+  practiceType: text("practice_type"), // therapist | coach | od_consultant | educator | other | null
+  source: text("source"), // for-practitioners | certification | initiation | other
   status: text("status").notNull().default("received"), // received | reviewing | admitted | declined
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

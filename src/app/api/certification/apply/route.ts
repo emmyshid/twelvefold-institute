@@ -14,10 +14,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
 
-  const b = body as { name?: unknown; email?: unknown; motivation?: unknown };
+  const b = body as { name?: unknown; email?: unknown; motivation?: unknown; practiceType?: unknown; source?: unknown };
   const name = String(b?.name ?? "").trim();
   const email = String(b?.email ?? "").trim();
   const motivation = String(b?.motivation ?? "").trim() || null;
+  const practiceType = String(b?.practiceType ?? "").trim() || null;
+  const source = String(b?.source ?? "").trim() || null;
 
   if (name.length < 2) {
     return NextResponse.json({ error: "Please include your name." }, { status: 400 });
@@ -27,15 +29,15 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await db.insert(certApplications).values({ name, email, motivation });
+    await db.insert(certApplications).values({ name, email, motivation, practiceType, source });
 
     // Fire emails in parallel. Failures are non-blocking — the application
     // is already safe in the database.
     Promise.all([
       emailCertApplicationReceived({ name, email }),
       emailAdminNotification({
-        subject: `New cert application: ${name}`,
-        body: `Name: ${name}\nEmail: ${email}\n\nMotivation:\n${motivation || "(none provided)"}`,
+        subject: `New cert application: ${name}${practiceType ? ` (${practiceType})` : ""}`,
+        body: `Name: ${name}\nEmail: ${email}\nPractice type: ${practiceType || "(not specified)"}\nSource: ${source || "(direct)"}\n\nMotivation:\n${motivation || "(none provided)"}`,
       }),
     ]).catch((e) => console.error("[email] cert-apply notifications failed:", e));
 

@@ -1348,11 +1348,7 @@ function ProfilePage({profile,setProfile,saveProfile}){
             <div style={{fontFamily:S.fontSans,fontSize:'14px',color:S.textMuted}}>{level.price}</div>
             <div style={{fontFamily:S.fontBody,fontSize:'13px',color:S.textDim,marginTop:'8px'}}>{level.desc}</div></div></Card>
         <UpgradeCard profile={profile} currentLevel={level}/>
-        <Card style={{marginTop:'16px'}}><h3 style={{fontFamily:S.fontHead,fontSize:'16px',color:S.text,margin:'0 0 6px'}}>Portal Access</h3>
-          <p style={{fontFamily:S.fontBody,fontSize:'13px',color:S.textDim,margin:'0 0 12px'}}>Admins can manage members, events, announcements, and guides for the whole community.</p>
-          <div style={{display:'flex',gap:'8px'}}>{[['member','Member'],['admin','Admin']].map(([r,lbl])=><button key={r} onClick={()=>up('role',r)} style={{flex:1,padding:'10px',borderRadius:'8px',border:`1px solid ${profile.role===r?S.gold:S.border}`,background:profile.role===r?S.goldDim:'transparent',color:profile.role===r?S.gold:S.textMuted,fontFamily:S.fontSans,fontSize:'13px',fontWeight:600,cursor:'pointer'}}>{lbl}</button>)}</div>
-          {profile.role==='admin'&&<p style={{fontFamily:S.fontBody,fontSize:'12px',color:S.gold,margin:'10px 0 0',fontStyle:'italic'}}>Use the Admin Console toggle in the sidebar to manage the community.</p>}
-        </Card></div></div></div>);}
+        </div></div></div>);}
 
 // ══════════════════════════════════════════════════════════════
 // MAIN APP SHELL
@@ -4008,6 +4004,12 @@ export default function CommunityClient(){
   // tier shown in the UI always reflects payment status, not the profile editor.
   const[serverTier,setServerTier]=useState(null);
   const[membershipStatus,setMembershipStatus]=useState('active');
+  // Server-authoritative admin flag from /api/me/admin (ADMIN_EMAILS env var).
+  // NEVER trust profile.role for admin gating — that field is user-editable
+  // and would let any member self-promote to admin. The Admin Console toggle,
+  // the admin page renders, and any admin-only side effects must all check
+  // serverIsAdmin, not profile.role.
+  const[serverIsAdmin,setServerIsAdmin]=useState(false);
   useEffect(()=>{
     let cancelled=false;
     (async()=>{
@@ -4027,6 +4029,20 @@ export default function CommunityClient(){
         });
       }catch(e){
         console.error('membership fetch failed:',e);
+      }
+    })();
+    (async()=>{
+      try{
+        const res=await fetch('/api/me/admin');
+        if(!res.ok) return;
+        const data=await res.json();
+        if(cancelled) return;
+        setServerIsAdmin(!!data.isAdmin);
+        // If server says not admin, force-clear any adminMode that may have
+        // been set in this session (defense against stale local state).
+        if(!data.isAdmin) setAdminMode(false);
+      }catch(e){
+        console.error('admin fetch failed:',e);
       }
     })();
     return ()=>{cancelled=true;};
@@ -4083,7 +4099,7 @@ export default function CommunityClient(){
       {isMobile&&<header style={{position:'fixed',top:0,left:0,right:0,height:'54px',zIndex:50,display:'flex',alignItems:'center',gap:'12px',padding:'0 14px',background:'rgba(11,10,18,0.92)',backdropFilter:'blur(10px)',WebkitBackdropFilter:'blur(10px)',borderBottom:`1px solid ${S.border}`}}>
         <button onClick={()=>setDrawerOpen(true)} aria-label="Open menu" style={{border:'none',background:'none',color:S.text,fontSize:'22px',cursor:'pointer',padding:'4px 6px',lineHeight:1}}>☰</button>
         <div style={{display:'flex',alignItems:'baseline',gap:'6px'}}><span style={{fontFamily:S.fontHead,fontSize:'18px',fontWeight:500,color:S.gold,letterSpacing:'-0.3px'}}>Attuned</span><span style={{width:'3px',height:'3px',borderRadius:'50%',background:S.gold,marginBottom:'3px'}}/></div>
-        <span style={{marginLeft:'auto',fontFamily:S.fontMono,fontSize:'9px',color:adminMode?S.gold:S.textDim,letterSpacing:'2px',textTransform:'uppercase'}}>{adminMode?'Admin':'Community'}</span>
+        <span style={{marginLeft:'auto',fontFamily:S.fontMono,fontSize:'9px',color:(adminMode&&serverIsAdmin)?S.gold:S.textDim,letterSpacing:'2px',textTransform:'uppercase'}}>{(adminMode&&serverIsAdmin)?'Admin':'Community'}</span>
       </header>}
 
       {/* Drawer backdrop */}
@@ -4095,15 +4111,15 @@ export default function CommunityClient(){
           <div><div style={{display:'flex',alignItems:'baseline',gap:'7px'}}>
             <span style={{fontFamily:S.fontHead,fontSize:'22px',fontWeight:500,color:S.gold,letterSpacing:'-0.3px'}}>Attuned</span>
             <span style={{width:'4px',height:'4px',borderRadius:'50%',background:S.gold,display:'inline-block',marginBottom:'4px'}}/></div>
-          <div style={{fontFamily:S.fontMono,fontSize:'9.5px',color:adminMode?S.gold:S.textDim,letterSpacing:'3px',textTransform:'uppercase',marginTop:'2px'}}>{adminMode?'Admin Console':'Community'}</div></div>
+          <div style={{fontFamily:S.fontMono,fontSize:'9.5px',color:(adminMode&&serverIsAdmin)?S.gold:S.textDim,letterSpacing:'3px',textTransform:'uppercase',marginTop:'2px'}}>{(adminMode&&serverIsAdmin)?'Admin Console':'Community'}</div></div>
           {isMobile&&<button onClick={()=>setDrawerOpen(false)} aria-label="Close menu" style={{border:'none',background:'none',color:S.textMuted,fontSize:'22px',cursor:'pointer',padding:'0 4px',lineHeight:1}}>×</button>}</div>
         <div style={{padding:'0 14px',marginBottom:'26px',fontFamily:S.fontBody,fontSize:'11px',color:S.textMuted,fontStyle:'italic',lineHeight:1.5}}>Learn the Order. Read the Pattern. Move with the Rhythm.</div>
 
         <nav style={{display:'flex',flexDirection:'column',gap:'2px',flex:1}}>
-          {(adminMode?ADMIN_NAV:NAV_ITEMS).map(item=><SidebarIcon key={item.id} icon={item.icon} label={item.label} active={(adminMode?adminPage:page)===item.id} onClick={()=>navTo(adminMode?setAdminPage:setPage,item.id)}/>)}
+          {((adminMode&&serverIsAdmin)?ADMIN_NAV:NAV_ITEMS).map(item=><SidebarIcon key={item.id} icon={item.icon} label={item.label} active={(adminMode?adminPage:page)===item.id} onClick={()=>navTo(adminMode?setAdminPage:setPage,item.id)}/>)}
         </nav>
 
-        {profile.role==='admin'&&<button onClick={()=>{setAdminMode(!adminMode);setDrawerOpen(false);}} style={{display:'flex',alignItems:'center',gap:'10px',width:'100%',padding:'11px 16px',marginTop:'8px',borderRadius:'10px',cursor:'pointer',border:`1px solid ${adminMode?S.gold:S.gold+'30'}`,background:adminMode?S.goldDim:'transparent',color:S.gold,fontFamily:S.fontSans,fontSize:'13px',fontWeight:600,transition:'all 0.2s'}}>
+        {serverIsAdmin&&<button onClick={()=>{setAdminMode(!adminMode);setDrawerOpen(false);}} style={{display:'flex',alignItems:'center',gap:'10px',width:'100%',padding:'11px 16px',marginTop:'8px',borderRadius:'10px',cursor:'pointer',border:`1px solid ${adminMode?S.gold:S.gold+'30'}`,background:adminMode?S.goldDim:'transparent',color:S.gold,fontFamily:S.fontSans,fontSize:'13px',fontWeight:600,transition:'all 0.2s'}}>
           <span style={{fontSize:'15px'}}>{adminMode?'←':'⚙'}</span><span>{adminMode?'Member Portal':'Admin Console'}</span></button>}
 
         {/* User footer */}
@@ -4122,11 +4138,11 @@ export default function CommunityClient(){
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:'18px',paddingBottom:'18px',borderBottom:`1px solid ${S.border}`,gap:'10px',flexWrap:'wrap'}}>
           <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
             <span style={{width:'5px',height:'5px',borderRadius:'50%',background:S.gold}}/>
-            <span style={{fontFamily:S.fontMono,fontSize:'10.5px',color:S.textMuted,letterSpacing:'2.5px',textTransform:'uppercase'}}>{adminMode?'Admin Console · Twelvefold Institute':'Twelvefold Institute'}</span></div>
+            <span style={{fontFamily:S.fontMono,fontSize:'10.5px',color:S.textMuted,letterSpacing:'2.5px',textTransform:'uppercase'}}>{(adminMode&&serverIsAdmin)?'Admin Console · Twelvefold Institute':'Twelvefold Institute'}</span></div>
           {!isMobile&&<div style={{fontFamily:S.fontMono,fontSize:'10.5px',color:S.textDim,letterSpacing:'0.5px'}}>{new Date().toLocaleDateString('en-US',{weekday:'long',year:'numeric',month:'long',day:'numeric'})}</div>}</div>
 
         <div key={adminMode?('admin-'+adminPage):page} className="ac-page">
-        {adminMode?(<>
+        {adminMode&&serverIsAdmin?(<>
           {adminPage==='overview'&&<AdminOverviewPage members={members} events={events} announcements={announcements} guides={guides} goAdmin={setAdminPage}/>}
           {adminPage==='members'&&<AdminMembersPage members={members} setMembers={setMembers} saveMembers={saveMembers}/>}
           {adminPage==='announcements'&&<AdminAnnouncementsPage announcements={announcements} setAnnouncements={setAnnouncements} saveAnnouncements={saveAnnouncements}/>}
