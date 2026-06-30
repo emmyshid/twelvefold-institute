@@ -98,6 +98,59 @@ export default function ResearchPage() {
           More essays are published as the work develops. This is a living library, not a finished archive.
         </p>
 
+        {/* Research in progress */}
+        <section style={{ marginTop: "72px", borderTop: `1px solid ${T.border}`, paddingTop: "52px" }}>
+          <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "2.5px", color: T.gold, textTransform: "uppercase", fontWeight: 700, marginBottom: "16px" }}>
+            Research in progress
+          </div>
+          <h2 style={{ fontFamily: T.font, fontSize: "clamp(26px, 4vw, 38px)", fontWeight: 600, lineHeight: 1.15, letterSpacing: "-0.5px", margin: "0 0 16px", color: T.text }}>
+            What we are trying to validate
+          </h2>
+          <p style={{ fontFamily: T.font, fontSize: "17px", color: T.textDim, lineHeight: 1.7, marginBottom: "36px", maxWidth: 640 }}>
+            The Twelvefold framework makes a claim that deserves empirical scrutiny: that pattern literacy produces measurable changes in decision quality, pattern recurrence rate, and life-area outcomes over time. We are building the infrastructure to test this.
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "16px", marginBottom: "36px" }}>
+            {([
+              {
+                status: "Active",
+                statusColor: "#4ADE80",
+                title: "Longitudinal outcome tracking",
+                body: "Do people who complete pattern readings report fewer recurrences of the same pattern six months later? Data collection underway with the first practitioner cohort.",
+              },
+              {
+                status: "Seeking partners",
+                statusColor: T.accent,
+                title: "Cross-cultural validity",
+                body: "Do the 12-phase patterns manifest consistently across cultures? Seeking research partnerships with universities in West Africa, East Asia, and Europe.",
+              },
+              {
+                status: "Planned",
+                statusColor: T.textMuted,
+                title: "Practitioner efficacy study",
+                body: "Comparing outcomes between self-directed framework use and practitioner-guided readings. Design phase.",
+              },
+            ] as { status: string; statusColor: string; title: string; body: string }[]).map((r) => (
+              <div key={r.title} style={{ padding: "22px 22px", background: T.cardBg, border: `1px solid ${T.border}`, borderRadius: "12px" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "6px", fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "1.5px", color: r.statusColor, textTransform: "uppercase", fontWeight: 700, marginBottom: "10px" }}>
+                  <span style={{ width: "6px", height: "6px", borderRadius: "50%", background: r.statusColor, display: "inline-block" }} />
+                  {r.status}
+                </div>
+                <div style={{ fontFamily: T.font, fontSize: "18px", fontWeight: 600, color: T.text, marginBottom: "8px", letterSpacing: "-0.2px", lineHeight: 1.25 }}>{r.title}</div>
+                <div style={{ fontFamily: T.font, fontSize: "14.5px", color: T.textDim, lineHeight: 1.6 }}>{r.body}</div>
+              </div>
+            ))}
+          </div>
+          <div style={{ padding: "24px 28px", background: "rgba(167,139,250,0.05)", border: `1px solid rgba(167,139,250,0.18)`, borderRadius: "14px", display: "flex", flexWrap: "wrap", alignItems: "center", gap: "20px", justifyContent: "space-between" }}>
+            <div style={{ flex: "1 1 300px", minWidth: 0 }}>
+              <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "1.5px", color: T.accent, textTransform: "uppercase", fontWeight: 700, marginBottom: "8px" }}>Research partnerships</div>
+              <p style={{ fontFamily: T.font, fontSize: "15.5px", color: T.textDim, lineHeight: 1.65, margin: 0 }}>If you are a researcher, graduate student, or institutional partner interested in studying pattern literacy outcomes, we want to hear from you.</p>
+            </div>
+            <a href="mailto:hello@twelvefold.institute?subject=Research%20partnership" style={{ padding: "13px 24px", background: "transparent", color: T.text, textDecoration: "none", borderRadius: "999px", fontFamily: T.fontMono, fontSize: "11px", letterSpacing: "1px", fontWeight: 700, textTransform: "uppercase", border: `1px solid ${T.border}`, display: "inline-flex", alignItems: "center", whiteSpace: "nowrap", minHeight: "44px" }}>
+              Get in touch →
+            </a>
+          </div>
+        </section>
+
         {/* Disclaimer */}
         <p style={{ marginTop: "60px", textAlign: "center", fontFamily: T.fontMono, fontSize: "11px", color: T.textMuted, lineHeight: 1.6, letterSpacing: "0.3px" }}>
           Pattern Literacy is an educational and reflective framework. It is not therapy, medical care, diagnosis, financial advice, or a substitute for professional support.

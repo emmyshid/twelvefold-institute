@@ -421,6 +421,206 @@ export default function BookPage() {
         </blockquote>
       </section>
 
+      {/* CHAPTER 1 EXCERPT — free to read */}
+      <section
+        id="excerpt"
+        style={{
+          position: "relative",
+          zIndex: 2,
+          maxWidth: 760,
+          margin: "0 auto",
+          padding: "clamp(40px, 6vw, 80px) clamp(20px, 5vw, 56px)",
+          borderTop: `1px solid ${T.border}`,
+        }}
+      >
+        <Eyebrow>Chapter 1 — free to read</Eyebrow>
+        <h2
+          style={{
+            fontFamily: T.font,
+            fontSize: "clamp(28px, 4.5vw, 44px)",
+            fontWeight: 600,
+            lineHeight: 1.15,
+            letterSpacing: "-0.5px",
+            margin: "20px 0 32px",
+            color: T.text,
+          }}
+        >
+          Reality Is Patterned
+        </h2>
+        <div
+          style={{
+            display: "grid",
+            gap: "22px",
+            fontFamily: T.font,
+            fontSize: "clamp(17px, 2.2vw, 19px)",
+            lineHeight: 1.75,
+            color: T.textDim,
+          }}
+        >
+          <p style={{ margin: 0 }}>
+            You are sitting in a therapist&rsquo;s office for the third time in five years, describing a
+            relationship that ended exactly the way the last two ended. Same patterns of expectation,
+            same moments of disconnection, same final argument. Your therapist leans forward, genuinely
+            compassionate, and asks a question you&rsquo;ve already asked yourself a hundred times:
+            &ldquo;Why do you think this keeps happening?&rdquo;
+          </p>
+          <p style={{ margin: 0 }}>
+            You don&rsquo;t have a good answer.
+          </p>
+          <p style={{ margin: 0 }}>
+            This is the crisis nobody names: we are repeating our patterns unconsciously, and we have
+            almost no language to describe or work with what&rsquo;s happening. We call it bad luck.
+            We blame our partner, our boss, our family. We go to therapy. We read self-help books.
+            We journal. We set intentions. Some of this helps, some doesn&rsquo;t, but the fundamental
+            problem remains: we are not reading the pattern. We are living inside it.
+          </p>
+          <p style={{ margin: 0 }}>
+            And because we&rsquo;re not reading it, we&rsquo;re not cooperating with it. We&rsquo;re
+            fighting it, denying it, or pretending it will magically change if we just try harder.
+          </p>
+          <p style={{ margin: 0, color: T.text, fontStyle: "italic" }}>
+            It won&rsquo;t. Not because there&rsquo;s something fundamentally wrong with you. But
+            because you&rsquo;re trying to move forward without understanding the actual curriculum
+            your life is presenting.
+          </p>
+        </div>
+
+        <div
+          style={{
+            margin: "36px 0 0",
+            padding: "28px 32px",
+            background: `rgba(167,139,250,0.05)`,
+            border: `1px solid rgba(167,139,250,0.18)`,
+            borderRadius: "14px",
+            borderLeft: `3px solid ${T.gold}`,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: T.fontMono,
+              fontSize: "9px",
+              letterSpacing: "2px",
+              color: T.gold,
+              textTransform: "uppercase",
+              marginBottom: "14px",
+              fontWeight: 700,
+            }}
+          >
+            The case study
+          </div>
+          <p
+            style={{
+              fontFamily: T.font,
+              fontSize: "17px",
+              lineHeight: 1.7,
+              color: T.text,
+              margin: "0 0 18px",
+            }}
+          >
+            A 44-year-old man had started and abandoned four businesses in fifteen years. Each time,
+            the same arc: brilliant beginning, growing momentum, then a specific point where the work
+            became tedious and administrative, and he would leave. He&rsquo;d been in therapy.
+            He&rsquo;d read every book on entrepreneurship. He knew the pattern intellectually.
+            But knowing it hadn&rsquo;t stopped it.
+          </p>
+          <p
+            style={{
+              fontFamily: T.font,
+              fontSize: "17px",
+              lineHeight: 1.7,
+              color: T.textDim,
+              margin: "0 0 18px",
+            }}
+          >
+            When he began working with pattern literacy, something different happened. He stopped
+            calling it a &ldquo;failure pattern&rdquo; and started asking: <em style={{ color: T.text }}>What is
+            this teaching me?</em> He noticed the pattern always broke down at the same point — when the
+            work shifted from creative initiation to methodical building. He realized he&rsquo;d never
+            learned to value that second phase.
+          </p>
+          <p
+            style={{
+              fontFamily: T.font,
+              fontSize: "17px",
+              lineHeight: 1.7,
+              color: T.text,
+              margin: 0,
+              fontStyle: "italic",
+            }}
+          >
+            He hadn&rsquo;t been failing. He&rsquo;d been in the middle of a curriculum about patience
+            and the nature of real creation. The pattern had been showing him the same thing four times,
+            waiting for him to understand. When he understood, the pattern transformed. He&rsquo;s now
+            nine years into the same business.
+          </p>
+        </div>
+
+        <div
+          style={{
+            margin: "36px 0 0",
+            display: "grid",
+            gap: "22px",
+            fontFamily: T.font,
+            fontSize: "clamp(17px, 2.2vw, 19px)",
+            lineHeight: 1.75,
+            color: T.textDim,
+          }}
+        >
+          <p style={{ margin: 0 }}>
+            <strong style={{ color: T.text }}>A pattern, in the framework of this book, is a recurring
+            cycle of learning that intelligence is presenting to you through the circumstances of your
+            life.</strong> The pattern keeps appearing until you learn what it&rsquo;s here to teach.
+            When you learn it — really learn it, in your choices, not just your understanding — the
+            pattern transforms.
+          </p>
+          <p style={{ margin: 0 }}>
+            Multiple ancient wisdom traditions, operating independently across different continents
+            and centuries, mapped the same cycles of human transformation. Six traditions. Six
+            independent systems. One underlying reality: that life moves in recognizable cycles,
+            that those cycles have stages, and that wisdom means learning to move with them.
+          </p>
+        </div>
+
+        <div
+          style={{
+            marginTop: "40px",
+            padding: "28px 28px",
+            background: `rgba(251,191,36,0.06)`,
+            border: `1px solid rgba(251,191,36,0.20)`,
+            borderRadius: "14px",
+            textAlign: "center",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: T.fontMono,
+              fontSize: "10px",
+              letterSpacing: "2px",
+              color: T.gold,
+              textTransform: "uppercase",
+              marginBottom: "12px",
+              fontWeight: 700,
+            }}
+          >
+            Continue reading
+          </div>
+          <p
+            style={{
+              fontFamily: T.font,
+              fontSize: "17px",
+              color: T.textDim,
+              lineHeight: 1.65,
+              marginBottom: "24px",
+            }}
+          >
+            Chapter 1 continues with a full accounting of how six wisdom traditions independently
+            recognized the same underlying patterns — and why their convergence is the evidence.
+            Join the list to be notified when the book publishes.
+          </p>
+          <BookSubscribeForm />
+        </div>
+      </section>
+
       {/* WHAT THIS BOOK IS */}
       <section
         style={{

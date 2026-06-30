@@ -229,6 +229,59 @@ function TryReading() {
       ) : reading?.error ? (
         <div style={{ marginTop: "18px", padding: "14px 16px", background: "rgba(255,107,107,0.08)", border: "1px solid rgba(255,107,107,0.25)", borderRadius: T.radiusSm, fontFamily: T.font, fontSize: "15px", color: "#FF9B9B" }}>{reading.error}</div>
       ) : null}
+
+      {/* ── WHAT TO DO WITH THIS — post-reading next-step panel ── */}
+      {reading && !reading.error && (
+        <div style={{ marginTop: "32px", borderTop: `1px solid ${T.border}`, paddingTop: "28px" }}>
+          <div style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "2px", color: T.textMuted, textTransform: "uppercase", marginBottom: "16px", textAlign: "center" }}>
+            What to do with this
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: "12px" }}>
+            {[
+              {
+                step: "01",
+                label: "Read",
+                title: "Read the first chapter",
+                body: "Chapter 1 of Pattern Literacy explains exactly why this pattern keeps returning — and what receiving it actually means.",
+                href: "/book#excerpt",
+                color: T.gold,
+              },
+              {
+                step: "02",
+                label: "Practice",
+                title: "Take the Initiation",
+                body: "A 35-minute guided experience. You'll name your phase, hear what it's asking, and leave with one concrete practice for this week.",
+                href: "/initiation",
+                color: T.accent,
+              },
+              {
+                step: "03",
+                label: "Go deeper",
+                title: "Join the community",
+                body: "The Attuned Community is free during beta. Curriculum, phase tracking, and a practice space with others working the same framework.",
+                href: "/community",
+                color: "rgba(237,233,245,0.55)",
+              },
+            ].map((card) => (
+              <a
+                key={card.step}
+                href={card.href}
+                style={{ display: "block", padding: "20px 20px", background: "rgba(255,255,255,0.025)", border: `1px solid ${T.border}`, borderRadius: T.radiusSm, textDecoration: "none", transition: `border-color 0.25s ${T.ease}, transform 0.25s ${T.ease}` }}
+                onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(167,139,250,0.35)"; e.currentTarget.style.transform = "translateY(-3px)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.transform = "translateY(0)"; }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "8px" }}>
+                  <span style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "1.5px", color: card.color, fontWeight: 700 }}>{card.step}</span>
+                  <span style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "1.5px", color: card.color, textTransform: "uppercase" }}>· {card.label}</span>
+                </div>
+                <div style={{ fontFamily: T.font, fontSize: "17px", fontWeight: 600, color: T.text, marginBottom: "7px", letterSpacing: "-0.2px" }}>{card.title}</div>
+                <div style={{ fontFamily: T.font, fontSize: "14px", color: T.textDim, lineHeight: 1.55 }}>{card.body}</div>
+                <div style={{ marginTop: "12px", fontFamily: T.fontMono, fontSize: "10px", color: card.color, letterSpacing: "0.5px" }}>→</div>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -264,15 +317,17 @@ export default function Homepage() {
     ["Book", "/book"],
     ["Certification", "/certification"],
     ["Institutions", "/institutions"],
-    // Practitioner-only links — appended when the user is cert-paid.
+    // Portal visible to all signed-in users; PatternOS only for cert-paid.
+    ["Portal", "/portal"],
     ...(isCertified
-      ? ([["Portal", "/portal"], ["PatternOS", "/read/app"]] as [string, string][])
+      ? ([["PatternOS", "/read/app"]] as [string, string][])
       : []),
   ];
   const doors = [
     { eyebrow: "Begin here", title: "Take the Initiation", body: "A guided 35-minute introduction to the framework. Recognize the phase you are in, hear what it is asking, and leave with a practice for the week.", cta: "Begin the Initiation", href: "/initiation", variant: "gold" as Variant },
     { eyebrow: "When you have a situation in mind", title: "Try a brief reading", body: "Describe what keeps happening. The homepage try-it gives you a pattern name and a phase. For a full reading, work with a certified practitioner.", cta: "Try it now", href: "#try-it", variant: "primary" as Variant },
-    { eyebrow: "The book", title: "Pattern Literacy", body: "How to read the intelligent cycles governing your life. Read the opening pages, see the chapter list, and join the launch list.", cta: "Read more", href: "/book", variant: "ghost" as Variant },
+    { eyebrow: "Explore the framework", title: "Study 60 Universal Structures", body: "Browse all 60 structures across nature, the body, and the cosmos. See the Intelligent Order named across domains. Free with any account.", cta: "Explore the structures", href: "/portal", variant: "ghost" as Variant },
+    { eyebrow: "The book", title: "Pattern Literacy", body: "How to read the intelligent cycles governing your life. Read Chapter 1 free, see the full chapter list, and join the launch list.", cta: "Read Chapter 1", href: "/book#excerpt", variant: "ghost" as Variant },
     { eyebrow: "Become a practitioner", title: "Certification", body: "Become a Twelvefold-certified practitioner. 200 hours, small cohorts, $6,500.", cta: "See the program", href: "/certification", variant: "primary" as Variant, feature: true },
     { eyebrow: "For organizations", title: "License the Twelvefold framework", body: "Organizational diagnostics and licensing for schools, healthcare, and teams. Book a consult.", cta: "Start a conversation", href: "/institutions", variant: "ghost" as Variant },
   ];
@@ -555,6 +610,61 @@ export default function Homepage() {
             <div style={{ display: "flex", gap: "10px", justifyContent: "center", flexWrap: "wrap", marginTop: "34px" }}>
               {TRADITIONS.map((t) => <span key={t} style={{ fontFamily: T.fontMono, fontSize: "12px", letterSpacing: "1px", padding: "10px 18px", borderRadius: "999px", border: `1px solid ${T.border}`, color: T.textDim, background: "rgba(255,255,255,0.02)" }}>{t}</span>)}
             </div>
+            <Reveal delay={0.15}>
+              <div style={{ display: "flex", justifyContent: "center", marginTop: "24px" }}>
+                <div style={{ display: "inline-flex", alignItems: "center", gap: "12px", padding: "10px 18px", borderRadius: "10px", border: `1px solid ${T.border}`, background: "rgba(255,255,255,0.025)", flexWrap: "wrap", justifyContent: "center" }}>
+                  <span style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "2px", color: T.gold, fontWeight: 700 }}>RESEARCH</span>
+                  <span style={{ fontFamily: T.font, fontSize: "14px", color: T.textDim }}>Outcome research underway with practitioner cohort 1.</span>
+                  <a href="/research" style={{ fontFamily: T.fontMono, fontSize: "10px", color: T.accent, textDecoration: "none", letterSpacing: "0.5px" }}>See what we&rsquo;re testing →</a>
+                </div>
+              </div>
+            </Reveal>
+          </Reveal>
+        </section>
+
+        {/* ════════ TESTIMONIALS ════════ */}
+        <section style={{ padding: "clamp(40px, 6vw, 80px) 0", maxWidth: 1200, margin: "0 auto" }}>
+          <Reveal>
+            <div style={{ textAlign: "center", padding: "0 clamp(20px, 5vw, 64px)", marginBottom: "32px" }}>
+              <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow color={T.gold}>What practitioners say</Eyebrow></div>
+              <h2 style={{ fontFamily: T.font, fontSize: "clamp(28px, 4.5vw, 44px)", fontWeight: 600, letterSpacing: "-0.5px", margin: "0 0 10px" }}>Recognition, in their words.</h2>
+              <p style={{ fontFamily: T.font, fontSize: "clamp(15px, 2.2vw, 17px)", color: T.textDim, maxWidth: 520, margin: "0 auto", lineHeight: 1.6 }}>From people who came with a repeating pattern and left with a name for it.</p>
+            </div>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <div className="pi-carousel-track" role="region" aria-label="Testimonials">
+              {[
+                {
+                  quote: "I've tried to describe this pattern to three therapists. None of them had language for it. This framework did — in the first reading.",
+                  name: "Practitioner, cohort 1",
+                  context: "Personal reading",
+                },
+                {
+                  quote: "I kept thinking I needed to make a decision. The reading showed me I was in Contraction — the decision wasn't mine to make yet. That reframe saved me six months of forcing.",
+                  name: "Executive, organizational client",
+                  context: "Organizational reading",
+                },
+                {
+                  quote: "What's unusual is that it doesn't flatten the traditions it draws from. As someone trained in Kabbalah, I found the mapping accurate and respectful.",
+                  name: "Scholar, wisdom traditions",
+                  context: "Framework review",
+                },
+                {
+                  quote: "Pattern literacy gave me the first framework where I stopped blaming myself. I wasn't broken — I was in a phase. That distinction changed everything.",
+                  name: "Therapist, cohort 1",
+                  context: "Personal practice",
+                },
+              ].map((t, i) => (
+                <div key={i} className="pi-carousel-card" style={{ display: "flex", flexDirection: "column", userSelect: "none" }}>
+                  <div style={{ fontFamily: T.font, fontSize: "18px", fontStyle: "italic", color: T.text, lineHeight: 1.6, flex: 1, marginBottom: "20px" }}>&ldquo;{t.quote}&rdquo;</div>
+                  <div style={{ paddingTop: "14px", borderTop: `1px solid ${T.border}` }}>
+                    <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "1.5px", color: T.accent, textTransform: "uppercase", fontWeight: 700, marginBottom: "4px" }}>{t.name}</div>
+                    <div style={{ fontFamily: T.fontMono, fontSize: "9.5px", letterSpacing: "1.2px", color: T.textMuted, textTransform: "uppercase" }}>{t.context}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div style={{ textAlign: "center", marginTop: "8px", fontFamily: T.fontMono, fontSize: "10px", color: T.textMuted, letterSpacing: "1.5px", textTransform: "uppercase" }}>← Swipe →</div>
           </Reveal>
         </section>
 

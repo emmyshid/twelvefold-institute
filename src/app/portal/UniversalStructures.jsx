@@ -3484,6 +3484,34 @@ function InvokePanel({ seed, clearSeed, addInvocation, showToast, audio, allySee
   );
 }
 
+// ── CertGate — shown for free users on practitioner-only tabs ────
+function CertGate({ tab }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '80px 24px', textAlign: 'center', minHeight: '320px' }}>
+      <div style={{ width: '52px', height: '52px', borderRadius: '14px', background: `${ACCENT['Intelligent Order']}18`, border: `1px solid ${ACCENT['Intelligent Order']}33`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
+        <Icon name="Lock" size={22} color={ACCENT['Intelligent Order']} />
+      </div>
+      <div style={{ fontFamily: FONT.mono, fontSize: '9px', letterSpacing: '2.5px', textTransform: 'uppercase', color: ACCENT['Intelligent Order'], marginBottom: '12px' }}>
+        Practitioner feature
+      </div>
+      <h3 style={{ fontFamily: FONT.head, fontSize: '22px', fontWeight: 500, color: 'var(--text)', margin: '0 0 12px', lineHeight: 1.3 }}>
+        {tab} is part of the certified practice
+      </h3>
+      <p style={{ fontFamily: FONT.body, fontSize: '15px', color: 'var(--muted)', maxWidth: '400px', margin: '0 auto 28px', lineHeight: 1.65 }}>
+        Applying, invoking, and journaling with structures is the practitioner work — available after completing the Twelvefold certification.
+        The Explore and Overview tabs are free for all signed-in users.
+      </p>
+      <a href="/certification" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '12px 26px', borderRadius: '999px', background: `linear-gradient(135deg, #FBBF24, #F59E0B)`, color: '#1a1206', fontFamily: FONT.mono, fontSize: '11px', letterSpacing: '1px', fontWeight: 700, textDecoration: 'none' }}>
+        See the Certification Program →
+      </a>
+      <p style={{ fontFamily: FONT.mono, fontSize: '10px', color: 'var(--dim)', marginTop: '16px', letterSpacing: '0.5px' }}>
+        Already certified? <a href="/sign-in" style={{ color: ACCENT['Intelligent Order'], textDecoration: 'none' }}>Sign in with your enrolled email</a>
+      </p>
+    </div>
+  );
+}
+
+
 // ═══ ROOT MODULE ══════════════════════════════════════════════
 const NAV = [
   { id: 'overview', label: 'Overview', icon: 'Compass' },
@@ -3494,7 +3522,7 @@ const NAV = [
   { id: 'journal', label: 'Journal', icon: 'NotebookPen' },
 ];
 
-export default function UniversalStructures() {
+export default function UniversalStructures({ isCertified = false }) {
   const [dark, setDark] = useState(true); // site is dark-only
   const [tab, setTab] = useState('overview');
   const [category, setCategory] = useState('all');
@@ -3681,10 +3709,12 @@ export default function UniversalStructures() {
           {NAV.map((n) => {
             const on = tab === n.id;
             const badge = n.id === 'journal' && applications.length > 0;
+            const gated = !isCertified && ['mapping', 'apply', 'invoke', 'journal'].includes(n.id);
             return (
-              <button key={n.id} onClick={() => setTab(n.id)} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 16px', borderRadius: '10px', cursor: 'pointer', border: `1px solid ${on ? ACCENT['Intelligent Order'] + '59' : 'var(--border)'}`, background: on ? ACCENT['Intelligent Order'] + '1A' : 'transparent', color: on ? ACCENT['Intelligent Order'] : 'var(--muted)', fontFamily: FONT.sans, fontSize: '13px', fontWeight: on ? 600 : 500 }}>
-                <Icon name={n.icon} size={15} color={on ? ACCENT['Intelligent Order'] : 'var(--muted)'} />{n.label}
-                {badge && <span style={{ fontFamily: FONT.mono, fontSize: '10px', color: ACCENT['Intelligent Order'], background: ACCENT['Intelligent Order'] + '26', borderRadius: '999px', padding: '1px 7px' }}>{applications.length}</span>}
+              <button key={n.id} onClick={() => setTab(n.id)} title={gated ? 'Practitioner feature — certification required' : undefined} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '9px 16px', borderRadius: '10px', cursor: 'pointer', border: `1px solid ${on ? ACCENT['Intelligent Order'] + '59' : 'var(--border)'}`, background: on ? ACCENT['Intelligent Order'] + '1A' : 'transparent', color: on ? ACCENT['Intelligent Order'] : gated ? 'var(--dim)' : 'var(--muted)', fontFamily: FONT.sans, fontSize: '13px', fontWeight: on ? 600 : 500, opacity: gated && !on ? 0.65 : 1 }}>
+                <Icon name={n.icon} size={15} color={on ? ACCENT['Intelligent Order'] : gated ? 'var(--dim)' : 'var(--muted)'} />{n.label}
+                {gated && <span style={{ fontFamily: FONT.mono, fontSize: '9px', color: 'var(--dim)', marginLeft: '2px' }}>⊘</span>}
+                {badge && !gated && <span style={{ fontFamily: FONT.mono, fontSize: '10px', color: ACCENT['Intelligent Order'], background: ACCENT['Intelligent Order'] + '26', borderRadius: '999px', padding: '1px 7px' }}>{applications.length}</span>}
               </button>
             );
           })}
@@ -3729,10 +3759,10 @@ export default function UniversalStructures() {
             </div>
           )}
 
-          {tab === 'mapping' && <MappingPanel />}
-          {tab === 'apply' && <ApplyPanel applyId={applyId} setApplyId={setApplyId} addApplication={addApplication} showToast={showToast} goJournal={() => setTab('journal')} applications={applications} />}
-          {tab === 'invoke' && <InvokePanel seed={invokeSeed} clearSeed={() => setInvokeSeed(null)} addInvocation={addInvocation} showToast={showToast} audio={audio} allySeed={allySeed} clearAllySeed={() => setAllySeed(null)} />}
-          {tab === 'journal' && <JournalPanel applications={applications} removeApplication={removeApplication} invocations={invocations} removeInvocation={removeInvocation} audio={audio} studiedCount={studied.size} goExplore={() => setTab('explore')} goApply={() => setTab('apply')} goInvoke={() => setTab('invoke')} invocationReflections={invocationReflections} addReflection={addReflection} allyPractices={allyPractices} addAllyPractice={addAllyPractice} pinnedAlly={pinnedAlly} patternSynthesis={patternSynthesis} setPatternSynthesis={setPatternSynthesis} studied={studied} />}
+          {tab === 'mapping' && (isCertified ? <MappingPanel /> : <CertGate tab="Mapping" />)}
+          {tab === 'apply' && (isCertified ? <ApplyPanel applyId={applyId} setApplyId={setApplyId} addApplication={addApplication} showToast={showToast} goJournal={() => setTab('journal')} applications={applications} /> : <CertGate tab="Apply" />)}
+          {tab === 'invoke' && (isCertified ? <InvokePanel seed={invokeSeed} clearSeed={() => setInvokeSeed(null)} addInvocation={addInvocation} showToast={showToast} audio={audio} allySeed={allySeed} clearAllySeed={() => setAllySeed(null)} /> : <CertGate tab="Invoke" />)}
+          {tab === 'journal' && (isCertified ? <JournalPanel applications={applications} removeApplication={removeApplication} invocations={invocations} removeInvocation={removeInvocation} audio={audio} studiedCount={studied.size} goExplore={() => setTab('explore')} goApply={() => setTab('apply')} goInvoke={() => setTab('invoke')} invocationReflections={invocationReflections} addReflection={addReflection} allyPractices={allyPractices} addAllyPractice={addAllyPractice} pinnedAlly={pinnedAlly} patternSynthesis={patternSynthesis} setPatternSynthesis={setPatternSynthesis} studied={studied} /> : <CertGate tab="Journal" />)}
         </div>
       </div>
 

@@ -1007,6 +1007,17 @@ export default function InitiationApp() {
                   catch { alert("Select and copy your reading from the screen to keep it."); }
                 }} style={{ width: "100%", marginBottom: "20px" }}>⧉ Copy My Reading to Keep</Btn>
 
+                {/* Next step — book excerpt */}
+                <Card style={{ background: "linear-gradient(135deg,#FBBF2410,#F59E0B08)", border: "1px solid #FBBF2430", marginBottom: "12px" }}>
+                  <Label color="#FBBF24">The book behind the framework</Label>
+                  <div style={{ fontSize: "14px", lineHeight: "1.6", color: "#ffffffB8", fontFamily: fs, marginBottom: "14px" }}>
+                    Chapter 1 of <em>Pattern Literacy</em> explains why your pattern keeps returning — and what receiving it actually means. Free to read now.
+                  </div>
+                  <a href="/book#excerpt" style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "10px 20px", borderRadius: "999px", background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.35)", color: "#FBBF24", fontFamily: ff, fontSize: "12px", fontWeight: "700", letterSpacing: "0.5px", textDecoration: "none" }}>
+                    Read Chapter 1 →
+                  </a>
+                </Card>
+
                 {/* Conversion */}
                 <Card style={{ background: "linear-gradient(135deg,#A78BFA12,#7C3AED0C)", border: "1px solid #A78BFA35" }}>
                   <Label color="#A78BFA">Go Deeper</Label>

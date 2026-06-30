@@ -1154,7 +1154,7 @@ const Sidebar = ({ view, setView, progress, mobileOpen, onClose }) => {
 
 // ─── MAIN APP ────────────────────────────────────────────────
 
-export default function CertificationApp() {
+export default function CertificationApp({ isCertified = false }) {
   const [user, setUser] = useState(load(KEYS.user, null));
   const [progress, setProgress] = useState(load(KEYS.progress, { completedLessons: [] }));
   const [exercises, setExercises] = useState(load(KEYS.exercises, {}));
@@ -1234,7 +1234,7 @@ export default function CertificationApp() {
     if (view === "mastery") return <PatternMastery />;
 
     // Universal Structures — the 60-coordinate structure library
-    if (view === "structures") return <UniversalStructures />;
+    if (view === "structures") return <UniversalStructures isCertified={isCertified} />;
 
     // Coordinate Reading — the 60 Reality Coordinates diagnostic
     if (view === "coordinate") {
