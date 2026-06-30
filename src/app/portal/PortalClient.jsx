@@ -1038,14 +1038,18 @@ const Sidebar = ({ view, setView, progress, mobileOpen, onClose }) => {
   const totalLessons = MODULES.reduce((sum, m) => sum + m.lessons.length, 0);
   const completed = progress.completedLessons?.length || 0;
 
+  const CERT_ONLY_VIEWS = ["diagnostic", "coordinate", "mastery", "client-readings", "tools"];
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: "◈" },
-    { id: "diagnostic", label: "Diagnostic", icon: "◎" },
-    { id: "coordinate", label: "Coordinate Reading", icon: "⊹" },
     { id: "structures", label: "Universal Structures", icon: "❖" },
-    { id: "mastery", label: "Pattern Mastery", icon: "✸" },
-    { id: "client-readings", label: "Client Readings", icon: "✦", external: "/read/app?mode=master" },
-    { id: "tools", label: "Practitioner Tools", icon: "◆" },
+    // Practitioner-only items — hidden for free users, shown for cert-paid
+    ...(isCertified ? [
+      { id: "diagnostic", label: "Diagnostic", icon: "◎" },
+      { id: "coordinate", label: "Coordinate Reading", icon: "⊹" },
+      { id: "mastery", label: "Pattern Mastery", icon: "✸" },
+      { id: "client-readings", label: "Client Readings", icon: "✦", external: "/read/app?mode=master" },
+      { id: "tools", label: "Practitioner Tools", icon: "◆" },
+    ] : []),
   ];
 
   return (
@@ -1112,7 +1116,8 @@ const Sidebar = ({ view, setView, progress, mobileOpen, onClose }) => {
         ))}
       </div>
 
-      {/* Module List */}
+      {/* Module List — practitioner only */}
+      {isCertified && <>
       <div style={{ fontFamily: T.fontMono, fontSize: "10px", color: T.textMuted, letterSpacing: "1px", textTransform: "uppercase", padding: "0 12px", marginBottom: "8px" }}>Modules</div>
       <div style={{ display: "flex", flexDirection: "column", gap: "2px", flex: 1, overflow: "auto" }}>
         {MODULES.map(mod => {
@@ -1140,6 +1145,7 @@ const Sidebar = ({ view, setView, progress, mobileOpen, onClose }) => {
           );
         })}
       </div>
+      </>}
 
       {/* Footer Progress */}
       <div style={{ padding: "16px 8px 0", borderTop: `1px solid ${T.border}` }}>
@@ -1151,6 +1157,85 @@ const Sidebar = ({ view, setView, progress, mobileOpen, onClose }) => {
     </div>
   );
 };
+
+
+// ─── PortalCertGate ──────────────────────────────────────────
+// Shown when a free (non-certified) user tries to access a
+// practitioner-only view inside the portal.
+function PortalCertGate({ onGoStructures }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: "60vh", padding: "60px 24px", textAlign: "center" }}>
+      <div style={{ width: "56px", height: "56px", borderRadius: "16px", background: "rgba(167,139,250,0.12)", border: "1px solid rgba(167,139,250,0.25)", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: "24px", fontSize: "24px" }}>⊘</div>
+      <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "2.5px", color: T.accent, textTransform: "uppercase", marginBottom: "14px", fontWeight: 700 }}>Practitioner feature</div>
+      <h2 style={{ fontFamily: T.font, fontSize: "clamp(24px, 4vw, 34px)", fontWeight: 600, color: T.text, margin: "0 0 16px", lineHeight: 1.2 }}>This module is part of the certification</h2>
+      <p style={{ fontFamily: T.font, fontSize: "17px", color: T.textDim, maxWidth: "440px", margin: "0 auto 32px", lineHeight: 1.65 }}>
+        Diagnostic tools, coordinate readings, pattern mastery, curriculum modules, and practitioner tools are available after completing the Twelvefold certification program.
+      </p>
+      <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", justifyContent: "center" }}>
+        <a href="/certification" style={{ padding: "13px 26px", background: "linear-gradient(135deg, #FBBF24, #F59E0B)", color: "#1a1206", textDecoration: "none", borderRadius: "999px", fontFamily: T.fontMono, fontSize: "11px", letterSpacing: "1px", fontWeight: 700, textTransform: "uppercase", display: "inline-flex", alignItems: "center", minHeight: "44px" }}>See the Certification →</a>
+        <button onClick={onGoStructures} style={{ padding: "13px 26px", background: "transparent", color: T.text, border: `1px solid ${T.border}`, borderRadius: "999px", fontFamily: T.fontMono, fontSize: "11px", letterSpacing: "1px", fontWeight: 700, textTransform: "uppercase", cursor: "pointer", minHeight: "44px" }}>Explore Structures ↗</button>
+      </div>
+    </div>
+  );
+}
+
+// ─── FreeDashboard ───────────────────────────────────────────
+// Landing view shown to signed-in users who are not yet certified.
+// Orients them to what's free (Universal Structures Explore/Overview)
+// and what the certification unlocks.
+function FreeDashboard({ user, onGoStructures }) {
+  const FREE_FEATURES = [
+    { icon: "❖", label: "60 Universal Structures", body: "Browse all structures across nature, the body, and the cosmos. Study the Intelligent Order named at each layer." },
+    { icon: "◎", label: "Overview & Recognition Signals", body: "Each structure shows recognition signals — concrete signs it is operating in your situation — and its five-layer descent." },
+    { icon: "✦", label: "Natural Allies", body: "Every structure has natural allies across plants, animals, and planets, with guidance on how to work with each." },
+  ];
+  const CERT_FEATURES = [
+    { icon: "◎", label: "Diagnostic Engine" },
+    { icon: "⊹", label: "Coordinate Reading" },
+    { icon: "✸", label: "Pattern Mastery" },
+    { icon: "◆", label: "Practitioner Tools" },
+    { icon: "✦", label: "Client Readings" },
+    { icon: "📖", label: "Full Curriculum (12 modules)" },
+    { icon: "⊕", label: "Apply, Invoke & Journal" },
+  ];
+  return (
+    <div style={{ maxWidth: 820, margin: "0 auto", padding: "clamp(24px, 5vw, 48px) clamp(16px, 4vw, 32px)" }}>
+      <div style={{ marginBottom: "36px" }}>
+        <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "2px", color: T.gold, textTransform: "uppercase", fontWeight: 700, marginBottom: "10px" }}>Welcome{user?.name ? `, ${user.name}` : ""}</div>
+        <h1 style={{ fontFamily: T.font, fontSize: "clamp(28px, 5vw, 42px)", fontWeight: 600, color: T.text, margin: "0 0 14px", lineHeight: 1.15, letterSpacing: "-0.5px" }}>You have access to the structures.</h1>
+        <p style={{ fontFamily: T.font, fontSize: "17px", color: T.textDim, lineHeight: 1.65, margin: 0, maxWidth: 540 }}>Explore all 60 Universal Structures, their Intelligent Order mappings, recognition signals, and natural allies. The full practice system — Apply, Invoke, Journal, and all diagnostic tools — unlocks with certification.</p>
+      </div>
+
+      {/* Free features */}
+      <div style={{ marginBottom: "36px" }}>
+        <div style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "2px", color: T.textMuted, textTransform: "uppercase", marginBottom: "14px", fontWeight: 700 }}>FREE WITH YOUR ACCOUNT</div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px", marginBottom: "20px" }}>
+          {FREE_FEATURES.map((f) => (
+            <div key={f.label} style={{ padding: "18px 20px", background: "rgba(255,255,255,0.03)", border: `1px solid ${T.border}`, borderRadius: "12px" }}>
+              <div style={{ fontSize: "20px", marginBottom: "8px" }}>{f.icon}</div>
+              <div style={{ fontFamily: T.fontMono, fontSize: "11px", color: T.accent, fontWeight: 700, marginBottom: "6px", letterSpacing: "0.5px" }}>{f.label}</div>
+              <div style={{ fontFamily: T.font, fontSize: "14px", color: T.textDim, lineHeight: 1.55 }}>{f.body}</div>
+            </div>
+          ))}
+        </div>
+        <button onClick={onGoStructures} style={{ padding: "13px 28px", background: "linear-gradient(135deg, #FBBF24, #F59E0B)", color: "#1a1206", border: "none", borderRadius: "999px", fontFamily: T.fontMono, fontSize: "12px", letterSpacing: "1px", fontWeight: 700, textTransform: "uppercase", cursor: "pointer", minHeight: "44px" }}>Explore Universal Structures →</button>
+      </div>
+
+      {/* Cert features */}
+      <div style={{ padding: "28px 28px", background: "rgba(167,139,250,0.05)", border: "1px solid rgba(167,139,250,0.18)", borderRadius: "14px" }}>
+        <div style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "2px", color: T.accent, textTransform: "uppercase", marginBottom: "14px", fontWeight: 700 }}>UNLOCKS WITH CERTIFICATION</div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "20px" }}>
+          {CERT_FEATURES.map((f) => (
+            <span key={f.label} style={{ display: "inline-flex", alignItems: "center", gap: "6px", padding: "6px 12px", borderRadius: "999px", background: "rgba(255,255,255,0.04)", border: `1px solid ${T.border}`, fontFamily: T.fontMono, fontSize: "11px", color: T.textDim }}>
+              <span style={{ opacity: 0.6 }}>{f.icon}</span>{f.label}
+            </span>
+          ))}
+        </div>
+        <a href="/certification" style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "13px 26px", background: "transparent", color: T.text, border: `1px solid ${T.border}`, borderRadius: "999px", fontFamily: T.fontMono, fontSize: "11px", letterSpacing: "1px", fontWeight: 700, textTransform: "uppercase", textDecoration: "none", minHeight: "44px" }}>See the Certification Program →</a>
+      </div>
+    </div>
+  );
+}
 
 // ─── MAIN APP ────────────────────────────────────────────────
 
@@ -1200,8 +1285,9 @@ export default function CertificationApp({ isCertified = false }) {
   };
 
   const renderContent = () => {
-    // Lesson view
+    // Lesson view — practitioner only
     if (activeLesson && activeModule) {
+      if (!isCertified) return <PortalCertGate onGoStructures={() => setView("structures")} />;
       const idx = activeModule.lessons.findIndex(l => l.id === activeLesson.id);
       const hasNext = idx < activeModule.lessons.length - 1;
       return (
@@ -1218,13 +1304,21 @@ export default function CertificationApp({ isCertified = false }) {
       );
     }
 
-    // Module view
+    // Module view — practitioner only (already caught by CERT_ONLY guard above,
+    // but kept here so the guard message is shown if somehow reached directly)
     if (view.startsWith("module-")) {
+      if (!isCertified) return <PortalCertGate onGoStructures={() => setView("structures")} />;
       const modId = view.replace("module-", "");
       const mod = MODULES.find(m => m.id === modId);
       if (mod) {
         return <ModuleView module={mod} onBack={() => { setView("dashboard"); setActiveModule(null); }} onLesson={(lesson) => { setActiveModule(mod); handleLessonClick(lesson); }} progress={progress} />;
       }
+    }
+
+    // Practitioner-only guard — redirect free users back to dashboard
+    const CERT_ONLY = ["diagnostic", "mastery", "coordinate", "tools"];
+    if (!isCertified && (CERT_ONLY.includes(view) || view.startsWith("module-"))) {
+      return <PortalCertGate onGoStructures={() => setView("structures")} />;
     }
 
     // Diagnostic
@@ -1248,7 +1342,8 @@ export default function CertificationApp({ isCertified = false }) {
     // Tools
     if (view === "tools") return <PractitionerTools onBack={() => setView("dashboard")} onDiagnostic={() => setView("diagnostic")} />;
 
-    // Dashboard
+    // Dashboard — show free-tier landing for non-certified users
+    if (!isCertified) return <FreeDashboard user={user} onGoStructures={() => setView("structures")} />;
     return (
       <Dashboard
         user={user}
