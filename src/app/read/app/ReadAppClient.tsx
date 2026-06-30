@@ -128,6 +128,26 @@ interface DreamResult {
   traditions?: SixTraditions;
 }
 
+interface PerceptionLayer {
+  law: string;
+  law_short: string;
+  tradition: string;
+  tradition_note: string;
+  everywhere: {
+    nature: string;
+    society: string;
+    body: string;
+    spirit: string;
+  };
+  corresponding_structures: Array<{
+    structure_id: string;
+    structure_name: string;
+    correspondence: string;
+  }>;
+  articulation_prompt: string;
+  recurrence_signature: string;
+}
+
 interface HistoryItem {
   id: string;
   input: string;
@@ -229,11 +249,17 @@ function Btn({
 }
 
 // ─── Reading display (6 layers, v10 schema parity) ─────────────────
-function ReadingDisplay({ full }: { full: FullReading }) {
+function ReadingDisplay({ full, situation, onPerception }: { full: FullReading; situation: string; onPerception: (p: PerceptionLayer) => void }) {
   const { summary, recognition, teaching, alignment, participation, traditions, technical } = full;
   const [visibleTiers, setVisibleTiers] = useState(0);
   const [openTradition, setOpenTradition] = useState<string | null>(null);
   const [showAlignment, setShowAlignment] = useState(false);
+  const [activeReadingTab, setActiveReadingTab] = useState<"reading" | "perception">("reading");
+  const [perception, setPerception] = useState<PerceptionLayer | null>(null);
+  const [perceptionLoading, setPerceptionLoading] = useState(false);
+  const [perceptionError, setPerceptionError] = useState<string | null>(null);
+  const [articulationText, setArticulationText] = useState("");
+  const [articulationSaved, setArticulationSaved] = useState(false);
 
   // Detect which schema this reading uses — new (v10-parity) or legacy
   const hasV10 = !!recognition?.what_is_happening || !!teaching?.core_teaching;
@@ -244,6 +270,12 @@ function ReadingDisplay({ full }: { full: FullReading }) {
     setVisibleTiers(0);
     setOpenTradition(null);
     setShowAlignment(false);
+    setActiveReadingTab("reading");
+    setPerception(null);
+    setPerceptionLoading(false);
+    setPerceptionError(null);
+    setArticulationText("");
+    setArticulationSaved(false);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setVisibleTiers(8);
       return;
@@ -254,6 +286,45 @@ function ReadingDisplay({ full }: { full: FullReading }) {
     }
     return () => timers.forEach(clearTimeout);
   }, [summary.pattern_name, summary.phase]);
+
+  async function runPerception() {
+    if (perceptionLoading) return;
+    setPerceptionLoading(true);
+    setPerceptionError(null);
+    try {
+      const res = await fetch("/api/reading", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          situation,
+          depth: "perception",
+          phase: summary.phase ?? "",
+          microState: summary.micro_state ?? "",
+          patternName: summary.pattern_name ?? "",
+          teaching: full.teaching?.core_teaching ?? full.teaching?.what_is_being_asked ?? "",
+        }),
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error || "Perception layer unavailable");
+      }
+      const data: PerceptionLayer = await res.json();
+      setPerception(data);
+      setActiveReadingTab("perception");
+      onPerception(data);
+    } catch (e) {
+      setPerceptionError(e instanceof Error ? e.message : "Something interrupted the reading.");
+    } finally {
+      setPerceptionLoading(false);
+    }
+  }
+
+  const DOMAIN_LABELS: Array<[keyof PerceptionLayer["everywhere"], string, string]> = [
+    ["nature",  "Nature",  "#4ADE80"],
+    ["society", "Society", "#60A5FA"],
+    ["body",    "Body",    "#F472B6"],
+    ["spirit",  "Spirit",  "#FBBF24"],
+  ];
 
   const tier = (idx: number, content: ReactNode) => (
     <div
@@ -342,6 +413,150 @@ function ReadingDisplay({ full }: { full: FullReading }) {
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+
+      {/* ════════ TAB STRIP ════════ */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: "10px", borderBottom: `1px solid ${T.border}`, paddingBottom: "14px", marginBottom: "4px" }}>
+        <div style={{ display: "inline-flex", background: "rgba(255,255,255,0.04)", border: `1px solid ${T.border}`, borderRadius: "999px", padding: "3px", gap: "2px" }}>
+          {(["reading", "perception"] as const).map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveReadingTab(tab)}
+              disabled={tab === "perception" && !perception}
+              style={{
+                padding: "6px 16px",
+                borderRadius: "999px",
+                fontFamily: T.fontMono,
+                fontSize: "10px",
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+                background: activeReadingTab === tab ? T.gradGold : "transparent",
+                color: activeReadingTab === tab ? "#1a1206" : (tab === "perception" && !perception ? T.textMuted : T.textDim),
+                border: "none",
+                cursor: tab === "perception" && !perception ? "default" : "pointer",
+                transition: "all 0.25s " + T.ease,
+                opacity: tab === "perception" && !perception && !perceptionLoading ? 0.5 : 1,
+              }}
+            >
+              {tab === "reading" ? "Reading" : "✦ Intelligent Order"}
+            </button>
+          ))}
+        </div>
+        {/* Perception trigger button — only when reading tab is active and no perception yet */}
+        {activeReadingTab === "reading" && !perception && (
+          <button
+            onClick={runPerception}
+            disabled={perceptionLoading}
+            style={{
+              padding: "7px 18px",
+              borderRadius: "999px",
+              fontFamily: T.fontMono,
+              fontSize: "10px",
+              letterSpacing: "1px",
+              textTransform: "uppercase",
+              background: perceptionLoading ? "rgba(167,139,250,0.10)" : "rgba(167,139,250,0.12)",
+              color: perceptionLoading ? T.textMuted : T.accent,
+              border: `1px solid ${T.accent}44`,
+              cursor: perceptionLoading ? "wait" : "pointer",
+              transition: "all 0.25s " + T.ease,
+            }}
+          >
+            {perceptionLoading ? "Reading the law…" : "Reveal Intelligent Order →"}
+          </button>
+        )}
+        {perceptionError && (
+          <span style={{ fontFamily: T.fontMono, fontSize: "10px", color: "#FF9B9B", letterSpacing: "0.5px" }}>{perceptionError}</span>
+        )}
+      </div>
+
+      {/* ════════ PERCEPTION TAB ════════ */}
+      {activeReadingTab === "perception" && perception && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+
+          {/* The Law */}
+          <div style={{ padding: "24px 26px", background: "linear-gradient(135deg, rgba(167,139,250,0.10), rgba(251,191,36,0.06))", border: `1px solid ${T.accent}33`, borderRadius: T.radius }}>
+            <div style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "2.5px", color: T.gold, textTransform: "uppercase", marginBottom: "10px", fontWeight: 700 }}>The Intelligent Order</div>
+            <div style={{ fontFamily: T.font, fontSize: "clamp(18px, 3vw, 24px)", fontStyle: "italic", color: T.text, lineHeight: 1.5, marginBottom: "16px" }}>{perception.law}</div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 14px", borderRadius: "999px", background: "rgba(255,255,255,0.04)", border: `1px solid ${T.border}` }}>
+              <span style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "1.5px", color: T.gold, textTransform: "uppercase" }}>{perception.tradition}</span>
+              <span style={{ fontFamily: T.font, fontSize: "13px", color: T.textDim }}>{perception.tradition_note}</span>
+            </div>
+          </div>
+
+          {/* Everywhere */}
+          <div>
+            <div style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "2.5px", color: T.textMuted, textTransform: "uppercase", marginBottom: "10px", fontWeight: 700 }}>This Law Everywhere</div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "8px" }}>
+              {DOMAIN_LABELS.map(([key, label, color]) => (
+                <div key={key} style={{ padding: "14px 16px", background: "rgba(255,255,255,0.025)", border: `1px solid ${color}22`, borderRadius: T.radiusSm, borderLeft: `2px solid ${color}` }}>
+                  <div style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "1.5px", color, textTransform: "uppercase", marginBottom: "6px", fontWeight: 700 }}>{label}</div>
+                  <div style={{ fontFamily: T.font, fontSize: "14px", color: T.text, lineHeight: 1.55 }}>{perception.everywhere[key]}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Corresponding Structures */}
+          {perception.corresponding_structures?.length > 0 && (
+            <div>
+              <div style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "2.5px", color: T.textMuted, textTransform: "uppercase", marginBottom: "10px", fontWeight: 700 }}>Corresponding Structures</div>
+              <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                {perception.corresponding_structures.map((s) => (
+                  <div key={s.structure_id} style={{ display: "flex", gap: "14px", alignItems: "flex-start", padding: "14px 16px", background: "rgba(255,255,255,0.025)", border: `1px solid ${T.border}`, borderRadius: T.radiusSm }}>
+                    <div style={{ flexShrink: 0, width: "36px", height: "36px", borderRadius: "10px", background: "rgba(167,139,250,0.12)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: T.fontMono, fontSize: "11px", color: T.accent }}>
+                      {s.structure_name.slice(0, 2).toUpperCase()}
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{ display: "flex", alignItems: "baseline", gap: "10px", flexWrap: "wrap", marginBottom: "4px" }}>
+                        <span style={{ fontFamily: T.fontMono, fontSize: "11px", letterSpacing: "0.5px", color: T.accent, fontWeight: 700 }}>{s.structure_name}</span>
+                        <a href="/portal" target="_blank" rel="noopener noreferrer" style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "1px", color: T.gold, textDecoration: "none", opacity: 0.8 }}>Study in Portal →</a>
+                      </div>
+                      <div style={{ fontFamily: T.font, fontSize: "14px", color: T.textDim, lineHeight: 1.55 }}>{s.correspondence}</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Articulation */}
+          <div style={{ padding: "20px 22px", background: "rgba(251,191,36,0.05)", border: `1px solid rgba(251,191,36,0.20)`, borderRadius: T.radiusSm }}>
+            <div style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "2.5px", color: T.gold, textTransform: "uppercase", marginBottom: "10px", fontWeight: 700 }}>Name the Law</div>
+            <div style={{ fontFamily: T.font, fontSize: "15px", fontStyle: "italic", color: T.text, lineHeight: 1.65, marginBottom: "14px" }}>{perception.articulation_prompt}</div>
+            <textarea
+              value={articulationText}
+              onChange={(e) => { setArticulationText(e.target.value); setArticulationSaved(false); }}
+              rows={3}
+              placeholder="Write the law as you understand it from your own experience…"
+              style={{ width: "100%", boxSizing: "border-box", background: "rgba(255,255,255,0.04)", border: `1px solid ${T.border}`, borderRadius: T.radiusSm, color: T.text, fontFamily: T.font, fontSize: "15px", padding: "12px 14px", resize: "vertical", outline: "none", lineHeight: 1.6 }}
+            />
+            <div style={{ display: "flex", gap: "10px", alignItems: "center", marginTop: "10px" }}>
+              <button
+                onClick={() => {
+                  if (!articulationText.trim()) return;
+                  try { localStorage.setItem(`tfi-articulation-${summary.state_code || summary.phase}`, JSON.stringify({ text: articulationText, ts: new Date().toISOString(), law: perception.law_short })); } catch {}
+                  setArticulationSaved(true);
+                }}
+                disabled={!articulationText.trim()}
+                style={{ padding: "8px 20px", borderRadius: "999px", fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "1px", background: articulationSaved ? "rgba(74,222,128,0.15)" : T.gradGold, color: articulationSaved ? "#4ADE80" : "#1a1206", border: articulationSaved ? "1px solid rgba(74,222,128,0.3)" : "none", cursor: articulationText.trim() ? "pointer" : "not-allowed", opacity: articulationText.trim() ? 1 : 0.5 }}>
+                {articulationSaved ? "✓ Saved" : "Save articulation"}
+              </button>
+              <span style={{ fontFamily: T.fontMono, fontSize: "9px", color: T.textMuted, letterSpacing: "0.5px" }}>Saved locally · becomes your grimoire over time</span>
+            </div>
+          </div>
+
+          {/* Recurrence signature */}
+          <div style={{ padding: "16px 20px", background: "rgba(255,255,255,0.025)", border: `1px solid ${T.border}`, borderRadius: T.radiusSm }}>
+            <div style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "2.5px", color: T.textMuted, textTransform: "uppercase", marginBottom: "8px", fontWeight: 700 }}>Recognize it next time</div>
+            <div style={{ fontFamily: T.font, fontSize: "14.5px", color: T.textDim, lineHeight: 1.65, fontStyle: "italic" }}>{perception.recurrence_signature}</div>
+          </div>
+
+        </div>
+      )}
+
+      {/* ════════ READING TAB — original tiers ════════ */}
+      {activeReadingTab === "reading" && (
+      <Fragment>
+
       {/* ════════ LAYER 1: PATTERN SUMMARY (felt layer) ════════ */}
       {tier(
         1,
@@ -813,6 +1028,10 @@ function ReadingDisplay({ full }: { full: FullReading }) {
           Your reading is saved. Return any time to see how the pattern moves.
         </div>
       )}
+
+      </Fragment>
+      )}
+
     </div>
   );
 }
@@ -2374,7 +2593,7 @@ export default function ReadAppClient() {
                         padding: "clamp(24px, 4vw, 36px)",
                       }}
                     >
-                      <ReadingDisplay full={reading} />
+                      <ReadingDisplay full={reading} situation={input} onPerception={() => {}} />
                     </div>
 
                     {/* Email-to-client panel (Master mode + saved reading for active client) */}

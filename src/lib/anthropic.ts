@@ -598,3 +598,144 @@ export async function readCoordinate(situation: string): Promise<CoordinateReadi
   if (lastError instanceof ReadingError) throw lastError;
   throw new ReadingError("The coordinate service is unavailable right now. Try again in a moment.", lastError);
 }
+
+// ─── Perception Layer ─────────────────────────────────────────
+//
+// A lightweight second pass on a full reading. The full reading identifies
+// WHAT is happening and WHAT TO DO. The perception layer surfaces the
+// Intelligent Order beneath it — the invisible law — and shows where that
+// same law operates across the 60 Universal Structures and four domains
+// of reality (nature / society / body / spirit). It also gives the
+// practitioner an articulation prompt so they can name the law themselves.
+//
+// Triggered manually after a full reading is in view. Practitioner-only.
+
+export type PerceptionLayer = {
+  // The invisible law named at the level of principle, not situation
+  law: string;               // e.g. "Dissolution precedes reformation"
+  law_short: string;         // 4–6 word label for UI: "Dissolution before reformation"
+  tradition: string;         // which tradition is the primary source: "I Ching" | "Kabbalah" etc
+  tradition_note: string;    // 1 sentence — how that tradition names or frames this law
+
+  // 4 domain examples showing the same law operating elsewhere
+  // Keys are fixed: nature | society | body | spirit
+  everywhere: {
+    nature: string;
+    society: string;
+    body: string;
+    spirit: string;
+  };
+
+  // 3 structures from the 60 Universal Structures that embody this law
+  // structure_id must match an id from the STRUCTURES constant in UniversalStructures.jsx
+  corresponding_structures: Array<{
+    structure_id: string;
+    structure_name: string;
+    correspondence: string;  // 1 sentence connecting the structure to this specific reading
+  }>;
+
+  // Prompt for the practitioner to articulate the law in their own words
+  articulation_prompt: string;
+
+  // A cue for recognizing when this law is operating again in future situations
+  recurrence_signature: string;  // 1–2 sentences: what to look for next time
+};
+
+const STRUCTURE_IDS = [
+  "circle","sphere","spiral","branching","network","helix","wave","cycle","symmetry",
+  "fractal","goldenRatio","tessellation","vortex","torus","catenary","gradient","foam",
+  "threshold","feedbackLoop","lattice","galaxy","solarSystem","orbit","planet","moon",
+  "stars","mountains","rivers","oceans","forests","soil","seasons","brain","heart",
+  "lungs","skeleton","bloodVessels","nervousSystem","dna","skin","roots","trunk",
+  "branchesPlant","leaves","flowers","fruit","seeds","wings","honeycomb","spiderWeb",
+  "antColony","fishSchool","birdMigration","snowflake","crystal","lightning","rainbow",
+  "fire","waterPh","wind",
+] as const;
+
+function buildPerceptionPrompt(
+  situation: string,
+  phase: string,
+  microState: string,
+  patternName: string,
+  teaching: string,
+): string {
+  return `You are the perception trainer for Twelvefold Institute.
+
+A practitioner has just received a full pattern reading. Your job is to surface the INTELLIGENT ORDER — the invisible law operating beneath the surface pattern — and make it visible across multiple domains. This is perception training: showing that the same principle operates everywhere, not just in this one situation.
+
+THE READING:
+- Situation: "${situation}"
+- Pattern state: ${phase} · ${microState}
+- Pattern name: "${patternName}"
+- Core teaching: "${teaching}"
+
+YOUR TASK:
+
+1. NAME THE LAW — Extract the Intelligent Order principle at work. This is NOT a restatement of the teaching. It is the deeper law that explains WHY this teaching is true — the principle that would hold even if the situation were completely different. State it as a universal principle in one sentence (e.g. "Every system must periodically dissolve its current form to access a more essential expression"). Then give it a 4–6 word short label.
+
+2. TRADITION SOURCE — Which of the six wisdom traditions most directly names this law (Ifá, Kabbalah, I Ching, Scripture, Buddhism, Hermetic)? Give 1 sentence on how that tradition frames it.
+
+3. EVERYWHERE — Show this same law operating in exactly four domains. Each example must be specific and concrete — not abstract. The goal is to make the law RECOGNIZABLE across radically different contexts:
+   - nature: one example from the natural world
+   - society: one example from human organization, culture, or history
+   - body: one example from human physiology or medicine
+   - spirit: one example from contemplative, religious, or philosophical practice
+
+4. CORRESPONDING STRUCTURES — Identify exactly 3 structures from the 60 Universal Structures of Twelvefold Institute that embody this same Intelligent Order principle. Choose only from these valid IDs: ${STRUCTURE_IDS.join(", ")}. For each, write 1 sentence explaining how THIS specific reading connects to that structure — not a generic description of the structure, but the live bridge to this situation.
+
+5. ARTICULATION PROMPT — Write a single question (1 sentence) that invites the practitioner to name this law in their own words, based on what they recognize in their own life. Make it specific to the law, not generic.
+
+6. RECURRENCE SIGNATURE — Write 1–2 sentences describing what to look for the next time this law is operating in a situation. What are the tell-tale signs that THIS specific law (not just "Transformation" in general) is at work?
+
+Respond ONLY with a JSON object, no preamble, no markdown fences:
+{
+  "law": "...",
+  "law_short": "...",
+  "tradition": "...",
+  "tradition_note": "...",
+  "everywhere": {
+    "nature": "...",
+    "society": "...",
+    "body": "...",
+    "spirit": "..."
+  },
+  "corresponding_structures": [
+    { "structure_id": "...", "structure_name": "...", "correspondence": "..." },
+    { "structure_id": "...", "structure_name": "...", "correspondence": "..." },
+    { "structure_id": "...", "structure_name": "...", "correspondence": "..." }
+  ],
+  "articulation_prompt": "...",
+  "recurrence_signature": "..."
+}`;
+}
+
+export async function readPerception(
+  situation: string,
+  phase: string,
+  microState: string,
+  patternName: string,
+  teaching: string,
+): Promise<PerceptionLayer> {
+  const prompt = buildPerceptionPrompt(situation, phase, microState, patternName, teaching);
+  let lastError: unknown;
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const res = await client.messages.create({
+        model: MODEL,
+        max_tokens: 2000,
+        messages: [{ role: "user", content: prompt }],
+      });
+      const text = res.content.map((b) => (b.type === "text" ? b.text : "")).join("");
+      const parsed = salvageJson<PerceptionLayer>(text);
+      if (!parsed.law || !parsed.everywhere || !parsed.corresponding_structures?.length) {
+        throw new ReadingError("The perception reading came back incomplete. Try again.");
+      }
+      return parsed;
+    } catch (err) {
+      lastError = err;
+      if (err instanceof Anthropic.APIError && err.status && err.status < 500 && err.status !== 429) break;
+    }
+  }
+  if (lastError instanceof ReadingError) throw lastError;
+  throw new ReadingError("The perception layer is unavailable right now. Try again in a moment.", lastError);
+}

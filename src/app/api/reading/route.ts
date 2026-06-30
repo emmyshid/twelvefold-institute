@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, currentUser } from "@clerk/nextjs/server";
-import { readPattern, readFullPattern, readDream, readCoordinate, ReadingError } from "@/lib/anthropic";
+import { readPattern, readFullPattern, readDream, readCoordinate, readPerception, ReadingError } from "@/lib/anthropic";
 import { rateLimit } from "@/lib/rateLimit";
 import { db } from "@/lib/db";
 import { readings, payments } from "@/lib/db/schema";
@@ -36,14 +36,14 @@ export async function POST(req: NextRequest) {
 
   const situation = String((body as { situation?: unknown })?.situation ?? "").trim();
   const depthInput = String((body as { depth?: unknown })?.depth ?? "summary");
-  const depth: "summary" | "full" | "dream" | "coordinate" =
-    depthInput === "full" ? "full" : depthInput === "dream" ? "dream" : depthInput === "coordinate" ? "coordinate" : "summary";
+  const depth: "summary" | "full" | "dream" | "coordinate" | "perception" =
+    depthInput === "full" ? "full" : depthInput === "dream" ? "dream" : depthInput === "coordinate" ? "coordinate" : depthInput === "perception" ? "perception" : "summary";
 
   // ─── Practitioner gate for deep readings ───────────────────
   // full, dream, and coordinate are all deep, practitioner-only
   // readings. They require a signed-in user with a succeeded
   // certification payment.
-  if (depth === "full" || depth === "dream" || depth === "coordinate") {
+  if (depth === "full" || depth === "dream" || depth === "coordinate" || depth === "perception") {
     if (!userId) {
       return NextResponse.json(
         { error: "Deep readings require sign-in as a certified practitioner." },
@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
   const clientId = typeof clientIdRaw === "string" && clientIdRaw.length >= 32 ? clientIdRaw : null;
 
   // Rate limits differ by depth — deep readings (full, dream, coordinate) cost more.
-  const isDeep = depth === "full" || depth === "dream" || depth === "coordinate";
+  const isDeep = depth === "full" || depth === "dream" || depth === "coordinate" || depth === "perception";
   const limit = userId ? (isDeep ? 20 : 60) : (isDeep ? 2 : 5);
   const rl = rateLimit(`reading:${depth}:${key}`, limit, 60_000);
   if (!rl.ok) {
@@ -160,6 +160,22 @@ export async function POST(req: NextRequest) {
         });
       }
       return NextResponse.json(coord);
+    }
+
+    if (depth === "perception") {
+      // Perception readings don't save to DB — they are a second-pass
+      // interpretation layer on top of an existing full reading.
+      // The body must include the full reading context fields.
+      const b = body as { situation?: unknown; phase?: unknown; microState?: unknown; patternName?: unknown; teaching?: unknown };
+      const phase = String(b.phase ?? "").trim();
+      const microState = String(b.microState ?? "").trim();
+      const patternName = String(b.patternName ?? "").trim();
+      const teaching = String(b.teaching ?? "").trim();
+      if (!phase || !patternName || !teaching) {
+        return NextResponse.json({ error: "Perception reading requires a full reading context." }, { status: 400 });
+      }
+      const perception = await readPerception(situation, phase, microState, patternName, teaching);
+      return NextResponse.json(perception);
     }
 
     if (depth === "full") {

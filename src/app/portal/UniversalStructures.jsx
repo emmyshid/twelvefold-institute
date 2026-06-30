@@ -2567,6 +2567,105 @@ Respond ONLY with minified JSON, no preamble: {"application":"..."}`;
 }
 
 // ── Journal ───────────────────────────────────────────────────
+// ── RecurrenceTracker ─────────────────────────────────────────
+// Reads articulation keys from localStorage (written by PatternOS
+// ReadingDisplay when user saves a "Name the Law" articulation),
+// then clusters them by Intelligent Order principle similarity using
+// the structure's intelligentOrder mapping text as the anchor.
+// Renders only when there are 2+ saved articulations.
+function RecurrenceTracker({ applications, invocations, studied }) {
+  const [articulations, setArticulations] = useState([]);
+
+  useEffect(() => {
+    try {
+      const keys = Object.keys(localStorage).filter(k => k.startsWith('tfi-articulation-'));
+      const entries = keys.map(k => {
+        try { return { key: k, ...JSON.parse(localStorage.getItem(k) || '{}') }; } catch { return null; }
+      }).filter(Boolean).filter(e => e.text && e.ts);
+      setArticulations(entries.sort((a, b) => b.ts.localeCompare(a.ts)));
+    } catch {}
+  }, []);
+
+  // Cluster articulations against intelligentOrder text of studied structures
+  const clusters = useMemo(() => {
+    if (articulations.length < 2) return [];
+    // For each studied structure, find articulations whose text shares keywords
+    // with the structure's intelligentOrder principle
+    const studiedStructures = [...studied].map(id => STRUCTURE_BY_ID[id]).filter(Boolean);
+    return studiedStructures.map(s => {
+      const io = (s.mapping.intelligentOrder || '').toLowerCase();
+      const ioWords = io.split(/\W+/).filter(w => w.length > 4);
+      const matched = articulations.filter(a => {
+        const artWords = (a.text || '').toLowerCase().split(/\W+/).filter(w => w.length > 4);
+        const overlap = artWords.filter(w => ioWords.some(iw => iw.includes(w) || w.includes(iw)));
+        return overlap.length >= 2;
+      });
+      return { structure: s, matched };
+    }).filter(c => c.matched.length > 0).slice(0, 4);
+  }, [articulations, studied]);
+
+  if (articulations.length < 2) return null;
+
+  return (
+    <div style={{ ...glass, borderRadius: '18px', padding: '22px', border: `1px solid ${ACCENT['Intelligent Order']}22` }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+        <span style={{ fontFamily: FONT.mono, fontSize: '8.5px', letterSpacing: '2px', textTransform: 'uppercase', color: ACCENT['Intelligent Order'] }}>INTELLIGENT ORDER — RECURRING LAWS</span>
+      </div>
+      <p style={{ fontFamily: FONT.body, fontSize: '13px', color: 'var(--dim)', margin: '0 0 16px', lineHeight: 1.6 }}>
+        Laws you have articulated across readings, matched against structures you have studied. Recurrence reveals the curriculum behind the curriculum.
+      </p>
+
+      {clusters.length > 0 ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {clusters.map(({ structure: s, matched }) => {
+            const a = ACCENT[s.primaryLayer];
+            return (
+              <div key={s.id} style={{ borderRadius: '12px', border: `1px solid ${a}33`, background: a + '08', padding: '14px 16px' }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', marginBottom: '10px' }}>
+                  <div style={{ width: '32px', height: '32px', borderRadius: '8px', background: a + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                    <StructIcon k={s.icon} size={16} color={a} />
+                  </div>
+                  <div>
+                    <div style={{ fontFamily: FONT.head, fontSize: '14px', color: 'var(--text)', marginBottom: '2px' }}>{s.name}</div>
+                    <div style={{ fontFamily: FONT.body, fontSize: '12px', color: 'var(--dim)', fontStyle: 'italic' }}>{s.mapping.intelligentOrder}</div>
+                  </div>
+                </div>
+                <div style={{ ...mono({ fontSize: '8.5px', color: 'var(--dim)', marginBottom: '7px', letterSpacing: '1.5px' }) }}>YOUR ARTICULATIONS — {matched.length} convergence{matched.length > 1 ? 's' : ''}</div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  {matched.map((art, i) => (
+                    <div key={i} style={{ padding: '9px 12px', borderRadius: '9px', background: 'var(--chip)', border: '1px solid var(--border)' }}>
+                      <div style={{ fontFamily: FONT.mono, fontSize: '8px', color: 'var(--dim)', marginBottom: '4px' }}>
+                        {art.law ? `"${art.law}" · ` : ''}{art.ts ? new Date(art.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+                      </div>
+                      <p style={{ fontFamily: FONT.body, fontSize: '13.5px', color: 'var(--muted)', margin: 0, lineHeight: 1.55, fontStyle: 'italic' }}>"{art.text}"</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <div style={{ ...mono({ fontSize: '9px', color: 'var(--dim)', marginBottom: '6px' }) }}>SAVED ARTICULATIONS ({articulations.length})</div>
+          {articulations.slice(0, 4).map((art, i) => (
+            <div key={i} style={{ padding: '10px 14px', borderRadius: '10px', background: 'var(--chip)', border: '1px solid var(--border)' }}>
+              <div style={{ fontFamily: FONT.mono, fontSize: '8px', color: 'var(--dim)', marginBottom: '4px' }}>
+                {art.law ? `"${art.law}" · ` : ''}{art.ts ? new Date(art.ts).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : ''}
+              </div>
+              <p style={{ fontFamily: FONT.body, fontSize: '13.5px', color: 'var(--muted)', margin: 0, lineHeight: 1.55, fontStyle: 'italic' }}>"{art.text}"</p>
+            </div>
+          ))}
+          <p style={{ fontFamily: FONT.body, fontSize: '12px', color: 'var(--dim)', fontStyle: 'italic', margin: '4px 0 0' }}>
+            Study more structures in Explore to unlock convergence matching.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+
 function JournalPanel({ applications, removeApplication, invocations, removeInvocation, audio, studiedCount, goExplore, goApply, goInvoke, invocationReflections, addReflection, allyPractices, addAllyPractice, pinnedAlly, patternSynthesis, setPatternSynthesis, studied }) {
   const [journalTab, setJournalTab] = useState('practice');
   const [expandedReflect, setExpandedReflect] = useState({});
@@ -2992,6 +3091,9 @@ function JournalPanel({ applications, removeApplication, invocations, removeInvo
                   </div>
                 </div>
               )}
+
+              {/* ── Recurrence tracker: Intelligent Order across readings ── */}
+              <RecurrenceTracker applications={applications} invocations={invocations} studied={studied} />
             </div>
           )}
         </div>
