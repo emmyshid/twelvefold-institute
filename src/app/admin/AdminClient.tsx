@@ -32,6 +32,8 @@ interface AppRow {
   name: string;
   email: string;
   motivation: string | null;
+  practiceType: string | null;
+  source: string | null;
   status: string;
   createdAt: string | null;
 }
@@ -306,6 +308,7 @@ export default function AdminClient({ adminEmail, applications, consults, paymen
                   <th>When</th>
                   <th>Name</th>
                   <th>Email</th>
+                  <th className="adm-mobile-hide">Practice</th>
                   <th className="adm-mobile-hide">Motivation</th>
                   <th>Status</th>
                 </tr>
@@ -313,7 +316,7 @@ export default function AdminClient({ adminEmail, applications, consults, paymen
               <tbody>
                 {apps.length === 0 ? (
                   <tr>
-                    <td colSpan={5} style={{ textAlign: "center", padding: "40px 20px", color: T.textMuted, fontStyle: "italic" }}>
+                    <td colSpan={6} style={{ textAlign: "center", padding: "40px 20px", color: T.textMuted, fontStyle: "italic" }}>
                       No applications yet.
                     </td>
                   </tr>
@@ -323,9 +326,19 @@ export default function AdminClient({ adminEmail, applications, consults, paymen
                       <td style={{ fontFamily: T.fontMono, fontSize: "12px", color: T.textDim, whiteSpace: "nowrap" }}>
                         {fmtDate(r.createdAt)}
                       </td>
-                      <td style={{ fontWeight: 600 }}>{r.name}</td>
+                      <td style={{ fontWeight: 600 }}>
+                        {r.name}
+                        {r.source && (
+                          <div style={{ fontFamily: T.fontMono, fontSize: "9.5px", color: T.textMuted, letterSpacing: "0.5px", marginTop: "2px", fontWeight: 400 }}>
+                            via {r.source}
+                          </div>
+                        )}
+                      </td>
                       <td style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.textDim }}>{r.email}</td>
-                      <td className="adm-mobile-hide" style={{ maxWidth: 360, color: T.textDim }}>
+                      <td className="adm-mobile-hide" style={{ fontFamily: T.fontMono, fontSize: "11px", color: r.practiceType ? T.accent : T.textMuted, letterSpacing: "0.5px" }}>
+                        {r.practiceType || <em style={{ color: T.textMuted, fontStyle: "italic" }}>—</em>}
+                      </td>
+                      <td className="adm-mobile-hide" style={{ maxWidth: 320, color: T.textDim }}>
                         {expanded === r.id
                           ? r.motivation || <em>(no motivation given)</em>
                           : truncate(r.motivation, 80)}
