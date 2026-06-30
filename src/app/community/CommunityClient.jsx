@@ -1276,6 +1276,59 @@ function JournalPage({profile,entries,setEntries,saveEntries}){
       <p style={{fontFamily:S.fontBody,fontSize:'15px',color:S.textMuted,margin:'12px 0 0',lineHeight:1.7,whiteSpace:'pre-wrap'}}>{entry.content}</p></Card>);})}</div>}</div>);}
 
 // ══ PROFILE ══
+
+// ─── UpgradeCard — server-authoritative tier picker ──────────
+// Tier shown reflects payment status (server membership row), not
+// profile.level. Clicking "Upgrade" opens Stripe Checkout for the
+// chosen tier — on success the webhook updates the membership and
+// the next mount reflects the new tier.
+function UpgradeCard({profile,currentLevel}){
+  const [busy,setBusy]=useState(null);
+  const [error,setError]=useState(null);
+  const PRODUCT_BY_TIER={reader:'community-reader',interpreter:'community-interpreter',practitioner:'community-practitioner'};
+  const handleUpgrade=async(tierId)=>{
+    if(!profile.email||!profile.email.includes('@')){
+      setError('Please add an email in Personal Information above first.');
+      return;
+    }
+    const product=PRODUCT_BY_TIER[tierId];
+    if(!product){setError('That tier is not available for self-checkout.');return;}
+    setBusy(tierId);setError(null);
+    try{
+      const res=await fetch('/api/stripe/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({product,email:profile.email,name:profile.name||''})});
+      const data=await res.json();
+      if(!res.ok||!data.url){throw new Error(data.error||'Could not start checkout');}
+      window.location.href=data.url;
+    }catch(e){
+      setError(e.message||'Something went wrong. Please try again.');
+      setBusy(null);
+    }
+  };
+  return(<Card><h3 style={{fontFamily:S.fontHead,fontSize:'16px',color:S.text,margin:'0 0 8px'}}>Membership Journey</h3>
+    <p style={{fontFamily:S.fontBody,fontSize:'12px',color:S.textDim,margin:'0 0 16px',lineHeight:1.5}}>Tiers unlock layered access. Upgrade through secure Stripe checkout — your membership updates automatically.</p>
+    <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>{LEVELS.map((l,i)=>{
+      const isCurrent=l.id===currentLevel.id;
+      const canUpgrade=PRODUCT_BY_TIER[l.id]&&!isCurrent;
+      const isFree=l.id==='observer';
+      const isInvite=l.id==='guide';
+      return(
+        <div key={l.id} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 14px',borderRadius:'8px',border:`1px solid ${isCurrent?l.color+'60':S.border}`,background:isCurrent?`${l.color}10`:'transparent'}}>
+          <div style={{display:'flex',alignItems:'center',gap:'10px',flex:1,minWidth:0}}>
+            <span style={{width:'22px',height:'22px',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',fontWeight:700,fontFamily:S.fontSans,background:isCurrent?`${l.color}25`:'rgba(255,255,255,0.05)',color:isCurrent?l.color:S.textDim,flexShrink:0}}>{i+1}</span>
+            <div style={{minWidth:0,flex:1}}>
+              <div style={{fontFamily:S.fontSans,fontSize:'13px',color:isCurrent?l.color:S.textMuted,fontWeight:600,display:'flex',alignItems:'center',gap:'6px'}}>{l.label}{isCurrent&&<span style={{fontFamily:S.fontMono,fontSize:'9px',color:l.color,letterSpacing:'1px'}}>· CURRENT</span>}</div>
+              <div style={{fontFamily:S.fontSans,fontSize:'11px',color:S.textDim,marginTop:'2px'}}>{l.price}</div>
+            </div>
+          </div>
+          {canUpgrade&&!isInvite&&<button onClick={()=>handleUpgrade(l.id)} disabled={busy!==null} style={{padding:'7px 14px',border:`1px solid ${l.color}`,borderRadius:'7px',background:'transparent',color:l.color,fontFamily:S.fontSans,fontSize:'11px',fontWeight:600,letterSpacing:'0.3px',cursor:busy?'wait':'pointer',opacity:busy&&busy!==l.id?0.4:1,whiteSpace:'nowrap'}}>{busy===l.id?'Opening…':'Upgrade'}</button>}
+          {isFree&&isCurrent===false&&<span style={{fontFamily:S.fontMono,fontSize:'9px',color:S.textDim,letterSpacing:'1px'}}>FREE</span>}
+          {isInvite&&<span style={{fontFamily:S.fontMono,fontSize:'9px',color:S.textDim,letterSpacing:'1px'}}>INVITATION</span>}
+        </div>);
+    })}</div>
+    {error&&<div style={{marginTop:'12px',padding:'10px 12px',borderRadius:'7px',background:'rgba(217,140,122,0.12)',border:'1px solid rgba(217,140,122,0.3)',color:S.red,fontFamily:S.fontBody,fontSize:'13px'}}>{error}</div>}
+  </Card>);
+}
+
 function ProfilePage({profile,setProfile,saveProfile}){
   const level=LEVELS.find(l=>l.id===profile.level)||LEVELS[0];const up=(f,v)=>{const u={...profile,[f]:v};setProfile(u);saveProfile(u);};
   return(<div><SectionTitle sub="Your identity within Attuned Community">Member Profile</SectionTitle>
@@ -1294,11 +1347,7 @@ function ProfilePage({profile,setProfile,saveProfile}){
             <div style={{fontFamily:S.fontHead,fontSize:'24px',color:level.color,marginBottom:'4px'}}>{level.label}</div>
             <div style={{fontFamily:S.fontSans,fontSize:'14px',color:S.textMuted}}>{level.price}</div>
             <div style={{fontFamily:S.fontBody,fontSize:'13px',color:S.textDim,marginTop:'8px'}}>{level.desc}</div></div></Card>
-        <Card><h3 style={{fontFamily:S.fontHead,fontSize:'16px',color:S.text,margin:'0 0 16px'}}>Membership Journey</h3>
-          <div style={{display:'flex',flexDirection:'column',gap:'6px'}}>{LEVELS.map((l,i)=><button key={l.id} onClick={()=>up('level',l.id)} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 14px',borderRadius:'8px',border:`1px solid ${l.id===profile.level?l.color+'40':S.border}`,background:l.id===profile.level?`${l.color}10`:'transparent',cursor:'pointer'}}>
-            <div style={{display:'flex',alignItems:'center',gap:'10px'}}><span style={{width:'22px',height:'22px',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',fontWeight:700,fontFamily:S.fontSans,background:l.id===profile.level?`${l.color}25`:'rgba(255,255,255,0.05)',color:l.id===profile.level?l.color:S.textDim}}>{i+1}</span>
-              <span style={{fontFamily:S.fontSans,fontSize:'13px',color:l.id===profile.level?l.color:S.textMuted,fontWeight:500}}>{l.label}</span></div>
-            <span style={{fontFamily:S.fontSans,fontSize:'11px',color:S.textDim}}>{l.price}</span></button>)}</div></Card>
+        <UpgradeCard profile={profile} currentLevel={level}/>
         <Card style={{marginTop:'16px'}}><h3 style={{fontFamily:S.fontHead,fontSize:'16px',color:S.text,margin:'0 0 6px'}}>Portal Access</h3>
           <p style={{fontFamily:S.fontBody,fontSize:'13px',color:S.textDim,margin:'0 0 12px'}}>Admins can manage members, events, announcements, and guides for the whole community.</p>
           <div style={{display:'flex',gap:'8px'}}>{[['member','Member'],['admin','Admin']].map(([r,lbl])=><button key={r} onClick={()=>up('role',r)} style={{flex:1,padding:'10px',borderRadius:'8px',border:`1px solid ${profile.role===r?S.gold:S.border}`,background:profile.role===r?S.goldDim:'transparent',color:profile.role===r?S.gold:S.textMuted,fontFamily:S.fontSans,fontSize:'13px',fontWeight:600,cursor:'pointer'}}>{lbl}</button>)}</div>
@@ -3954,6 +4003,34 @@ export default function CommunityClient(){
   const[adminMode,setAdminMode]=useState(false);
   const[adminPage,setAdminPage]=useState('overview');
   const[profile,setProfile]=useState(()=>load(KEYS.profile,DEFAULT_PROFILE));
+  // Server-authoritative tier from /api/me/membership (Stripe subscription state).
+  // We sync the local profile.level to the server tier when fetched, so the
+  // tier shown in the UI always reflects payment status, not the profile editor.
+  const[serverTier,setServerTier]=useState(null);
+  const[membershipStatus,setMembershipStatus]=useState('active');
+  useEffect(()=>{
+    let cancelled=false;
+    (async()=>{
+      try{
+        const res=await fetch('/api/me/membership');
+        if(!res.ok) return;
+        const data=await res.json();
+        if(cancelled) return;
+        setServerTier(data.tier);
+        setMembershipStatus(data.status||'active');
+        // If server tier differs from local profile.level, the server wins.
+        setProfile(prev=>{
+          if(prev.level===data.tier) return prev;
+          const updated={...prev,level:data.tier};
+          save(KEYS.profile,updated);
+          return updated;
+        });
+      }catch(e){
+        console.error('membership fetch failed:',e);
+      }
+    })();
+    return ()=>{cancelled=true;};
+  },[]);
   const[journalEntries,setJournalEntries]=useState(()=>load(KEYS.journal,[]));
   const[posts,setPosts]=useState(()=>load(KEYS.posts,[]));
   const[events,setEvents]=useState(()=>load(KEYS.events,DEFAULT_EVENTS));

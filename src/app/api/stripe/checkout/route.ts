@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import type Stripe from "stripe";
 import { stripe, PRICING, type ProductKey } from "@/lib/stripe";
 import { db } from "@/lib/db";
 import { payments } from "@/lib/db/schema";
@@ -43,31 +44,57 @@ export async function POST(req: Request) {
 
   const origin = req.headers.get("origin") || "https://twelvefold.institute";
 
+  // Subscription products use a recurring price; one-time payments do not.
+  const isSubscription = pricing.mode === "subscription";
+  const priceData: Stripe.Checkout.SessionCreateParams.LineItem.PriceData = {
+    currency: pricing.currency,
+    product_data: {
+      name: pricing.name,
+      description: pricing.description,
+    },
+    unit_amount: pricing.amount,
+    ...(isSubscription && pricing.interval
+      ? { recurring: { interval: pricing.interval } }
+      : {}),
+  };
+
+  // Success/cancel URLs differ per product type
+  const isCommunity = product.startsWith("community-");
+  const successPath = isCommunity
+    ? "/community?upgraded=1&session_id={CHECKOUT_SESSION_ID}"
+    : "/certification/payment-success?session_id={CHECKOUT_SESSION_ID}";
+  const cancelPath = isCommunity
+    ? "/community?cancelled=true"
+    : "/certification?cancelled=true";
+
   try {
     const session = await stripe.checkout.sessions.create({
       mode: pricing.mode,
       payment_method_types: ["card"],
       line_items: [
         {
-          price_data: {
-            currency: pricing.currency,
-            product_data: {
-              name: pricing.name,
-              description: pricing.description,
-            },
-            unit_amount: pricing.amount,
-          },
+          price_data: priceData,
           quantity: 1,
         },
       ],
       customer_email: email,
-      success_url: `${origin}/certification/payment-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/certification?cancelled=true`,
+      success_url: `${origin}${successPath}`,
+      cancel_url: `${origin}${cancelPath}`,
       metadata: {
         product,
         clerk_user_id: userId || "",
         name: name || "",
       },
+      ...(isSubscription
+        ? {
+            subscription_data: {
+              metadata: {
+                product,
+                clerk_user_id: userId || "",
+              },
+            },
+          }
+        : {}),
     });
 
     // Record pending payment in our database

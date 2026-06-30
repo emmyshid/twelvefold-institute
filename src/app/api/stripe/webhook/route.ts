@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
-import { payments } from "@/lib/db/schema";
+import { payments, memberships } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
 import { emailPaymentWelcome, emailAdminNotification } from "@/lib/email";
+import { COMMUNITY_TIER_FROM_PRODUCT } from "@/lib/stripe";
 import type Stripe from "stripe";
 
 export const runtime = "nodejs";
@@ -20,6 +21,9 @@ export const runtime = "nodejs";
 //            checkout.session.expired
 //            checkout.session.async_payment_failed
 //            charge.refunded
+//            customer.subscription.updated
+//            customer.subscription.deleted
+//            invoice.payment_failed
 // Copy the signing secret → set STRIPE_WEBHOOK_SECRET in Vercel.
 // ════════════════════════════════════════════════════════════════
 
@@ -61,12 +65,45 @@ export async function POST(req: Request) {
           .where(eq(payments.stripeSessionId, session.id));
         console.log(`[stripe] payment succeeded: session=${session.id}`);
 
-        // Fire welcome + admin notification. Non-blocking — webhook
-        // must return 200 quickly or Stripe retries.
         const customerEmail = session.customer_email ?? session.customer_details?.email ?? null;
         const amount = session.amount_total ?? 0;
         const currency = session.currency ?? "usd";
         const product = (session.metadata?.product as string) || "certification";
+        const clerkUserId = (session.metadata?.clerk_user_id as string) || "";
+
+        // For community subscriptions, upsert into memberships table.
+        // The subscription itself was created in subscription mode, so
+        // session.subscription will be populated and we promote the
+        // member from observer → their purchased tier.
+        if (product.startsWith("community-") && clerkUserId) {
+          const tier = COMMUNITY_TIER_FROM_PRODUCT[product];
+          const subscriptionId = (session.subscription as string | null) ?? null;
+          const customerId = (session.customer as string | null) ?? null;
+          if (tier) {
+            // Try update first; insert if no row exists.
+            const updated = await db
+              .update(memberships)
+              .set({
+                tier,
+                status: "active",
+                stripeCustomerId: customerId,
+                stripeSubscriptionId: subscriptionId,
+              })
+              .where(eq(memberships.clerkUserId, clerkUserId))
+              .returning();
+            if (updated.length === 0) {
+              await db.insert(memberships).values({
+                clerkUserId,
+                tier,
+                status: "active",
+                stripeCustomerId: customerId,
+                stripeSubscriptionId: subscriptionId,
+              });
+            }
+            console.log(`[stripe] community membership upserted: user=${clerkUserId} tier=${tier}`);
+          }
+        }
+
         if (customerEmail) {
           Promise.all([
             emailPaymentWelcome({ email: customerEmail, amount, currency, product }),
@@ -75,6 +112,50 @@ export async function POST(req: Request) {
               body: `Email: ${customerEmail}\nAmount: ${currency.toUpperCase()} $${(amount / 100).toFixed(2)}\nProduct: ${product}\nStripe session: ${session.id}`,
             }),
           ]).catch((e) => console.error("[email] payment notifications failed:", e));
+        }
+        break;
+      }
+
+      case "customer.subscription.updated": {
+        const sub = event.data.object as Stripe.Subscription;
+        const subscriptionId = sub.id;
+        const newStatus = sub.status; // active | past_due | canceled | unpaid | incomplete | etc.
+        // Map Stripe status → our membership status
+        const dbStatus = newStatus === "active" || newStatus === "trialing" ? "active"
+          : newStatus === "past_due" ? "past_due"
+          : newStatus === "canceled" || newStatus === "incomplete_expired" ? "canceled"
+          : newStatus;
+        await db
+          .update(memberships)
+          .set({
+            status: dbStatus,
+            currentPeriodEnd: sub.current_period_end ? new Date(sub.current_period_end * 1000) : null,
+          })
+          .where(eq(memberships.stripeSubscriptionId, subscriptionId));
+        console.log(`[stripe] subscription updated: id=${subscriptionId} status=${newStatus}`);
+        break;
+      }
+
+      case "customer.subscription.deleted": {
+        const sub = event.data.object as Stripe.Subscription;
+        // Downgrade to observer (free) — preserve row for history
+        await db
+          .update(memberships)
+          .set({ tier: "observer", status: "canceled" })
+          .where(eq(memberships.stripeSubscriptionId, sub.id));
+        console.log(`[stripe] subscription canceled, member downgraded to observer: id=${sub.id}`);
+        break;
+      }
+
+      case "invoice.payment_failed": {
+        const invoice = event.data.object as Stripe.Invoice;
+        const subId = typeof invoice.subscription === "string" ? invoice.subscription : null;
+        if (subId) {
+          await db
+            .update(memberships)
+            .set({ status: "past_due" })
+            .where(eq(memberships.stripeSubscriptionId, subId));
+          console.log(`[stripe] subscription marked past_due: id=${subId}`);
         }
         break;
       }

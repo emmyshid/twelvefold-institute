@@ -2596,6 +2596,32 @@ export default function ReadAppClient() {
                       <ReadingDisplay full={reading} situation={input} onPerception={() => {}} />
                     </div>
 
+                    {/* What to do with this — personal mode only, after reading exists */}
+                    {mode === "personal" && (
+                      <div style={{ marginTop: "24px", padding: "24px clamp(20px, 3vw, 28px)", background: T.bgCard, border: `1px solid ${T.border}`, borderRadius: T.radius }}>
+                        <div style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "2px", color: T.textMuted, textTransform: "uppercase", marginBottom: "14px", textAlign: "center" }}>
+                          What to do with this
+                        </div>
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: "10px" }}>
+                          {[
+                            { step: "01", label: "Read", title: "Read Chapter 1", body: "Chapter 1 of Pattern Literacy explains why this pattern keeps returning.", href: "/book#excerpt", color: T.gold },
+                            { step: "02", label: "Practice", title: "Take the Initiation", body: "35-minute guided experience. Name your phase, hear what it's asking.", href: "/initiation", color: T.accent },
+                            { step: "03", label: "Belong", title: "Join the community", body: "Free Observer tier. Reflect with others learning pattern literacy.", href: "/community", color: "rgba(237,233,245,0.55)" },
+                          ].map((card) => (
+                            <a key={card.step} href={card.href} style={{ display: "block", padding: "16px 16px", background: "rgba(255,255,255,0.025)", border: `1px solid ${T.border}`, borderRadius: T.radiusSm, textDecoration: "none", transition: "border-color 0.25s ease, transform 0.25s ease" }} onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(167,139,250,0.35)"; e.currentTarget.style.transform = "translateY(-2px)"; }} onMouseLeave={(e) => { e.currentTarget.style.borderColor = T.border; e.currentTarget.style.transform = "translateY(0)"; }}>
+                              <div style={{ display: "flex", alignItems: "center", gap: "7px", marginBottom: "7px" }}>
+                                <span style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "1.5px", color: card.color, fontWeight: 700 }}>{card.step}</span>
+                                <span style={{ fontFamily: T.fontMono, fontSize: "9px", letterSpacing: "1.5px", color: card.color, textTransform: "uppercase" }}>· {card.label}</span>
+                              </div>
+                              <div style={{ fontFamily: T.font, fontSize: "15px", fontWeight: 600, color: T.text, marginBottom: "5px", letterSpacing: "-0.2px" }}>{card.title}</div>
+                              <div style={{ fontFamily: T.font, fontSize: "13px", color: T.textDim, lineHeight: 1.5 }}>{card.body}</div>
+                              <div style={{ marginTop: "10px", fontFamily: T.fontMono, fontSize: "10px", color: card.color, letterSpacing: "0.5px" }}>→</div>
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     {/* Email-to-client panel (Master mode + saved reading for active client) */}
                     {mode === "practitioner" && activeClient && activeHistoryId && (
                       <div
