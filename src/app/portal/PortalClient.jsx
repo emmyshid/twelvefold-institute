@@ -1034,7 +1034,7 @@ const Onboarding = ({ onComplete }) => {
 
 // ─── SIDEBAR ─────────────────────────────────────────────────
 
-const Sidebar = ({ view, setView, progress, mobileOpen, onClose }) => {
+const Sidebar = ({ view, setView, progress, mobileOpen, onClose, isCertified = false }) => {
   const totalLessons = MODULES.reduce((sum, m) => sum + m.lessons.length, 0);
   const completed = progress.completedLessons?.length || 0;
 
@@ -1438,6 +1438,7 @@ export default function CertificationApp({ isCertified = false }) {
           progress={progress}
           mobileOpen={sidebarOpen}
           onClose={() => setSidebarOpen(false)}
+          isCertified={isCertified}
         />
 
         <div
