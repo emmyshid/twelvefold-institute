@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackLeadSubmit } from "@/lib/analytics";
 
 // Research partnership inquiry form. Reuses the /api/institutions/consult
 // endpoint with scope="research:[type]" so admin can filter research
@@ -81,6 +82,7 @@ export default function ResearcherLeadForm() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "Something went wrong. Please try again.");
+      trackLeadSubmit("researcher", inquiryType || undefined);
       setDone(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");

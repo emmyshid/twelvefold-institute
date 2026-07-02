@@ -2,6 +2,7 @@
   "name": "twelvefold-institute",
   "version": "0.1.0",
   "private": true,
+  "//": "Two known moderate transitive dev-only vulnerabilities are currently accepted: (1) esbuild via drizzle-kit/@esbuild-kit/* — tracked in drizzle-orm#5481, PR #5689 open. Only exploitable while drizzle-kit dev commands are running. Zero production impact. (2) postcss via next — build-time only. Zero production runtime exposure. Both fixes would require breaking downgrades (drizzle-kit or next@9.3.3). Reassess when drizzle-kit merges a tsx-based replacement or when Next 15.6+ ships with updated postcss.",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -15,8 +16,10 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.39.0",
     "@clerk/nextjs": "^6.12.0",
-    "drizzle-orm": "^0.39.0",
-    "next": "^15.2.0",
+    "@vercel/analytics": "^1.3.1",
+    "@vercel/speed-insights": "^1.0.12",
+    "drizzle-orm": "^0.45.2",
+    "next": "^15.5.18",
     "postgres": "^3.4.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",

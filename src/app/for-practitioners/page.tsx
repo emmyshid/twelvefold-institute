@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import PractitionerLeadForm from "./PractitionerLeadForm";
 
 // ════════════════════════════════════════════════════════════════
@@ -98,19 +99,19 @@ const SAMPLE_LESSONS = [
 const TESTIMONIALS = [
   {
     quote:
-      "I&rsquo;ve practiced as a depth therapist for eighteen years. This is the first framework I&rsquo;ve trained in where my clients say, after a session, &lsquo;That&rsquo;s exactly it.&rsquo; The language fits what they&rsquo;re already living.",
+      "I\u2019ve practiced as a depth therapist for eighteen years. This is the first framework I\u2019ve trained in where my clients say, after a session, \u2018That\u2019s exactly it.\u2019 The language fits what they\u2019re already living.",
     name: "Therapist, cohort 1",
     context: "Depth-oriented private practice",
   },
   {
     quote:
-      "My coaching shifted from helping executives make decisions to helping them recognize which phase they&rsquo;re already in. The result: faster decisions, less second-guessing, real alignment.",
+      "My coaching shifted from helping executives make decisions to helping them recognize which phase they\u2019re already in. The result: faster decisions, less second-guessing, real alignment.",
     name: "Executive coach, cohort 1",
     context: "Fortune 500 leadership coaching",
   },
   {
     quote:
-      "As an OD consultant I was sceptical of any &lsquo;wisdom traditions&rsquo; framing. The training is rigorously secular and the framework is genuinely useful for diagnosing what&rsquo;s actually happening inside an org.",
+      "As an OD consultant I was sceptical of any \u2018wisdom traditions\u2019 framing. The training is rigorously secular and the framework is genuinely useful for diagnosing what\u2019s actually happening inside an org.",
     name: "OD consultant, cohort 1",
     context: "Mid-market organizational development",
   },
@@ -194,7 +195,7 @@ export default function ForPractitionersPage() {
           alignItems: "center",
         }}
       >
-        <a
+        <Link
           href="/"
           style={{
             textDecoration: "none",
@@ -207,8 +208,8 @@ export default function ForPractitionersPage() {
         >
           <span style={{ color: T.text }}>Twelvefold</span>{" "}
           <span style={{ color: T.accent }}>Institute</span>
-        </a>
-        <a
+        </Link>
+        <Link
           href="/certification"
           style={{
             fontFamily: T.fontMono,
@@ -220,7 +221,7 @@ export default function ForPractitionersPage() {
           }}
         >
           Full program →
-        </a>
+        </Link>
       </nav>
 
       {/* ─── HERO ────────────────────────────────────────── */}
@@ -282,7 +283,7 @@ export default function ForPractitionersPage() {
           >
             Request cohort details →
           </a>
-          <a
+          <Link
             href="/certification"
             style={{
               padding: "14px 32px",
@@ -302,7 +303,7 @@ export default function ForPractitionersPage() {
             }}
           >
             See the full program
-          </a>
+          </Link>
         </div>
       </section>
 
@@ -640,8 +641,9 @@ export default function ForPractitionersPage() {
                   flex: 1,
                   marginBottom: "20px",
                 }}
-                dangerouslySetInnerHTML={{ __html: `&ldquo;${t.quote}&rdquo;` }}
-              />
+              >
+                {"\u201C"}{t.quote}{"\u201D"}
+              </div>
               <div style={{ paddingTop: "16px", borderTop: `1px solid ${T.border}` }}>
                 <div
                   style={{
@@ -762,9 +764,9 @@ export default function ForPractitionersPage() {
           }}
         >
           Ready to enroll directly?{" "}
-          <a href="/certification" style={{ color: T.accent, textDecoration: "none" }}>
-            See full certification &rarr;
-          </a>
+          <Link href="/certification" style={{ color: T.accent, textDecoration: "none" }}>
+            See full certification →
+          </Link>
         </p>
       </section>
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { trackLeadSubmit } from "@/lib/analytics";
 
 const T = {
   bgCard: "rgba(255,255,255,0.04)",
@@ -61,6 +62,7 @@ export default function PractitionerLeadForm() {
       if (!res.ok) {
         throw new Error(data?.error || "Something went wrong. Please try again.");
       }
+      trackLeadSubmit("practitioner", practiceType || undefined);
       setDone(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { Sector } from "./sectorConfig";
+import { trackLeadSubmit } from "@/lib/analytics";
 
 // Sector-specific consult form. Pre-fills the scope field with the sector
 // key so admin can filter by segment. Posts to the existing
@@ -86,6 +87,9 @@ export default function InstitutionsConsultForm({ sector, heading, body }: Props
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data?.error || "Something went wrong. Please try again.");
+      // Subtype is the composed scope value ("schools:diagnostic"),
+      // so the dashboard can filter by sector AND by engagement type.
+      trackLeadSubmit("institution", scope);
       setDone(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Something went wrong.");

@@ -1,6 +1,8 @@
 import "./globals.css";
 import type { Metadata } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { maybeWelcome } from "@/lib/welcome";
 
 export const metadata: Metadata = {
@@ -56,7 +58,19 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       signUpFallbackRedirectUrl="/"
     >
       <html lang="en">
-        <body>{children}</body>
+        <body>
+          {children}
+          {/* Vercel Analytics: pageview and route tracking. Privacy-first —
+              no cookies, no cross-site tracking, no consent banner required.
+              Aggregated metrics only. Automatically enabled once the project
+              is deployed on Vercel; no API key needed. */}
+          <Analytics />
+          {/* Vercel Speed Insights: Core Web Vitals (LCP, FID, CLS) and
+              route-level performance. Complements Analytics with the
+              latency picture per route so we can catch regressions on
+              the audience-specific pages before conversion drops. */}
+          <SpeedInsights />
+        </body>
       </html>
     </ClerkProvider>
   );
