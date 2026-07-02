@@ -65,6 +65,46 @@ export default function ResearchPage() {
           <p style={{ fontSize: "clamp(17px, 2.5vw, 21px)", lineHeight: 1.6, color: T.textDim, maxWidth: 620, fontStyle: "italic" }}>Long-form essays and papers. Authority is built in public, in writing — not in metrics.</p>
         </div>
 
+        {/* For scholars — audience-specific path */}
+        <div style={{ marginBottom: "clamp(32px, 5vw, 48px)" }}>
+          <Link
+            href="/for-researchers-and-scholars"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "16px",
+              padding: "18px 24px",
+              background: "rgba(167,139,250,0.05)",
+              border: "1px solid rgba(167,139,250,0.20)",
+              borderRadius: "12px",
+              textDecoration: "none",
+              flexWrap: "wrap",
+            }}
+          >
+            <div style={{ flex: "1 1 300px", minWidth: 0 }}>
+              <div
+                style={{
+                  fontFamily: T.fontMono,
+                  fontSize: "9.5px",
+                  letterSpacing: "2px",
+                  color: T.accent,
+                  textTransform: "uppercase",
+                  fontWeight: 700,
+                  marginBottom: "6px",
+                }}
+              >
+                For researchers &amp; scholars
+              </div>
+              <div style={{ fontFamily: T.font, fontSize: "16px", color: T.textDim, lineHeight: 1.55 }}>
+                Reviewing the framework&rsquo;s claims, citing it in your own work, or exploring a research partnership? There&rsquo;s a dedicated path.
+              </div>
+            </div>
+            <div style={{ fontFamily: T.fontMono, fontSize: "11px", color: T.accent, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
+              See the research path →
+            </div>
+          </Link>
+        </div>
+
         {/* Essay list */}
         <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
           {ESSAYS.map((essay) => (

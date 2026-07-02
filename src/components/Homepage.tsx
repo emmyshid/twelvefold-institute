@@ -329,7 +329,8 @@ export default function Homepage() {
     { eyebrow: "Explore the framework", title: "Study 60 Universal Structures", body: "Browse all 60 structures across nature, the body, and the cosmos. See the Intelligent Order named across domains. Free with any account.", cta: "Explore the structures", href: "/portal", variant: "ghost" as Variant },
     { eyebrow: "The book", title: "Pattern Literacy", body: "How to read the intelligent cycles governing your life. Read Chapter 1 free, see the full chapter list, and join the launch list.", cta: "Read Chapter 1", href: "/book#excerpt", variant: "ghost" as Variant },
     { eyebrow: "Become a practitioner", title: "Add Pattern Literacy to your practice", body: "For therapists, coaches, and consultants. A 200-hour certification giving your clients language for the patterns they're already living.", cta: "See the practitioner path", href: "/for-practitioners", variant: "primary" as Variant, feature: true },
-    { eyebrow: "For organizations", title: "License the Twelvefold framework", body: "Organizational diagnostics and licensing for schools, healthcare, and teams. Book a consult.", cta: "Start a conversation", href: "/institutions", variant: "ghost" as Variant },
+    { eyebrow: "For organizations", title: "License the Twelvefold framework", body: "Sector-specific paths for schools, healthcare systems, and corporate leadership. Or start with the general institutional overview.", cta: "Explore institutional paths", href: "/institutions", variant: "ghost" as Variant },
+    { eyebrow: "For researchers", title: "Examine the framework", body: "The framework makes testable claims about how human transformation is structured. This path is for the scholars examining them.", cta: "See the research path", href: "/for-researchers-and-scholars", variant: "ghost" as Variant },
   ];
   const shift: [string, string][] = [
     ["\u201CWhy does this keep happening to me?\u201D", "\u201CWhat is this pattern teaching me?\u201D"],
@@ -713,7 +714,7 @@ export default function Homepage() {
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "18px" }}>
             <div style={{ fontFamily: T.fontMono, fontSize: "13px", letterSpacing: "1px" }}><span style={{ color: T.text }}>Twelvefold</span> <span style={{ color: T.accent }}>Institute</span></div>
             <div style={{ display: "flex", gap: "22px", flexWrap: "wrap" }}>
-              {([["Initiation", "/initiation"], ["Rhythms", "/rhythms"], ["Transits", "/transits"], ["Community", "/community"], ["Pattern Literacy", "/pattern-literacy"], ["Read", "/read"], ["Book", "/book"], ["For Practitioners", "/for-practitioners"], ["Certification", "/certification"], ["Institutions", "/institutions"], ["Method", "/method"], ["Research", "/research"], ["About", "/about"]] as [string, string][]).map(([label, href]) => {
+              {([["Initiation", "/initiation"], ["Rhythms", "/rhythms"], ["Transits", "/transits"], ["Community", "/community"], ["Pattern Literacy", "/pattern-literacy"], ["Read", "/read"], ["Book", "/book"], ["For Practitioners", "/for-practitioners"], ["Certification", "/certification"], ["Institutions", "/institutions"], ["For Schools", "/for-institutions/schools"], ["For Healthcare", "/for-institutions/healthcare"], ["For Corporate", "/for-institutions/corporate"], ["For Researchers", "/for-researchers-and-scholars"], ["Method", "/method"], ["Research", "/research"], ["About", "/about"]] as [string, string][]).map(([label, href]) => {
                 const handle = (e: React.MouseEvent<HTMLAnchorElement>) => {
                   if (href.startsWith("#")) {
                     e.preventDefault();

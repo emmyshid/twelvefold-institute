@@ -157,6 +157,43 @@ export default function InstitutionsPage() {
           </Reveal>
         </header>
 
+        {/* Sector-specific paths — audience-aware entry points */}
+        <section style={{ padding: "clamp(20px, 4vw, 40px) clamp(20px, 5vw, 64px)", maxWidth: 1000, margin: "0 auto" }}>
+          <Reveal>
+            <div style={{ textAlign: "center", marginBottom: "24px" }}>
+              <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>Sector-specific paths</Eyebrow></div>
+              <p style={{ fontFamily: T.font, fontSize: "clamp(15px, 2vw, 17px)", color: T.textDim, lineHeight: 1.6, maxWidth: 620, margin: "8px auto 0" }}>
+                We speak in sector-specific language on these pages. If you&rsquo;re a school leader, healthcare executive, or corporate CLO, start here.
+              </p>
+            </div>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))", gap: "12px" }}>
+              {[
+                { href: "/for-institutions/schools", label: "Schools & universities", body: "K-12, higher ed, educational foundations." },
+                { href: "/for-institutions/healthcare", label: "Healthcare systems", body: "Hospitals, clinical teams, health system leadership." },
+                { href: "/for-institutions/corporate", label: "Corporate leadership", body: "Executive teams, CLOs, HR, org development." },
+              ].map((s) => (
+                <a
+                  key={s.href}
+                  href={s.href}
+                  style={{
+                    display: "block",
+                    padding: "22px 22px",
+                    background: "rgba(255,255,255,0.025)",
+                    border: `1px solid ${T.border}`,
+                    borderRadius: "12px",
+                    textDecoration: "none",
+                    transition: `border-color 0.25s ${T.ease}, transform 0.25s ${T.ease}`,
+                  }}
+                >
+                  <div style={{ fontFamily: T.fontMono, fontSize: "10px", letterSpacing: "1.5px", color: T.gold, textTransform: "uppercase", fontWeight: 700, marginBottom: "8px" }}>{s.label}</div>
+                  <div style={{ fontFamily: T.font, fontSize: "14.5px", color: T.textDim, lineHeight: 1.55, marginBottom: "10px" }}>{s.body}</div>
+                  <div style={{ fontFamily: T.fontMono, fontSize: "10px", color: T.accent, letterSpacing: "0.5px" }}>→</div>
+                </a>
+              ))}
+            </div>
+          </Reveal>
+        </section>
+
         {/* The premise */}
         <section style={{ padding: "clamp(40px, 7vw, 80px) clamp(20px, 5vw, 64px)", maxWidth: 820, margin: "0 auto", textAlign: "center" }}>
           <Reveal>
