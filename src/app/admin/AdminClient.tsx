@@ -225,6 +225,22 @@ export default function AdminClient({ adminEmail, applications, consults, paymen
           <span style={{ color: T.gold, fontFamily: T.font, fontStyle: "italic", fontSize: "16px" }}>Admin</span>
         </a>
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <a
+            href="/admin/settings"
+            style={{
+              fontFamily: T.fontMono,
+              fontSize: "11px",
+              letterSpacing: "1.5px",
+              color: T.textDim,
+              textDecoration: "none",
+              textTransform: "uppercase",
+              padding: "6px 12px",
+              border: `1px solid ${T.border}`,
+              borderRadius: "999px",
+            }}
+          >
+            Settings
+          </a>
           {adminEmail && (
             <span
               className="adm-mobile-hide"

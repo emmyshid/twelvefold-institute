@@ -206,3 +206,41 @@ export const universalStructuresJournal = pgTable("universal_structures_journal"
 
 export type UniversalStructuresJournal = typeof universalStructuresJournal.$inferSelect;
 export type NewUniversalStructuresJournal = typeof universalStructuresJournal.$inferInsert;
+
+// ════════════════════════════════════════════════════════════════
+// product_pricing — admin-editable overrides for the static PRICING
+// catalog in src/lib/stripe.ts.
+//
+// Design: one row per product key (matches ProductKey in stripe.ts).
+// If a row exists for a product, its values override the defaults.
+// If no row exists, the hardcoded defaults are used. This means an
+// empty table = "just use the defaults, no admin has changed anything
+// yet" — no seed data required.
+//
+// updatedBy captures which admin made the change (Clerk user ID).
+// Historical edits are not versioned in this table by design — if
+// audit trail becomes important, add a product_pricing_audit table.
+//
+// IMPORTANT: Changes here only affect NEW checkouts. Existing Stripe
+// subscriptions retain the price they were created at. The admin UI
+// surfaces this explicitly so no one mistakes an edit for a
+// site-wide price change.
+// ════════════════════════════════════════════════════════════════
+export const productPricing = pgTable("product_pricing", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  productKey: text("product_key").notNull().unique(),
+  amount: integer("amount").notNull(),         // cents
+  currency: text("currency").notNull(),        // "usd" | "eur" | ...
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  // Mode and interval are locked per product — they define what kind
+  // of thing this is (subscription vs one-time). Only the display
+  // fields and price are admin-editable.
+  active: boolean("active").notNull().default(true),
+  updatedBy: text("updated_by"),               // clerk_user_id
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export type ProductPricing = typeof productPricing.$inferSelect;
+export type NewProductPricing = typeof productPricing.$inferInsert;

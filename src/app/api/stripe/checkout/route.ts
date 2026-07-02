@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { stripe, PRICING, type ProductKey } from "@/lib/stripe";
+import { getResolvedPricing } from "@/lib/pricing";
 import { db } from "@/lib/db";
 import { payments } from "@/lib/db/schema";
 import { auth } from "@clerk/nextjs/server";
@@ -26,7 +27,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: `Unknown product: ${product}` }, { status: 400 });
   }
 
-  const pricing = PRICING[product];
+  // Resolve pricing through the admin-editable layer. Falls back to
+  // PRICING defaults when no admin override exists. Also honors the
+  // active flag — a deactivated product cannot be purchased.
+  const pricing = await getResolvedPricing(product);
+  if (!pricing.active) {
+    return NextResponse.json(
+      { error: "This product is not currently available." },
+      { status: 400 }
+    );
+  }
+
   const email = (body.email ?? "").trim();
   const name = (body.name ?? "").trim();
 
