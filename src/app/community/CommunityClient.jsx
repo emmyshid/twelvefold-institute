@@ -1282,10 +1282,16 @@ function JournalPage({profile,entries,setEntries,saveEntries}){
 // profile.level. Clicking "Upgrade" opens Stripe Checkout for the
 // chosen tier — on success the webhook updates the membership and
 // the next mount reflects the new tier.
-function UpgradeCard({profile,currentLevel}){
+function UpgradeCard({profile,currentLevel,serverPricing}){
   const [busy,setBusy]=useState(null);
   const [error,setError]=useState(null);
   const PRODUCT_BY_TIER={reader:'community-reader',interpreter:'community-interpreter',practitioner:'community-practitioner'};
+  // Server-resolved prices override the hardcoded LEVELS[].price when
+  // available. When the admin changes a price via /admin/settings the
+  // API returns the new value on the next mount and it renders here
+  // without any code deploy. Falls back gracefully to the static value
+  // if the fetch hasn't returned yet or the map is empty.
+  const priceFor=(l)=>(serverPricing&&serverPricing[l.id])||l.price;
   const handleUpgrade=async(tierId)=>{
     if(!profile.email||!profile.email.includes('@')){
       setError('Please add an email in Personal Information above first.');
@@ -1317,7 +1323,7 @@ function UpgradeCard({profile,currentLevel}){
             <span style={{width:'22px',height:'22px',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'11px',fontWeight:700,fontFamily:S.fontSans,background:isCurrent?`${l.color}25`:'rgba(255,255,255,0.05)',color:isCurrent?l.color:S.textDim,flexShrink:0}}>{i+1}</span>
             <div style={{minWidth:0,flex:1}}>
               <div style={{fontFamily:S.fontSans,fontSize:'13px',color:isCurrent?l.color:S.textMuted,fontWeight:600,display:'flex',alignItems:'center',gap:'6px'}}>{l.label}{isCurrent&&<span style={{fontFamily:S.fontMono,fontSize:'9px',color:l.color,letterSpacing:'1px'}}>· CURRENT</span>}</div>
-              <div style={{fontFamily:S.fontSans,fontSize:'11px',color:S.textDim,marginTop:'2px'}}>{l.price}</div>
+              <div style={{fontFamily:S.fontSans,fontSize:'11px',color:S.textDim,marginTop:'2px'}}>{priceFor(l)}</div>
             </div>
           </div>
           {canUpgrade&&!isInvite&&<button onClick={()=>handleUpgrade(l.id)} disabled={busy!==null} style={{padding:'7px 14px',border:`1px solid ${l.color}`,borderRadius:'7px',background:'transparent',color:l.color,fontFamily:S.fontSans,fontSize:'11px',fontWeight:600,letterSpacing:'0.3px',cursor:busy?'wait':'pointer',opacity:busy&&busy!==l.id?0.4:1,whiteSpace:'nowrap'}}>{busy===l.id?'Opening…':'Upgrade'}</button>}
@@ -1329,7 +1335,7 @@ function UpgradeCard({profile,currentLevel}){
   </Card>);
 }
 
-function ProfilePage({profile,setProfile,saveProfile}){
+function ProfilePage({profile,setProfile,saveProfile,serverPricing}){
   const level=LEVELS.find(l=>l.id===profile.level)||LEVELS[0];const up=(f,v)=>{const u={...profile,[f]:v};setProfile(u);saveProfile(u);};
   return(<div><SectionTitle sub="Your identity within Attuned Community">Member Profile</SectionTitle>
     <div style={{display:'grid',gridTemplateColumns:'2fr 1fr',gap:'24px'}}>
@@ -1347,7 +1353,7 @@ function ProfilePage({profile,setProfile,saveProfile}){
             <div style={{fontFamily:S.fontHead,fontSize:'24px',color:level.color,marginBottom:'4px'}}>{level.label}</div>
             <div style={{fontFamily:S.fontSans,fontSize:'14px',color:S.textMuted}}>{level.price}</div>
             <div style={{fontFamily:S.fontBody,fontSize:'13px',color:S.textDim,marginTop:'8px'}}>{level.desc}</div></div></Card>
-        <UpgradeCard profile={profile} currentLevel={level}/>
+        <UpgradeCard profile={profile} currentLevel={level} serverPricing={serverPricing}/>
         </div></div></div>);}
 
 // ══════════════════════════════════════════════════════════════
@@ -4010,6 +4016,12 @@ export default function CommunityClient(){
   // the admin page renders, and any admin-only side effects must all check
   // serverIsAdmin, not profile.role.
   const[serverIsAdmin,setServerIsAdmin]=useState(false);
+  // Server-resolved community tier pricing. Empty object until the
+  // membership fetch completes; UpgradeCard falls back to the hardcoded
+  // LEVELS[].price when a tier is missing from this map. When admin
+  // changes a price via /admin/settings, the next mount of any client
+  // page picks up the new value with no code deploy required.
+  const[serverPricing,setServerPricing]=useState({});
   useEffect(()=>{
     let cancelled=false;
     (async()=>{
@@ -4020,6 +4032,7 @@ export default function CommunityClient(){
         if(cancelled) return;
         setServerTier(data.tier);
         setMembershipStatus(data.status||'active');
+        if(data.pricing&&typeof data.pricing==='object') setServerPricing(data.pricing);
         // If server tier differs from local profile.level, the server wins.
         setProfile(prev=>{
           if(prev.level===data.tier) return prev;
@@ -4162,7 +4175,7 @@ export default function CommunityClient(){
         {page==='events'&&<EventsPage events={events} announcements={announcements}/>}
         {page==='journal'&&<JournalPage profile={profile} entries={journalEntries} setEntries={setJournalEntries} saveEntries={saveEntries}/>}
         {page==='why'&&<WhyAttunedPage goTo={setPage}/>}
-        {page==='profile'&&<ProfilePage profile={profile} setProfile={setProfile} saveProfile={saveProfile}/>}
+        {page==='profile'&&<ProfilePage profile={profile} setProfile={setProfile} saveProfile={saveProfile} serverPricing={serverPricing}/>}
         {page==='codex'&&<CodexPage profile={profile} setProfile={setProfile} saveProfile={saveProfile} codex={codex} setCodex={setCodex} saveCodex={saveCodex} jump={codexJump} goTo={setPage} onConsumeJump={()=>setCodexJump(null)} onSaveToJournal={(entry)=>{const u=[entry,...journalEntries];setJournalEntries(u);saveEntries(u);}}/>}
         </>)}
         </div>

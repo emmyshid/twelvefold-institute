@@ -91,3 +91,65 @@ export async function getAllResolvedPricing(): Promise<ResolvedPricing[]> {
   const keys = Object.keys(PRICING) as ProductKey[];
   return Promise.all(keys.map(getResolvedPricing));
 }
+
+// ─── Display formatting ─────────────────────────────────────────
+// Human-readable price string for UI. Handles currency symbols for
+// the common cases and falls back to ISO code prefix for the rest.
+// Subscription products append "/mo" or "/yr".
+//
+// Examples:
+//   $200/mo   $350/mo   $500/mo   $6,500   €100/mo   JPY 5000/mo
+
+const CURRENCY_SYMBOL: Record<string, string> = {
+  usd: "$",
+  eur: "€",
+  gbp: "£",
+  cad: "$",
+  aud: "$",
+};
+
+export function formatDisplayPrice(p: ResolvedPricing): string {
+  const dollars = p.amount / 100;
+  const symbol = CURRENCY_SYMBOL[p.currency.toLowerCase()];
+  // Whole-dollar amounts render without decimals; everything else with 2.
+  const isWhole = Number.isInteger(dollars);
+  const formatted = isWhole
+    ? dollars.toLocaleString("en-US")
+    : dollars.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const prefix = symbol ?? `${p.currency.toUpperCase()} `;
+  const suffix =
+    p.mode === "subscription" && p.interval === "month"
+      ? "/mo"
+      : p.mode === "subscription" && p.interval === "year"
+      ? "/yr"
+      : "";
+  return `${prefix}${formatted}${suffix}`;
+}
+
+// ─── Community-specific helpers ─────────────────────────────────
+// The community app uses tier IDs (reader/interpreter/practitioner),
+// not product keys. This helper returns a {tierId: displayPrice} map
+// so CommunityClient can render current prices at runtime without
+// rebuilding its LEVELS constant.
+
+export async function getCommunityTierPricing(): Promise<Record<string, string>> {
+  const products: ProductKey[] = [
+    "community-reader",
+    "community-interpreter",
+    "community-practitioner",
+  ];
+  const tierByProduct: Record<string, string> = {
+    "community-reader": "reader",
+    "community-interpreter": "interpreter",
+    "community-practitioner": "practitioner",
+  };
+  const resolved = await Promise.all(products.map(getResolvedPricing));
+  const out: Record<string, string> = {};
+  for (const p of resolved) {
+    // Inactive tiers still get a price string — the community client
+    // decides visibility separately. Displaying "$200/mo" for an
+    // inactive tier is honest; hiding it silently is not.
+    out[tierByProduct[p.productKey]] = formatDisplayPrice(p);
+  }
+  return out;
+}

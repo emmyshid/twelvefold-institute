@@ -98,7 +98,7 @@ function Eyebrow({ children, color }: { children: ReactNode; color?: string }) {
   return <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", fontFamily: T.fontMono, fontSize: "11px", letterSpacing: "3px", color: color || T.gold, textTransform: "uppercase", marginBottom: "18px" }}><span style={{ width: 6, height: 6, borderRadius: "50%", background: T.gold, display: "inline-block" }} />{children}</div>;
 }
 
-export default function CertificationPage() {
+export default function CertificationPage({ priceLabel = "$6,500" }: { priceLabel?: string } = {}) {
   const [form, setForm] = useState({ name: "", email: "", motivation: "" });
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -190,7 +190,7 @@ export default function CertificationPage() {
   const faq = [
     ["Do I need to believe in astrology to take this?", "No. Twelvefold names the structure: twelve phases of the solar year, twelve lunar cycles, the shape humanity has tracked for millennia. We use astronomical structure, not horoscope interpretation. You don't need to believe anything spiritual to read patterns. The framework rests on observable cycles."],
     ["Who is this for?", "Therapists, coaches, consultants, spiritual directors, and serious lay practitioners. Anyone who already does the work of helping others see clearly, and wants a structural framework that holds up across traditions."],
-    ["What does the $6,500 cover?", "All 200 hours of instruction, cohort access, live sessions, supervised practicum, certification review, and lifetime access to the materials and updates. Payment plans available on application."],
+    [`What does the ${priceLabel} cover?`, "All 200 hours of instruction, cohort access, live sessions, supervised practicum, certification review, and lifetime access to the materials and updates. Payment plans available on application."],
     ["How rigorous is it?", "Very. You will write case reports, sit live readings, and demonstrate competency before certification. We are building practitioners, not certificate holders."],
     ["When does the next cohort start?", "Cohorts run two or three times per year. Apply now to be considered for the next opening."],
   ];
@@ -229,7 +229,7 @@ export default function CertificationPage() {
               <span style={{ color: T.textMuted }}>·</span>
               <span>8–16 weeks</span>
               <span style={{ color: T.textMuted }}>·</span>
-              <span style={{ color: T.gold }}>$6,500</span>
+              <span style={{ color: T.gold }}>{priceLabel}</span>
             </div>
             <div style={{ marginTop: "30px" }}>
               <Btn variant="gold" onClick={() => document.getElementById("apply")?.scrollIntoView({ behavior: "smooth" })}>Apply for the next cohort</Btn>
@@ -286,7 +286,7 @@ export default function CertificationPage() {
         <section style={{ padding: "clamp(40px, 7vw, 80px) clamp(20px, 5vw, 64px)", maxWidth: 700, margin: "0 auto", textAlign: "center" }}>
           <Reveal>
             <div style={{ display: "flex", justifyContent: "center" }}><Eyebrow>Investment</Eyebrow></div>
-            <div style={{ fontFamily: T.font, fontSize: "clamp(48px, 9vw, 78px)", fontWeight: 600, color: T.gold, letterSpacing: "-2px", marginBottom: "8px" }}>$6,500</div>
+            <div style={{ fontFamily: T.font, fontSize: "clamp(48px, 9vw, 78px)", fontWeight: 600, color: T.gold, letterSpacing: "-2px", marginBottom: "8px" }}>{priceLabel}</div>
             <p style={{ fontFamily: T.font, fontSize: "18px", color: T.textDim, lineHeight: 1.6 }}>The full path to becoming Twelvefold-certified. Includes all 200 hours of instruction, cohort access, live sessions, supervised practicum, certification review, and lifetime access to materials and updates. Payment plans available on application.</p>
 
             <div style={{ marginTop: "36px", padding: "28px clamp(20px, 4vw, 36px)", background: "rgba(251,191,36,0.06)", border: "1px solid rgba(251,191,36,0.2)", borderRadius: T.radius }}>
@@ -295,7 +295,7 @@ export default function CertificationPage() {
               <p style={{ fontFamily: T.font, fontSize: "15px", color: T.textDim, lineHeight: 1.6, marginBottom: "20px" }}>Skip the queue. Pay tuition directly and we will send your cohort enrollment paperwork within five business days.</p>
 
               {!showReserveForm ? (
-                <Btn variant="gold" onClick={() => setShowReserveForm(true)}>Reserve your spot — $6,500</Btn>
+                <Btn variant="gold" onClick={() => setShowReserveForm(true)}>Reserve your spot — {priceLabel}</Btn>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: "12px", maxWidth: 420, margin: "0 auto" }}>
                   <input
