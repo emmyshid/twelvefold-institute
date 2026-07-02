@@ -6,6 +6,14 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import { maybeWelcome } from "@/lib/welcome";
 
 export const metadata: Metadata = {
+  // Base URL for all OG images and Open Graph metadata across the site.
+  // Without this, Next.js emits a build warning and relative image paths
+  // in page-level metadata become unresolvable for link-preview crawlers.
+  // The URL should match the production domain — override via
+  // NEXT_PUBLIC_SITE_URL for preview deployments if needed.
+  metadataBase: new URL(
+    process.env.NEXT_PUBLIC_SITE_URL || "https://twelvefold.institute"
+  ),
   // Title template: child pages can set their own title and the
   // " | Twelvefold Institute" suffix is appended automatically.
   title: {

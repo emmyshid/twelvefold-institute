@@ -1,6 +1,7 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import type { Metadata } from "next";
 import { db } from "@/lib/db";
 import { payments } from "@/lib/db/schema";
 import { and, eq, or } from "drizzle-orm";
@@ -17,6 +18,18 @@ import { and, eq, or } from "drizzle-orm";
 //   • Signed in, NOT certified     → see the explainer + practitioner CTAs
 //   • Signed in, IS certified      → redirect straight to /read/app
 // ════════════════════════════════════════════════════════════════
+
+export const metadata: Metadata = {
+  title: "Get a Pattern Reading",
+  description:
+    "Full pattern readings are led by certified Twelvefold practitioners. See a sample reading, learn how the framework works, and connect with a practitioner. Free brief readings available on the homepage.",
+  openGraph: {
+    title: "Get a Pattern Reading — Twelvefold Institute",
+    description:
+      "How pattern readings work, what to expect, and how to connect with a certified practitioner.",
+    type: "website",
+  },
+};
 
 export default async function ReadGateway() {
   const { userId } = await auth();

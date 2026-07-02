@@ -68,7 +68,10 @@ export default function InstitutionsConsultForm({ sector, heading, body }: Props
     try {
       // Compose the scope value: always includes the sector, and
       // the specific engagement type if selected. Admin can filter
-      // by either.
+      // by either. `scopeParts` is typed as `string[]` explicitly
+      // because inference would narrow it to `Sector[]`, which would
+      // reject the `.push(scopeType)` where scopeType is a free-form
+      // engagement type string.
       const scopeParts: string[] = [sector];
       if (scopeType) scopeParts.push(scopeType);
       const scope = scopeParts.join(":");
