@@ -6,6 +6,7 @@ import UniversalStructures from "./UniversalStructures";
 import PartnershipMap from "./PartnershipMap";
 import OrganizingIntelligence from "./OrganizingIntelligence";
 import CoordinateReading from "@/components/CoordinateReading";
+import { ORG_DIAGNOSTIC_SYSTEM_PROMPT } from "@/lib/orgDiagnosticPrompt";
 
 // ════════════════════════════════════════════════════════════════
 // PATTERN LITERACY CERTIFICATION APP v1
@@ -48,7 +49,8 @@ const KEYS = {
   user: "plc-user",
   progress: "plc-progress",
   exercises: "plc-exercises",
-  orgs: "plc-organizations",
+  orgs: "plc-organizations",       // Diagnostic readings, each with clientId
+  clients: "plc-clients",           // Client organization roster (practitioner-managed)
   plans: "plc-action-plans",
 };
 
@@ -598,55 +600,95 @@ const ModuleView = ({ module, onBack, onLesson, progress }) => {
 
 // ─── DIAGNOSTIC ENGINE ───────────────────────────────────────
 
+// ─── DIAGNOSTIC ENGINE ───────────────────────────────────────
+// Guided 12-question wizard that runs the /api/org-diagnostic path
+// against the 48-state framework prompt (shared with PartnershipMap).
+// Every reading is associated with a client organization so the
+// practitioner can keep a history per client and generate a
+// shareable report for the client organization.
+//
+// Flow:
+//   1. Client selection (pick existing or create new)
+//   2. Wizard (12 questions across History / Energy / Challenges /
+//      Systems / Intuition categories)
+//   3. Result view with 48-state fields + copy-shareable-text
+// ─────────────────────────────────────────────────────────────
+
 const DiagnosticEngine = ({ onBack }) => {
+  // Client roster + selection
+  const [clients, setClients] = useState(() => load(KEYS.clients, []));
+  const [activeClientId, setActiveClientId] = useState(null);
+  const [showNewClient, setShowNewClient] = useState(false);
+  const [newClientDraft, setNewClientDraft] = useState({ name: "", contactName: "", contactEmail: "", notes: "" });
+
+  // Wizard + reading state
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState({});
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
 
+  // Result-view state — practitioner notes that get included in the
+  // shareable report but not sent to the model
+  const [practitionerNotes, setPractitionerNotes] = useState("");
+  const [copyState, setCopyState] = useState("idle"); // idle | copying | copied
+
+  const activeClient = clients.find((c) => c.id === activeClientId) || null;
   const q = DIAGNOSTIC_QUESTIONS[step];
   const total = DIAGNOSTIC_QUESTIONS.length;
 
+  // ─── Client CRUD ────────────────────────────────────────────
+  const saveClients = (next) => {
+    setClients(next);
+    save(KEYS.clients, next);
+  };
+
+  const createClient = () => {
+    const name = newClientDraft.name.trim();
+    if (name.length < 2) return;
+    const client = {
+      id: `client-${Date.now()}`,
+      name,
+      contactName: newClientDraft.contactName.trim() || null,
+      contactEmail: newClientDraft.contactEmail.trim() || null,
+      notes: newClientDraft.notes.trim() || null,
+      createdAt: new Date().toISOString(),
+    };
+    saveClients([client, ...clients]);
+    setActiveClientId(client.id);
+    setShowNewClient(false);
+    setNewClientDraft({ name: "", contactName: "", contactEmail: "", notes: "" });
+  };
+
+  // ─── Wizard handlers ────────────────────────────────────────
   const handleAnswer = (val) => {
-    setAnswers(prev => ({ ...prev, [q.id]: val }));
+    setAnswers((prev) => ({ ...prev, [q.id]: val }));
   };
 
   const handleNext = () => {
-    if (step < total - 1) setStep(s => s + 1);
+    if (step < total - 1) setStep((s) => s + 1);
     else runDiagnostic();
   };
 
+  // ─── Diagnostic call ────────────────────────────────────────
   const runDiagnostic = async () => {
     setLoading(true);
     try {
-      const prompt = `You are a Pattern Literacy diagnostic engine for Twelvefold Institute. Based on the following organizational assessment, identify which of the 12 phases this organization is in and provide a detailed reading.
+      // User message: the wizard answers, structured. The system
+      // prompt (framework) is imported from the shared constants file
+      // and prepended by /api/org-diagnostic's flat-prompt contract.
+      const userMessage =
+        "ORGANIZATIONAL ASSESSMENT\n\n" +
+        (activeClient?.name ? `Client organization: ${activeClient.name}\n\n` : "") +
+        DIAGNOSTIC_QUESTIONS.map(
+          (dq) => `[${dq.category}] ${dq.question}\n  → ${answers[dq.id] || "(not answered)"}`
+        ).join("\n\n");
 
-The 12 phases are: Aries/Sparking (Year 0-1), Taurus/Building (Year 1-2), Gemini/Learning (Year 2-3), Cancer/Inner Root (Year 3-5), Leo/Authority (Year 5-7), Virgo/Correction (Year 6-8), Libra/Balance (Year 7-9), Scorpio/Transformation (Year 9-11), Sagittarius/Expansion (Year 11-13), Capricorn/Structure (Year 13-15), Aquarius/Liberation (Year 15-17), Pisces/Dissolution (Year 17-19).
+      const combinedPrompt = ORG_DIAGNOSTIC_SYSTEM_PROMPT + "\n\n---\n\n" + userMessage;
 
-Assessment answers:
-${DIAGNOSTIC_QUESTIONS.map(dq => `${dq.question}: ${answers[dq.id] || "Not answered"}`).join("\n")}
-
-Respond ONLY in JSON format with these exact fields:
-{
-  "phase": "the phase name (e.g. Cancer)",
-  "felt_name": "the felt-experience name (e.g. Inner Root)",
-  "confidence": 85,
-  "summary": "2-3 sentence summary of the diagnosis",
-  "curriculum": ["list of 5-7 specific tasks this phase is asking"],
-  "leadership_needs": "what leadership capacities are needed right now",
-  "common_mistakes": ["2-3 mistakes to watch for in this phase"],
-  "next_steps": ["3-4 specific recommended next steps"],
-  "reading": "A 200-word detailed reading addressing this organization's specific situation"
-}`;
-
-      // Route through our server-side proxy at /api/org-diagnostic.
-      // The original code called api.anthropic.com directly, which would
-      // either expose an API key or fail outright. The server endpoint
-      // holds the key safely and returns parsed JSON.
       const res = await fetch("/api/org-diagnostic", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify({ prompt: combinedPrompt }),
       });
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
@@ -655,22 +697,278 @@ Respond ONLY in JSON format with these exact fields:
       const parsed = await res.json();
       setResult(parsed);
 
-      // Save to organizations
+      // Save reading with client link
       const orgs = load(KEYS.orgs, []);
-      orgs.push({ id: Date.now(), date: new Date().toISOString(), answers, result: parsed });
+      orgs.unshift({
+        id: `reading-${Date.now()}`,
+        date: new Date().toISOString(),
+        clientId: activeClientId,
+        clientName: activeClient?.name || null,
+        answers,
+        result: parsed,
+        practitionerNotes: null, // updated when practitioner adds notes
+      });
       save(KEYS.orgs, orgs);
     } catch (err) {
       console.error("Diagnostic error:", err);
-      setResult({ error: true, message: "Diagnostic could not be completed. Check your API connection." });
+      setResult({ error: true, message: err.message || "Diagnostic could not be completed. Check your connection." });
     }
     setLoading(false);
   };
 
+  // ─── Shareable report ──────────────────────────────────────
+  // Formats the reading as plain-text the practitioner can paste into
+  // their own email, doc, or messaging app. Not sent by us — the
+  // practitioner owns the client relationship and the send.
+  const buildShareableReport = () => {
+    if (!result || result.error) return "";
+    const r = result.org_reading || result;
+    const dateStr = new Date().toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" });
+    const lines = [];
+    lines.push(`ORGANIZATIONAL PATTERN READING`);
+    if (activeClient?.name) lines.push(`Prepared for: ${activeClient.name}`);
+    lines.push(`Date: ${dateStr}`);
+    lines.push("");
+    if (practitionerNotes.trim()) {
+      lines.push("PRACTITIONER NOTE");
+      lines.push(practitionerNotes.trim());
+      lines.push("");
+    }
+    lines.push("─────────────────────────────────────");
+    lines.push("");
+    if (r.phase_name || r.phase_label) {
+      lines.push(`PHASE: ${[r.phase_name, r.phase_label].filter(Boolean).join(" · ")}${r.micro_state ? ` · ${r.micro_state}` : ""}`);
+    }
+    if (r.state_code) lines.push(`STATE CODE: ${r.state_code}`);
+    if (r.pattern_name) lines.push(`PATTERN NAME: ${r.pattern_name}`);
+    if (r.org_pattern_type) lines.push(`ORGANIZATIONAL TYPE: ${r.org_pattern_type}`);
+    if (typeof r.confidence === "number") lines.push(`CONFIDENCE: ${r.confidence}%`);
+    lines.push("");
+    if (r.summary) {
+      lines.push("SUMMARY");
+      lines.push(r.summary);
+      lines.push("");
+    }
+    if (r.collective_curriculum) {
+      lines.push("WHAT THIS PHASE IS TEACHING");
+      lines.push(r.collective_curriculum);
+      lines.push("");
+    }
+    if (r.active_lesson) {
+      lines.push("THE ACTIVE LESSON");
+      lines.push(r.active_lesson);
+      lines.push("");
+    }
+    if (r.avoidance_zone) {
+      lines.push("WHAT IS BEING AVOIDED");
+      lines.push(r.avoidance_zone);
+      lines.push("");
+    }
+    if (r.recommended_participation) {
+      lines.push("RECOMMENDED PARTICIPATION");
+      lines.push(r.recommended_participation);
+      lines.push("");
+    }
+    if (r.what_breaks_if_ignored) {
+      lines.push("WHAT BREAKS IF THIS IS IGNORED");
+      lines.push(r.what_breaks_if_ignored);
+      lines.push("");
+    }
+    if (r.next_phase_signal) {
+      lines.push("NEXT PHASE SIGNAL");
+      lines.push(r.next_phase_signal);
+      lines.push("");
+    }
+    if (r.leadership_needs) {
+      lines.push("LEADERSHIP NEEDS");
+      lines.push(r.leadership_needs);
+      lines.push("");
+    }
+    if (Array.isArray(r.common_mistakes) && r.common_mistakes.length) {
+      lines.push("COMMON MISTAKES TO AVOID");
+      r.common_mistakes.forEach((m, i) => lines.push(`${i + 1}. ${m}`));
+      lines.push("");
+    }
+    if (Array.isArray(r.next_steps) && r.next_steps.length) {
+      lines.push("RECOMMENDED NEXT STEPS");
+      r.next_steps.forEach((s, i) => lines.push(`${i + 1}. ${s}`));
+      lines.push("");
+    }
+    lines.push("─────────────────────────────────────");
+    lines.push("Prepared using the Twelvefold Institute pattern diagnostic framework.");
+    return lines.join("\n");
+  };
+
+  const handleCopyShareable = async () => {
+    const text = buildShareableReport();
+    if (!text) return;
+    setCopyState("copying");
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        // Fallback for older browsers / non-HTTPS contexts
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.opacity = "0";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      setCopyState("copied");
+      // Persist notes on the reading so it's on record for later
+      if (practitionerNotes.trim()) {
+        const orgs = load(KEYS.orgs, []);
+        if (orgs.length > 0) {
+          orgs[0] = { ...orgs[0], practitionerNotes: practitionerNotes.trim() };
+          save(KEYS.orgs, orgs);
+        }
+      }
+      setTimeout(() => setCopyState("idle"), 2200);
+    } catch (e) {
+      console.error("Copy failed:", e);
+      setCopyState("idle");
+    }
+  };
+
+  // ═══════════════ RENDER STATES ═══════════════
+
+  // Client picker — shown before the wizard when no client is active
+  if (!activeClient) {
+    return (
+      <div style={{ maxWidth: "620px", margin: "0 auto" }}>
+        <button onClick={onBack} style={{ background: "none", border: "none", color: T.textDim, cursor: "pointer", fontFamily: T.fontMono, fontSize: "13px", marginBottom: "24px" }}>← Back</button>
+
+        <h2 style={{ fontFamily: T.fontMono, fontSize: "20px", color: T.text, marginBottom: "8px" }}>Organizational Diagnostic</h2>
+        <p style={{ fontFamily: T.font, fontSize: "15px", color: T.textDim, marginBottom: "28px", lineHeight: "1.6" }}>
+          Select a client organization, or add a new one. Readings are saved per client so you can track pattern evolution over time.
+        </p>
+
+        {!showNewClient && (
+          <>
+            {clients.length > 0 && (
+              <div style={{ marginBottom: "20px" }}>
+                <div style={{ fontFamily: T.fontMono, fontSize: "11px", color: T.textMuted, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "12px" }}>Existing clients</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {clients.map((c) => (
+                    <button
+                      key={c.id}
+                      onClick={() => setActiveClientId(c.id)}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        padding: "14px 16px",
+                        background: T.bgInput,
+                        border: `1px solid ${T.border}`,
+                        borderRadius: T.radiusSm,
+                        color: T.text,
+                        fontFamily: T.font,
+                        fontSize: "15px",
+                        textAlign: "left",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                      }}
+                      onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(167,139,250,0.3)"; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.borderColor = T.border; }}
+                    >
+                      <div>
+                        <div style={{ fontWeight: 500 }}>{c.name}</div>
+                        {c.contactName && <div style={{ fontFamily: T.fontMono, fontSize: "11px", color: T.textDim, marginTop: "3px" }}>{c.contactName}{c.contactEmail ? ` · ${c.contactEmail}` : ""}</div>}
+                      </div>
+                      <span style={{ fontFamily: T.fontMono, fontSize: "12px", color: T.accent }}>→</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <button
+              onClick={() => setShowNewClient(true)}
+              style={{
+                width: "100%",
+                padding: "14px",
+                background: "transparent",
+                border: `1px dashed ${T.border}`,
+                borderRadius: T.radiusSm,
+                color: T.accent,
+                fontFamily: T.fontMono,
+                fontSize: "13px",
+                cursor: "pointer",
+                transition: "all 0.2s ease",
+              }}
+              onMouseEnter={(e) => { e.currentTarget.style.borderColor = T.accent; }}
+              onMouseLeave={(e) => { e.currentTarget.style.borderColor = T.border; }}
+            >
+              + Add new client organization
+            </button>
+          </>
+        )}
+
+        {showNewClient && (
+          <Card>
+            <div style={{ fontFamily: T.fontMono, fontSize: "11px", color: T.textMuted, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "16px" }}>New client organization</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              <div>
+                <label style={{ display: "block", fontFamily: T.fontMono, fontSize: "10px", color: T.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "6px", fontWeight: 700 }}>Organization name *</label>
+                <input
+                  type="text"
+                  value={newClientDraft.name}
+                  onChange={(e) => setNewClientDraft((d) => ({ ...d, name: e.target.value }))}
+                  placeholder="Acme Foundation"
+                  style={{ width: "100%", padding: "10px 12px", background: T.bgInput, border: `1px solid ${T.border}`, borderRadius: T.radiusSm, color: T.text, fontFamily: T.font, fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+                />
+              </div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+                <div>
+                  <label style={{ display: "block", fontFamily: T.fontMono, fontSize: "10px", color: T.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "6px", fontWeight: 700 }}>Contact name</label>
+                  <input
+                    type="text"
+                    value={newClientDraft.contactName}
+                    onChange={(e) => setNewClientDraft((d) => ({ ...d, contactName: e.target.value }))}
+                    placeholder="Jane Doe"
+                    style={{ width: "100%", padding: "10px 12px", background: T.bgInput, border: `1px solid ${T.border}`, borderRadius: T.radiusSm, color: T.text, fontFamily: T.font, fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+                  />
+                </div>
+                <div>
+                  <label style={{ display: "block", fontFamily: T.fontMono, fontSize: "10px", color: T.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "6px", fontWeight: 700 }}>Contact email</label>
+                  <input
+                    type="email"
+                    value={newClientDraft.contactEmail}
+                    onChange={(e) => setNewClientDraft((d) => ({ ...d, contactEmail: e.target.value }))}
+                    placeholder="jane@acme.org"
+                    style={{ width: "100%", padding: "10px 12px", background: T.bgInput, border: `1px solid ${T.border}`, borderRadius: T.radiusSm, color: T.text, fontFamily: T.font, fontSize: "14px", outline: "none", boxSizing: "border-box" }}
+                  />
+                </div>
+              </div>
+              <div>
+                <label style={{ display: "block", fontFamily: T.fontMono, fontSize: "10px", color: T.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "6px", fontWeight: 700 }}>Notes (optional)</label>
+                <textarea
+                  value={newClientDraft.notes}
+                  onChange={(e) => setNewClientDraft((d) => ({ ...d, notes: e.target.value }))}
+                  placeholder="Context about this engagement..."
+                  rows={2}
+                  style={{ width: "100%", padding: "10px 12px", background: T.bgInput, border: `1px solid ${T.border}`, borderRadius: T.radiusSm, color: T.text, fontFamily: T.font, fontSize: "14px", outline: "none", boxSizing: "border-box", resize: "vertical" }}
+                />
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: "10px", marginTop: "18px" }}>
+              <Btn onClick={createClient} disabled={newClientDraft.name.trim().length < 2}>Create client</Btn>
+              <Btn onClick={() => { setShowNewClient(false); setNewClientDraft({ name: "", contactName: "", contactEmail: "", notes: "" }); }} variant="ghost">Cancel</Btn>
+            </div>
+          </Card>
+        )}
+      </div>
+    );
+  }
+
   if (loading) return (
     <div style={{ maxWidth: "600px", margin: "80px auto", textAlign: "center" }}>
       <div style={{ fontSize: "48px", marginBottom: "24px", animation: "spin 2s linear infinite" }}>◈</div>
-      <p style={{ fontFamily: T.fontMono, fontSize: "16px", color: T.accent }}>Analyzing your organization...</p>
-      <p style={{ fontFamily: T.font, fontSize: "14px", color: T.textDim }}>Reading energy patterns, timing signals, and challenge indicators</p>
+      <p style={{ fontFamily: T.fontMono, fontSize: "16px", color: T.accent }}>Analyzing {activeClient.name}...</p>
+      <p style={{ fontFamily: T.font, fontSize: "14px", color: T.textDim }}>Reading phase, micro-state, and organizational pattern type</p>
     </div>
   );
 
@@ -682,74 +980,172 @@ Respond ONLY in JSON format with these exact fields:
       </div>
     );
 
-    const phaseData = PHASES_OVERVIEW.find(p => p.name.toLowerCase() === result.phase?.toLowerCase());
+    // The shared prompt wraps the diagnostic in `org_reading`. Handle
+    // both shapes defensively — if a future prompt returns flat, we
+    // still work; if it's wrapped (current), we unwrap it.
+    const r = result.org_reading || result;
+    const phaseData = PHASES_OVERVIEW.find((p) => p.name.toLowerCase() === r.phase_name?.toLowerCase());
 
     return (
-      <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+      <div style={{ maxWidth: "780px", margin: "0 auto" }}>
         <button onClick={onBack} style={{ background: "none", border: "none", color: T.textDim, cursor: "pointer", fontFamily: T.fontMono, fontSize: "13px", marginBottom: "24px" }}>← Back</button>
 
-        <Card style={{ borderColor: `${phaseData?.color || T.accent}40`, marginBottom: "24px", textAlign: "center", padding: "40px" }}>
-          <div style={{ fontFamily: T.fontMono, fontSize: "12px", color: T.textMuted, textTransform: "uppercase", letterSpacing: "2px", marginBottom: "8px" }}>Your Organization's Phase</div>
-          <div style={{ fontSize: "48px", marginBottom: "8px" }}>{phaseData?.icon || "◈"}</div>
-          <h2 style={{ fontFamily: T.fontMono, fontSize: "28px", color: phaseData?.color || T.accent, margin: "0 0 4px" }}>{result.phase} / {result.felt_name}</h2>
-          <div style={{ fontFamily: T.fontMono, fontSize: "14px", color: T.textDim, marginBottom: "16px" }}>{result.confidence}% Confidence</div>
-          <p style={{ fontFamily: T.font, fontSize: "16px", color: T.text, lineHeight: "1.6" }}>{result.summary}</p>
+        {/* Client header */}
+        <div style={{ fontFamily: T.fontMono, fontSize: "10px", color: T.textMuted, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "6px" }}>Reading for</div>
+        <h2 style={{ fontFamily: T.font, fontSize: "22px", color: T.text, margin: "0 0 24px", fontWeight: 600 }}>{activeClient.name}</h2>
+
+        {/* Primary result card */}
+        <Card style={{ borderColor: `${phaseData?.color || T.accent}40`, marginBottom: "20px", textAlign: "center", padding: "36px" }}>
+          <div style={{ fontFamily: T.fontMono, fontSize: "11px", color: T.textMuted, textTransform: "uppercase", letterSpacing: "2px", marginBottom: "10px" }}>Pattern State</div>
+          <div style={{ fontSize: "42px", marginBottom: "10px" }}>{phaseData?.icon || "◈"}</div>
+          {r.pattern_name && (
+            <h2 style={{ fontFamily: T.font, fontSize: "28px", color: phaseData?.color || T.gold, margin: "0 0 6px", fontStyle: "italic", fontWeight: 600 }}>{r.pattern_name}</h2>
+          )}
+          <div style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.text, marginBottom: "10px", letterSpacing: "0.5px" }}>
+            {[r.phase_name, r.phase_label].filter(Boolean).join(" · ")}
+            {r.micro_state ? ` · ${r.micro_state}` : ""}
+            {r.state_code ? ` (${r.state_code})` : ""}
+          </div>
+          {typeof r.confidence === "number" && (
+            <div style={{ fontFamily: T.fontMono, fontSize: "11px", color: T.textDim, marginBottom: "16px" }}>{r.confidence}% confidence</div>
+          )}
+          {r.summary && (
+            <p style={{ fontFamily: T.font, fontSize: "16px", color: T.text, lineHeight: "1.6", margin: "8px 0 0" }}>{r.summary}</p>
+          )}
         </Card>
 
-        <Card style={{ marginBottom: "16px" }}>
-          <h3 style={{ fontFamily: T.fontMono, fontSize: "14px", color: T.gold, marginBottom: "16px" }}>What This Phase Is Asking</h3>
-          {result.curriculum?.map((item, i) => (
-            <div key={i} style={{ display: "flex", gap: "10px", marginBottom: "10px" }}>
-              <span style={{ color: T.gold, flexShrink: 0 }}>→</span>
-              <span style={{ fontFamily: T.font, fontSize: "15px", color: T.text, lineHeight: "1.5" }}>{item}</span>
+        {/* Org pattern type */}
+        {r.org_pattern_type && (
+          <Card style={{ marginBottom: "16px" }}>
+            <div style={{ fontFamily: T.fontMono, fontSize: "10px", color: T.textMuted, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "8px" }}>Organizational Type</div>
+            <div style={{ fontFamily: T.font, fontSize: "18px", color: T.accent, fontWeight: 600 }}>{r.org_pattern_type}</div>
+          </Card>
+        )}
+
+        {/* Curriculum + lesson */}
+        {r.collective_curriculum && (
+          <Card style={{ marginBottom: "16px" }}>
+            <h3 style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.gold, marginBottom: "12px", letterSpacing: "0.5px" }}>What This Phase Is Teaching</h3>
+            <p style={{ fontFamily: T.font, fontSize: "15px", color: T.text, lineHeight: "1.7", margin: 0 }}>{r.collective_curriculum}</p>
+          </Card>
+        )}
+
+        {r.active_lesson && (
+          <Card style={{ marginBottom: "16px" }}>
+            <h3 style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.gold, marginBottom: "12px", letterSpacing: "0.5px" }}>The Active Lesson</h3>
+            <p style={{ fontFamily: T.font, fontSize: "15px", color: T.text, lineHeight: "1.7", margin: 0 }}>{r.active_lesson}</p>
+          </Card>
+        )}
+
+        {/* Avoidance zone */}
+        {r.avoidance_zone && (
+          <Card style={{ marginBottom: "16px", borderColor: "rgba(255,107,107,0.25)" }}>
+            <h3 style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.danger, marginBottom: "12px", letterSpacing: "0.5px" }}>What Is Being Avoided</h3>
+            <p style={{ fontFamily: T.font, fontSize: "15px", color: T.text, lineHeight: "1.7", margin: 0 }}>{r.avoidance_zone}</p>
+          </Card>
+        )}
+
+        {/* Recommended participation — key output block */}
+        {r.recommended_participation && (
+          <Card style={{ marginBottom: "16px", borderColor: "rgba(167,139,250,0.25)" }}>
+            <h3 style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.accent, marginBottom: "12px", letterSpacing: "0.5px" }}>Recommended Participation</h3>
+            <p style={{ fontFamily: T.font, fontSize: "15px", color: T.text, lineHeight: "1.7", margin: 0 }}>{r.recommended_participation}</p>
+          </Card>
+        )}
+
+        {/* What breaks if ignored */}
+        {r.what_breaks_if_ignored && (
+          <Card style={{ marginBottom: "16px" }}>
+            <h3 style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.warn, marginBottom: "12px", letterSpacing: "0.5px" }}>What Breaks If This Is Ignored</h3>
+            <p style={{ fontFamily: T.font, fontSize: "15px", color: T.text, lineHeight: "1.7", margin: 0 }}>{r.what_breaks_if_ignored}</p>
+          </Card>
+        )}
+
+        {/* Next phase signal */}
+        {r.next_phase_signal && (
+          <Card style={{ marginBottom: "16px" }}>
+            <h3 style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.success, marginBottom: "12px", letterSpacing: "0.5px" }}>Next Phase Signal</h3>
+            <p style={{ fontFamily: T.font, fontSize: "15px", color: T.text, lineHeight: "1.7", margin: 0 }}>{r.next_phase_signal}</p>
+          </Card>
+        )}
+
+        {/* Leadership needs */}
+        {r.leadership_needs && (
+          <Card style={{ marginBottom: "16px" }}>
+            <h3 style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.success, marginBottom: "12px", letterSpacing: "0.5px" }}>Leadership Needs</h3>
+            <p style={{ fontFamily: T.font, fontSize: "15px", color: T.text, lineHeight: "1.6", margin: 0 }}>{r.leadership_needs}</p>
+          </Card>
+        )}
+
+        {/* Common mistakes */}
+        {Array.isArray(r.common_mistakes) && r.common_mistakes.length > 0 && (
+          <Card style={{ marginBottom: "16px" }}>
+            <h3 style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.danger, marginBottom: "12px", letterSpacing: "0.5px" }}>Mistakes to Watch For</h3>
+            {r.common_mistakes.map((m, i) => (
+              <div key={i} style={{ display: "flex", gap: "10px", marginBottom: "8px" }}>
+                <span style={{ color: T.danger, flexShrink: 0 }}>⚠</span>
+                <span style={{ fontFamily: T.font, fontSize: "15px", color: T.text, lineHeight: "1.5" }}>{m}</span>
+              </div>
+            ))}
+          </Card>
+        )}
+
+        {/* Next steps */}
+        {Array.isArray(r.next_steps) && r.next_steps.length > 0 && (
+          <Card style={{ marginBottom: "24px" }}>
+            <h3 style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.accent, marginBottom: "12px", letterSpacing: "0.5px" }}>Recommended Next Steps</h3>
+            {r.next_steps.map((s, i) => (
+              <div key={i} style={{ display: "flex", gap: "10px", marginBottom: "8px" }}>
+                <span style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.accent, flexShrink: 0 }}>{i + 1}.</span>
+                <span style={{ fontFamily: T.font, fontSize: "15px", color: T.text, lineHeight: "1.5" }}>{s}</span>
+              </div>
+            ))}
+          </Card>
+        )}
+
+        {/* Shareable report builder */}
+        <Card style={{ marginBottom: "20px", borderColor: "rgba(251,191,36,0.25)", background: "rgba(251,191,36,0.04)" }}>
+          <h3 style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.gold, marginBottom: "10px", letterSpacing: "0.5px" }}>Share with {activeClient.name}</h3>
+          <p style={{ fontFamily: T.font, fontSize: "14px", color: T.textDim, lineHeight: "1.6", margin: "0 0 14px" }}>
+            Add a personal note, then copy the formatted report to paste into your own email, doc, or messaging tool. You send it directly — the relationship stays yours.
+          </p>
+          <label style={{ display: "block", fontFamily: T.fontMono, fontSize: "10px", color: T.textMuted, textTransform: "uppercase", letterSpacing: "1px", marginBottom: "6px", fontWeight: 700 }}>Practitioner note (optional)</label>
+          <textarea
+            value={practitionerNotes}
+            onChange={(e) => setPractitionerNotes(e.target.value)}
+            placeholder="A few words framing the reading for the client..."
+            rows={3}
+            style={{ width: "100%", padding: "10px 12px", background: T.bgInput, border: `1px solid ${T.border}`, borderRadius: T.radiusSm, color: T.text, fontFamily: T.font, fontSize: "14px", outline: "none", boxSizing: "border-box", resize: "vertical", marginBottom: "12px" }}
+          />
+          <Btn onClick={handleCopyShareable} variant="gold" disabled={copyState === "copying"}>
+            {copyState === "copied" ? "✓ Copied to clipboard" : copyState === "copying" ? "Copying..." : "Copy shareable report"}
+          </Btn>
+          {activeClient.contactEmail && (
+            <div style={{ fontFamily: T.fontMono, fontSize: "11px", color: T.textMuted, marginTop: "10px" }}>
+              Client contact: {activeClient.contactEmail}
             </div>
-          ))}
+          )}
         </Card>
 
-        <Card style={{ marginBottom: "16px" }}>
-          <h3 style={{ fontFamily: T.fontMono, fontSize: "14px", color: T.accent, marginBottom: "12px" }}>Your Reading</h3>
-          <p style={{ fontFamily: T.font, fontSize: "15px", color: T.text, lineHeight: "1.7" }}>{result.reading}</p>
-        </Card>
-
-        <Card style={{ marginBottom: "16px" }}>
-          <h3 style={{ fontFamily: T.fontMono, fontSize: "14px", color: T.success, marginBottom: "12px" }}>Leadership Needs</h3>
-          <p style={{ fontFamily: T.font, fontSize: "15px", color: T.text, lineHeight: "1.6" }}>{result.leadership_needs}</p>
-        </Card>
-
-        <Card style={{ marginBottom: "16px" }}>
-          <h3 style={{ fontFamily: T.fontMono, fontSize: "14px", color: T.danger, marginBottom: "12px" }}>Mistakes to Watch For</h3>
-          {result.common_mistakes?.map((m, i) => (
-            <div key={i} style={{ display: "flex", gap: "10px", marginBottom: "8px" }}>
-              <span style={{ color: T.danger, flexShrink: 0 }}>⚠</span>
-              <span style={{ fontFamily: T.font, fontSize: "15px", color: T.text, lineHeight: "1.5" }}>{m}</span>
-            </div>
-          ))}
-        </Card>
-
-        <Card style={{ marginBottom: "24px" }}>
-          <h3 style={{ fontFamily: T.fontMono, fontSize: "14px", color: T.accent, marginBottom: "12px" }}>Recommended Next Steps</h3>
-          {result.next_steps?.map((s, i) => (
-            <div key={i} style={{ display: "flex", gap: "10px", marginBottom: "8px" }}>
-              <span style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.accent, flexShrink: 0 }}>{i + 1}.</span>
-              <span style={{ fontFamily: T.font, fontSize: "15px", color: T.text, lineHeight: "1.5" }}>{s}</span>
-            </div>
-          ))}
-        </Card>
-
-        <div style={{ display: "flex", gap: "12px" }}>
-          <Btn onClick={() => { setResult(null); setStep(0); setAnswers({}); }} variant="ghost">Run New Diagnostic</Btn>
+        <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+          <Btn onClick={() => { setResult(null); setStep(0); setAnswers({}); setPractitionerNotes(""); }} variant="ghost">Run new diagnostic (same client)</Btn>
+          <Btn onClick={() => { setResult(null); setStep(0); setAnswers({}); setPractitionerNotes(""); setActiveClientId(null); }} variant="ghost">Switch client</Btn>
           <Btn onClick={onBack} variant="primary">Back to Dashboard</Btn>
         </div>
       </div>
     );
   }
 
+  // Wizard render
   return (
-    <div style={{ maxWidth: "600px", margin: "0 auto" }}>
-      <button onClick={onBack} style={{ background: "none", border: "none", color: T.textDim, cursor: "pointer", fontFamily: T.fontMono, fontSize: "13px", marginBottom: "24px" }}>← Back</button>
+    <div style={{ maxWidth: "620px", margin: "0 auto" }}>
+      <button onClick={() => setActiveClientId(null)} style={{ background: "none", border: "none", color: T.textDim, cursor: "pointer", fontFamily: T.fontMono, fontSize: "13px", marginBottom: "24px" }}>← Change client</button>
 
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
-        <h2 style={{ fontFamily: T.fontMono, fontSize: "20px", color: T.text, margin: 0 }}>Organizational Diagnostic</h2>
+      <div style={{ fontFamily: T.fontMono, fontSize: "10px", color: T.textMuted, textTransform: "uppercase", letterSpacing: "1.5px", marginBottom: "4px" }}>Diagnostic for</div>
+      <div style={{ fontFamily: T.font, fontSize: "18px", color: T.text, fontWeight: 600, marginBottom: "28px" }}>{activeClient.name}</div>
+
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+        <h2 style={{ fontFamily: T.fontMono, fontSize: "18px", color: T.text, margin: 0 }}>Assessment</h2>
         <span style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.textDim }}>{step + 1} / {total}</span>
       </div>
 
@@ -851,7 +1247,7 @@ const Dashboard = ({ user, progress, onModule, onDiagnostic, onTools, onPartners
         <Card onClick={onDiagnostic} style={{ textAlign: "center", padding: "20px" }}>
           <div style={{ fontSize: "28px", marginBottom: "8px" }}>◎</div>
           <div style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.gold }}>Run Diagnostic</div>
-          <div style={{ fontFamily: T.font, fontSize: "12px", color: T.textDim, marginTop: "4px" }}>Assess an organization</div>
+          <div style={{ fontFamily: T.font, fontSize: "12px", color: T.textDim, marginTop: "4px" }}>Client organizational reading</div>
         </Card>
         <Card onClick={onPartnershipMap} style={{ textAlign: "center", padding: "20px" }}>
           <div style={{ fontSize: "28px", marginBottom: "8px" }}>◇</div>
