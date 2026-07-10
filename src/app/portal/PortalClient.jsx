@@ -3,6 +3,8 @@
 import { useState } from "react";
 import PatternMastery from "./PatternMastery";
 import UniversalStructures from "./UniversalStructures";
+import PartnershipMap from "./PartnershipMap";
+import OrganizingIntelligence from "./OrganizingIntelligence";
 import CoordinateReading from "@/components/CoordinateReading";
 
 // ════════════════════════════════════════════════════════════════
@@ -812,7 +814,7 @@ Respond ONLY in JSON format with these exact fields:
 
 // ─── DASHBOARD ───────────────────────────────────────────────
 
-const Dashboard = ({ user, progress, onModule, onDiagnostic, onTools }) => {
+const Dashboard = ({ user, progress, onModule, onDiagnostic, onTools, onPartnershipMap, onOrganizingIntelligence }) => {
   const totalLessons = MODULES.reduce((sum, m) => sum + m.lessons.length, 0);
   const completedLessons = progress.completedLessons?.length || 0;
   const certProgress = Math.round((completedLessons / totalLessons) * 100);
@@ -850,6 +852,16 @@ const Dashboard = ({ user, progress, onModule, onDiagnostic, onTools }) => {
           <div style={{ fontSize: "28px", marginBottom: "8px" }}>◎</div>
           <div style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.gold }}>Run Diagnostic</div>
           <div style={{ fontFamily: T.font, fontSize: "12px", color: T.textDim, marginTop: "4px" }}>Assess an organization</div>
+        </Card>
+        <Card onClick={onPartnershipMap} style={{ textAlign: "center", padding: "20px" }}>
+          <div style={{ fontSize: "28px", marginBottom: "8px" }}>◇</div>
+          <div style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.accent }}>Partnership Map</div>
+          <div style={{ fontFamily: T.font, fontSize: "12px", color: T.textDim, marginTop: "4px" }}>Capacity + institutional reading</div>
+        </Card>
+        <Card onClick={onOrganizingIntelligence} style={{ textAlign: "center", padding: "20px" }}>
+          <div style={{ fontSize: "28px", marginBottom: "8px" }}>✧</div>
+          <div style={{ fontFamily: T.fontMono, fontSize: "13px", color: T.gold }}>Organizing Intelligence</div>
+          <div style={{ fontFamily: T.font, fontSize: "12px", color: T.textDim, marginTop: "4px" }}>Read the five-layer transformation map</div>
         </Card>
         <Card onClick={onTools} style={{ textAlign: "center", padding: "20px" }}>
           <div style={{ fontSize: "28px", marginBottom: "8px" }}>◆</div>
@@ -1038,7 +1050,7 @@ const Sidebar = ({ view, setView, progress, mobileOpen, onClose, isCertified = f
   const totalLessons = MODULES.reduce((sum, m) => sum + m.lessons.length, 0);
   const completed = progress.completedLessons?.length || 0;
 
-  const CERT_ONLY_VIEWS = ["diagnostic", "coordinate", "mastery", "client-readings", "tools"];
+  const CERT_ONLY_VIEWS = ["diagnostic", "coordinate", "mastery", "client-readings", "tools", "partnership-map", "organizing-intelligence"];
   const navItems = [
     { id: "dashboard", label: "Dashboard", icon: "◈" },
     { id: "structures", label: "Universal Structures", icon: "❖" },
@@ -1047,6 +1059,8 @@ const Sidebar = ({ view, setView, progress, mobileOpen, onClose, isCertified = f
       { id: "diagnostic", label: "Diagnostic", icon: "◎" },
       { id: "coordinate", label: "Coordinate Reading", icon: "⊹" },
       { id: "mastery", label: "Pattern Mastery", icon: "✸" },
+      { id: "partnership-map", label: "Partnership Map", icon: "◇" },
+      { id: "organizing-intelligence", label: "Organizing Intelligence", icon: "✧" },
       { id: "client-readings", label: "Client Readings", icon: "✦", external: "/read/app?mode=master" },
       { id: "tools", label: "Practitioner Tools", icon: "◆" },
     ] : []),
@@ -1316,7 +1330,7 @@ export default function CertificationApp({ isCertified = false }) {
     }
 
     // Practitioner-only guard — redirect free users back to dashboard
-    const CERT_ONLY = ["diagnostic", "mastery", "coordinate", "tools"];
+    const CERT_ONLY = ["diagnostic", "mastery", "coordinate", "tools", "partnership-map", "organizing-intelligence"];
     if (!isCertified && (CERT_ONLY.includes(view) || view.startsWith("module-"))) {
       return <PortalCertGate onGoStructures={() => setView("structures")} />;
     }
@@ -1339,6 +1353,17 @@ export default function CertificationApp({ isCertified = false }) {
       );
     }
 
+    // Partnership Map — capacity tracker + institutional diagnostic.
+    // Renders full-width; the module owns its own layout including
+    // the outer page padding. Do not wrap in an extra container.
+    if (view === "partnership-map") return <PartnershipMap />;
+
+    // Organizing Intelligence Engine — five-layer transformation map
+    // (Intelligent Order → Structure → Pattern → Rhythm → Events).
+    // Same layout convention as PartnershipMap: full-width, owns its
+    // page padding.
+    if (view === "organizing-intelligence") return <OrganizingIntelligence />;
+
     // Tools
     if (view === "tools") return <PractitionerTools onBack={() => setView("dashboard")} onDiagnostic={() => setView("diagnostic")} />;
 
@@ -1351,6 +1376,8 @@ export default function CertificationApp({ isCertified = false }) {
         onModule={handleModuleClick}
         onDiagnostic={() => setView("diagnostic")}
         onTools={() => setView("tools")}
+        onPartnershipMap={() => setView("partnership-map")}
+        onOrganizingIntelligence={() => setView("organizing-intelligence")}
       />
     );
   };
